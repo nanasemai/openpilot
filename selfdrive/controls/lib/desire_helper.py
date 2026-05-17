@@ -497,7 +497,7 @@ class DesireHelper:
       #  self.carrot_cmd_index_last = carrotMan.carrotCmdIndex
     elif carrotMan.carrotCmdIndex != self.carrot_cmd_index_last and (carrotMan.carrotCmd == "LANECHANGE" or carrotMan.carrotCmd == "OVERTAKE"): #来自app的变道命令
       self.carrot_cmd_index_last = carrotMan.carrotCmdIndex
-      self.carrot_lane_change_count = int(0.2 / DT_MDL)
+      self.carrot_lane_change_count = int(2.0 / DT_MDL)
       self.carrot_blinker_state = BLINKER_LEFT if carrotMan.carrotArg == "LEFT" else BLINKER_RIGHT
       print(f"---[{time.strftime('%H:%M:%S')}]Desire lanechange: {carrotMan.carrotArg},counter={self.carrot_lane_change_count},blinker={self.carrot_blinker_state},"
             f"state={self.lane_change_state},prev_desire_enabled={self.prev_desire_enabled},"
