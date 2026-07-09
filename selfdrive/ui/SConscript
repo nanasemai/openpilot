@@ -1,0 +1,74 @@
+from pathlib import Path
+import importlib.util
+import json
+
+Import('env', 'arch', 'common')
+
+UNIFONT_LANGUAGES = {"th", "zh-CHT", "zh-CHS", "ko", "ja"}
+
+def _get_language_codes():
+  translations_dir = Path(Dir("#selfdrive/ui/translations").abspath)
+  languages_file = translations_dir / "languages.json"
+  with open(languages_file, encoding="utf-8") as f:
+    languages = json.load(f)
+  return [code for code in languages.values() if code in UNIFONT_LANGUAGES]
+
+# build the fonts
+generator = File("#selfdrive/assets/fonts/process.py")
+source_files = Glob("#selfdrive/assets/fonts/*.ttf") + Glob("#selfdrive/assets/fonts/*.otf")
+
+output_files = []
+for f in source_files:
+  if "NotoColor" in f.name or f.name == "unifont.otf":
+    continue
+  stem = Path(f.path).stem
+  if stem.lower().startswith("opfont"):
+      labels_outputs = [(f"#{Path(f.path).parent / f'{stem}-Labels.fnt'}", f"#{Path(f.path).parent / f'{stem}-Labels.png'}")]
+      lang_codes = _get_language_codes()
+      lang_outputs = [(f"#{Path(f.path).parent / f'{stem}-{code}.fnt'}", f"#{Path(f.path).parent / f'{stem}-{code}.png'}") for code in lang_codes]
+      output_files.extend(labels_outputs + lang_outputs)
+  else:
+    output_files.append((f"#{Path(f.path).with_suffix('.fnt')}", f"#{Path(f.path).with_suffix('.png')}"))
+
+env.Command(
+  target=output_files,
+  source=[generator, source_files],
+  action=f"python3 {generator}",
+)
+
+
+if GetOption('extras') and arch == "larch64":
+  # build installers
+  raylib_dir = Path(importlib.util.find_spec("raylib").submodule_search_locations[0]) / "install"
+  raylib_env = env.Clone()
+  raylib_env['CPPPATH'] += [str(raylib_dir / "include")]
+  raylib_env['LIBPATH'] += [str(raylib_dir / "lib")]
+  raylib_env['LINKFLAGS'].append('-Wl,-strip-debug')
+
+  raylib_libs = common + ["raylib_comma", "GLESv2", "EGL", "gbm", "drm"]
+
+  release = "release3"
+  installers = [
+    ("openpilot", release),
+    ("openpilot_test", f"{release}-staging"),
+    ("openpilot_nightly", "nightly"),
+    ("openpilot_internal", "nightly-dev"),
+  ]
+
+  cont = raylib_env.Command("installer/continue_openpilot.o", "installer/continue_openpilot.sh",
+                            "ld -r -b binary -o $TARGET $SOURCE")
+  inter = raylib_env.Command("installer/inter_ttf.o", "installer/inter-ascii.ttf",
+                             "ld -r -b binary -o $TARGET $SOURCE")
+  inter_bold = raylib_env.Command("installer/inter_bold.o", "../assets/fonts/Inter-Bold.ttf",
+                              "ld -r -b binary -o $TARGET $SOURCE")
+  inter_light = raylib_env.Command("installer/inter_light.o", "../assets/fonts/Inter-Light.ttf",
+                              "ld -r -b binary -o $TARGET $SOURCE")
+  for name, branch in installers:
+    d = {'BRANCH': f"'\"{branch}\"'"}
+    if "internal" in name:
+      d['INTERNAL'] = "1"
+
+    obj = raylib_env.Object(f"installer/installers/installer_{name}.o", ["installer/installer.cc"], CPPDEFINES=d)
+    f = raylib_env.Program(f"installer/installers/installer_{name}", [obj, cont, inter, inter_bold, inter_light], LIBS=raylib_libs)
+    # keep installers small
+    assert f[0].get_size() < 2500*1e3, f[0].get_size()
