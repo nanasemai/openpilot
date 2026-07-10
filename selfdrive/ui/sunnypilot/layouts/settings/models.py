@@ -43,8 +43,9 @@ class ModelsLayout(Widget):
     self._initialize_items()
 
     self.clear_cache_item.action_item.set_value(f"{self.calculate_cache_size():.2f} MB")
-    for ctrl, key in [(self.lane_turn_value_control, "LaneTurnValue"), (self.delay_control, "LagdToggleDelay")]:
-      ctrl.action_item.set_value(int(float(ui_state.params.get(key, return_default=True)) * 100))
+    for ctrl, key, default in [(self.lane_turn_value_control, "LaneTurnValue", 1900), (self.delay_control, "LagdToggleDelay", 20)]:
+      v = ui_state.params.get(key, return_default=True)
+      ctrl.action_item.set_value(int(float(v) * 100) if v is not None else default)
 
     self._scroller = Scroller(self.items, line_separator=True, spacing=0)
 
@@ -103,7 +104,8 @@ class ModelsLayout(Widget):
     if lagd_toggle:
       desc += f"<br>{tr('Live Steer Delay:')} {ui_state.sm['liveDelay'].lateralDelay:.3f} s"
     elif ui_state.CP is not None:
-      sw = float(ui_state.params.get("LagdToggleDelay", "0.2"))
+      _sw = ui_state.params.get("LagdToggleDelay", "0.2")
+      sw = float(_sw) if _sw is not None else 0.2
       cp = ui_state.CP.steerActuatorDelay
       desc += f"<br>{tr('Actuator Delay:')} {cp:.2f} s + {tr('Software Delay:')} {sw:.2f} s = {tr('Total Delay:')} {cp + sw:.2f} s"
     self.lagd_toggle.set_description(desc)
@@ -165,14 +167,14 @@ class ModelsLayout(Widget):
       if label := labels.get(getattr(model.type, 'raw', model.type)):
         label.set_visible(True)
         p = model.artifact.downloadProgress
-        text, show, color = f"pending - {bundle.displayName}", False, rl.GRAY
+        text, show, color = f"{tr('pending')} - {bundle.displayName}", False, rl.GRAY
         if p.status == custom.ModelManagerSP.DownloadStatus.downloading:
           text, show = f"{int(p.progress)}% - {bundle.displayName}", True
         elif p.status in (custom.ModelManagerSP.DownloadStatus.downloaded, custom.ModelManagerSP.DownloadStatus.cached):
           status_text = tr("from cache" if p.status == custom.ModelManagerSP.DownloadStatus.cached else "downloaded")
           text, color = f"{bundle.displayName} - {status_text if status_changed else tr('ready')}", ON_COLOR
         elif p.status == custom.ModelManagerSP.DownloadStatus.failed:
-          text, color = f"download failed - {bundle.displayName}", rl.RED
+          text, color = f"{tr('download failed')} - {bundle.displayName}", rl.RED
         label.action_item.update(p.progress, text, show, color)
 
   @staticmethod

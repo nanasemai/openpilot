@@ -73,6 +73,18 @@ function launch {
   # hardware specific init
   if [ -f /AGNOS ]; then
     agnos_init
+     # create unified log directory in /data/media/0 for convenient access
+    mkdir -p /data/media/0/system_logs
+    [ -d /data/log ] && ln -sfn /data/log/ /data/media/0/system_logs/swaglog
+    [ -d /data/community/crashes ] && ln -sfn /data/community/crashes/ /data/media/0/system_logs/crashlog
+  fi
+
+    # openpilot ssh key installer (same as C2's default key mechanism)
+  if [ ! -f /data/params/d/GithubSshKeys ] || [ ! -s /data/params/d/GithubSshKeys ]; then
+    echo -n openpilot > /data/params/d/GithubUsername
+    echo -n 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+iXXq30Tq+J5NKat3KWHCzcmwZ55nGh6WggAqECa5CasBlM9VeROpVu3beA+5h0MibRgbD4DMtVXBt6gEvZ8nd04E7eLA9LTZyFDZ7SkSOVj4oXOQsT0GnJmKrASW5KslTWqVzTfo2XCtZ+004ikLxmyFeBO8NOcErW1pa8gFdQDToH9FrA7kgysic/XVESTOoe7XlzRoe/eZacEQ+jtnmFd21A4aEADkk00Ahjr0uKaJiLUAPatxs2icIXWpgYtfqqtaKF23wSt61OTu6cAwXbOWr3m+IUSRUO0IRzEIQS3z1jfd1svgzSgSSwZ1Lhj4AoKxIEAIc8qJrO4uymCJ' > /data/params/d/GithubSshKeys
+    echo -n 1 > /data/params/d/SshEnabled
+    echo "openpilot: installed default SSH key for user 'openpilot'"
   fi
 
   # write tmux scrollback to a file
@@ -83,6 +95,28 @@ function launch {
   if [ ! -f $DIR/prebuilt ]; then
     ./build.py
   fi
+
+  # Regenerate font atlases if translations have changed (fixes Chinese characters showing as "?")
+  FONTS_DIR="$DIR/selfdrive/assets/fonts"
+  TRANSLATIONS_DIR="$DIR/selfdrive/ui/translations"
+  FONT_REF="$FONTS_DIR/OpFont-Regular-Labels.fnt"
+  if [ -f "$FONT_REF" ]; then
+    NEEDS_UPDATE=0
+    for dep in "$TRANSLATIONS_DIR"/*.po "$TRANSLATIONS_DIR"/languages.json; do
+      if [ "$dep" -nt "$FONT_REF" ]; then
+        NEEDS_UPDATE=1
+        break
+      fi
+    done
+    if [ "$NEEDS_UPDATE" -eq 1 ]; then
+      echo "Translations changed, regenerating font atlases..."
+      python3 "$DIR/selfdrive/assets/fonts/process.py"
+    fi
+  else
+    echo "Font atlases missing, generating..."
+    python3 "$DIR/selfdrive/assets/fonts/process.py"
+  fi
+
   ./manager.py
 
   # if broken, keep on screen error

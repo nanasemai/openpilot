@@ -39,7 +39,22 @@ class ControlsExt(ModelStateBase):
     torque_versions = self.params.get("TorqueControlTune")
     if not enforce_torque_control:
       if self.CP.lateralTuning.which() == 'torque':
-        return LatControlTorqueV0(self.CP, self.CP_SP, CI, dt)  # FIXME-SP: revert when upstream fixes tuning issues with v1
+        # FIXME-SP: torque cars get the sunnypilot V0 controller by default, because
+        # EnforceTorqueControl (the flag this branch reads) is unset and therefore
+        # falsy. V1's tuning only reaches a torque car if EnforceTorqueControl is set
+        # AND TorqueControlTune != 0.
+        # V0 anchors the feedforward and the latency buffer on CS.vEgo^2 (stock comma).
+        # V1 anchors on the model's planned speed v_pred^2 (2be0fbd, 2026-08-24). That
+        # was ported into V0 in 655f877 and reverted on 2026-10-01: np.interp over
+        # model velocity.x plus the squaring injected feedforward jitter (vPred^2 frame
+        # delta ~365x the curvDesired delta) and showed up as high-frequency steering
+        # oscillation in corners. Do not re-port it to V0 without a car test that first
+        # reproduces the inside-line bias on the vEgo^2 baseline.
+        # Also note V0's setpoint `lat_delay * jerk + expected` is an *identity* equal
+        # to future_desired_lateral_accel (4e-16 over 2e5 random draws), not a term
+        # with an extra jerk lead -- do not "simplify" it to a no-op or add a lead on
+        # top. V1 differs in using the latency-compensated demand as its setpoint.
+        return LatControlTorqueV0(self.CP, self.CP_SP, CI, dt)
       return lac
 
     if torque_versions == 0.0:  # v0

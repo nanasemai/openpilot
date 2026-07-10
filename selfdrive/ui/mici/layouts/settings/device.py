@@ -7,14 +7,14 @@ from collections.abc import Callable
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.time_helpers import system_time_valid
-from openpilot.system.ui.widgets.scroller import NavRawScrollPanel, NavScroller
+from openpilot.system.ui.widgets.scroller import NavRawScrollPanel, NavScroller, Scroller
 from openpilot.selfdrive.ui.mici.widgets.button import BigButton, BigCircleButton
 from openpilot.selfdrive.ui.mici.widgets.dialog import BigDialog, BigConfirmationDialog
 from openpilot.selfdrive.ui.mici.widgets.pairing_dialog import PairingDialog
 from openpilot.selfdrive.ui.mici.onroad.driver_camera_dialog import DriverCameraDialog
 from openpilot.selfdrive.ui.mici.layouts.onboarding import TrainingGuide, TermsPage
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
-from openpilot.system.ui.lib.multilang import tr
+from openpilot.system.ui.lib.multilang import multilang, tr
 from openpilot.system.ui.widgets import Widget
 from openpilot.selfdrive.ui.ui_state import device, ui_state
 from openpilot.system.ui.widgets.label import UnifiedLabel
@@ -72,9 +72,9 @@ def _engaged_confirmation_click(callback: Callable, action_text: str, icon: rl.T
       if not ui_state.engaged:
         callback()
 
-    gui_app.push_widget(BigConfirmationDialog(f"slide to\n{action_text.lower()}", icon, confirm_callback, exit_on_confirm=exit_on_confirm, red=red))
+    gui_app.push_widget(BigConfirmationDialog(tr(f"slide to\n{action_text.lower()}"), icon, confirm_callback, exit_on_confirm=exit_on_confirm, red=red))
   else:
-    gui_app.push_widget(BigDialog("", f"Disengage to {action_text}"))
+    gui_app.push_widget(BigDialog("", tr(f"Disengage to {action_text}")))
 
 
 class EngagedConfirmationCircleButton(BigCircleButton):
@@ -101,11 +101,11 @@ class DeviceInfoLayoutMici(Widget):
     subheader_color = rl.Color(255, 255, 255, int(255 * 0.9 * 0.65))
     max_width = int(self._rect.width - 20)
     self._dongle_id_label = UnifiedLabel(tr("device id"), 48, max_width=max_width, font_weight=FontWeight.DISPLAY, wrap_text=False)
-    self._dongle_id_text_label = UnifiedLabel(params.get("DongleId") or 'N/A', 32, max_width=max_width, text_color=subheader_color,
+    self._dongle_id_text_label = UnifiedLabel(params.get("DongleId") or tr('N/A'), 32, max_width=max_width, text_color=subheader_color,
                                               font_weight=FontWeight.ROMAN, wrap_text=False)
 
     self._serial_number_label = UnifiedLabel(tr("serial"), 48, max_width=max_width, font_weight=FontWeight.DISPLAY, wrap_text=False)
-    self._serial_number_text_label = UnifiedLabel(params.get("HardwareSerial") or 'N/A', 32, max_width=max_width, text_color=subheader_color,
+    self._serial_number_text_label = UnifiedLabel(params.get("HardwareSerial") or tr('N/A'), 32, max_width=max_width, text_color=subheader_color,
                                                   font_weight=FontWeight.ROMAN, wrap_text=False)
 
   def _render(self, _):
@@ -286,6 +286,40 @@ class UpdateOpenpilotBigButton(BigButton):
       self._waiting_for_updater_t = None
 
 
+class LanguageSelectionLayout(Scroller):
+  """MICI-style language selection: click a language to change it immediately."""
+  def __init__(self, parent: Widget):
+    super().__init__(horizontal=False)
+    self._parent = parent
+
+    for display_name in ("English", "中文（简体）"):
+      lang_code = multilang.languages[display_name]
+      btn = BigButton(display_name, "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+      # Use UNIFONT to render all scripts (Latin, CJK, Cyrillic, Thai, etc.) correctly
+      btn._label.set_font_weight(FontWeight.UNIFONT)
+      btn.set_click_callback(lambda code=lang_code, name=display_name: self._on_language_selected(code, name))
+      self._scroller.add_widget(btn)
+
+  def _render(self, _):
+    rl.draw_rectangle(0, 0, int(gui_app.width), int(gui_app.height), rl.Color(30, 30, 30, 255))
+    super()._render(_)
+
+  def _on_language_selected(self, lang_code: str, _display_name: str):
+    multilang.change_language(lang_code)
+    gui_app.on_language_changed(lang_code)
+    # Pop to SettingsLayout instantly, then push a fresh DeviceLayoutMici with new language
+    try:
+      parent_idx = gui_app._nav_stack.index(self._parent)
+      if parent_idx > 0:
+        settings_layout = gui_app._nav_stack[parent_idx - 1]
+        gui_app.pop_widgets_to(settings_layout, instant=True)
+        gui_app.push_widget(DeviceLayoutMici())
+        return
+    except ValueError:
+      pass
+    gui_app.pop_widgets_to(self._parent, instant=True)
+
+
 class DeviceLayoutMici(NavScroller):
   def __init__(self):
     super().__init__()
@@ -340,6 +374,9 @@ class DeviceLayoutMici(NavScroller):
     terms_btn = BigButton(tr("terms &\nconditions"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
     terms_btn.set_click_callback(lambda: gui_app.push_widget(ReviewTermsPage()))
 
+    language_btn = BigButton(tr("change language"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+    language_btn.set_click_callback(self._show_language_dialog)
+
     self._scroller.add_widgets([
       DeviceInfoLayoutMici(),
       UpdateOpenpilotBigButton(),
@@ -347,12 +384,16 @@ class DeviceLayoutMici(NavScroller):
       review_training_guide_btn,
       driver_cam_btn,
       terms_btn,
+      language_btn,
       regulatory_btn,
       reset_calibration_btn,
       uninstall_openpilot_btn,
       reboot_btn,
       self._power_off_btn,
     ])
+
+  def _show_language_dialog(self):
+    gui_app.push_widget(LanguageSelectionLayout(self))
 
   def _on_regulatory(self):
     if not self._fcc_dialog:

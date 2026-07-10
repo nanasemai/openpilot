@@ -420,6 +420,9 @@ STEER_THRESHOLD = {
   CAR.ACURA_RDX: 400,
   CAR.HONDA_CRV_EU: 400,
   CAR.HONDA_ACCORD_11G: 600,
+  # Civic 2022+ (radarless) was defaulting to 1200, 2-3x other Hondas, causing
+  # low-speed human-machine steering "tug-of-war" (wheel wobble below ~55km/h)
+  CAR.HONDA_CIVIC_2022: 600,
   CAR.HONDA_PILOT_4G: 600,
   CAR.HONDA_PASSPORT_4G: 600,
   CAR.ACURA_MDX_4G_MMR: 600,

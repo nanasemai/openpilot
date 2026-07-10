@@ -544,6 +544,12 @@ struct CarParams {
     kiBP @2 :List(Float32);
     kiV @3 :List(Float32);
     kf @4 :Float32;
+    # Optional derivative (damping) term. Empty on cars that don't use it; the
+    # PID treats empty breakpoints as k_d = 0 so this is inert unless a platform
+    # explicitly populates kdV. Used to add phase margin against steering
+    # limit-cycle oscillation (e.g. Honda Civic 2022 low-speed wobble).
+    kdBP @5 :List(Float32);
+    kdV @6 :List(Float32);
   }
 
   struct LateralTorqueTuning {

@@ -327,6 +327,8 @@ class SelfdriveD(CruiseHelper):
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
         self.events.add(EventName.laneChangeBlocked)
+      elif self.sm['modelDataV2SP'].laneChangeEdgeBlocked:
+        self.events_sp.add(custom.OnroadEventSP.EventName.laneChangeRoadEdge)
       else:
         if direction == LaneChangeDirection.left:
           self.events.add(EventName.preLaneChangeLeft)
@@ -335,6 +337,22 @@ class SelfdriveD(CruiseHelper):
     elif self.sm['modelV2'].meta.laneChangeState in (LaneChangeState.laneChangeStarting,
                                                     LaneChangeState.laneChangeFinishing):
       self.events.add(EventName.laneChange)
+
+    # Road edge alert while the driver is correcting against it.
+    # Note this is NOT independent of lane change state despite the flag name:
+    # modeld publishes laneChangeEdgeBlocked from DesireHelper.alc.road_edge_blocked,
+    # which is only recomputed in the preLaneChange branch (desire_helper.py:94).
+    # So it can only be set by a blinker-initiated lane change attempt, and it is
+    # cleared by AutoLaneChangeController.reset() once the state drops back to off.
+    # The steeringPressed here is what makes it a driver-facing alert rather than a
+    # silent planner gate -- but it will only ever be about a preLaneChange attempt.
+    if self.sm.updated['modelDataV2SP'] and self.sm['carControl'].latActive and \
+       CS.steeringPressed and self.sm['modelDataV2SP'].laneChangeEdgeBlocked and \
+       not self.events_sp.has(custom.OnroadEventSP.EventName.laneChangeRoadEdge):
+      # EventBase.add() is an insort into a list, not a set: the branch above can add
+      # the same event in this same tick (no blindspot, lane change intent, driver on
+      # the wheel), which would publish it twice. Guard the second insertion.
+      self.events_sp.add(custom.OnroadEventSP.EventName.laneChangeRoadEdge)
 
     # Handle lane turn
     lane_turn_direction = self.sm['modelDataV2SP'].laneTurnDirection

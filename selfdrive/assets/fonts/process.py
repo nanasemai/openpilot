@@ -116,6 +116,16 @@ def _process_font(font_path: Path, codepoints: tuple[int, ...], output_name: str
   if glyphs == rl.ffi.NULL:
     raise RuntimeError("raylib failed to load font data")
 
+  # Raylib silently drops codepoints the font cannot render (e.g. "≤" and "阈" are
+  # absent from OpFont), so they never reach the atlas and draw as "?" on device.
+  # Surface them here -- regenerating the atlas cannot fix a glyph the font lacks.
+  rendered = {glyphs[i].value for i in range(glyph_count[0])}
+  missing = sorted(set(codepoints) - rendered)
+  if missing:
+    print("WARNING: %s has no glyph for %d requested codepoints (will draw as ?): %s" % (
+      font_path.name, len(missing),
+      " ".join("U+%04X '%s'" % (cp, chr(cp)) for cp in missing)))
+
   rects_ptr = rl.ffi.new("Rectangle **")
   image = rl.gen_image_font_atlas(glyphs, rects_ptr, glyph_count[0], font_size, GLYPH_PADDING, 0)
   if image.width == 0 or image.height == 0:

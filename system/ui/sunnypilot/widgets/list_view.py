@@ -15,7 +15,8 @@ from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
 from openpilot.system.ui.widgets.label import gui_label
 from openpilot.system.ui.widgets.list_view import ListItem, ToggleAction, ItemAction, MultipleButtonAction, ButtonAction, \
-                                                  _resolve_value, BUTTON_WIDTH, BUTTON_HEIGHT, TEXT_PADDING, DualButtonAction
+                                                  TextAction, _resolve_value, BUTTON_WIDTH, BUTTON_HEIGHT, TEXT_PADDING, \
+                                                  DualButtonAction, ICON_SIZE
 from openpilot.system.ui.widgets.scroller_tici import LineSeparator, LINE_COLOR, LINE_PADDING
 from openpilot.system.ui.sunnypilot.lib.styles import style
 from openpilot.system.ui.sunnypilot.widgets.option_control import OptionControlSP, LABEL_WIDTH
@@ -132,7 +133,8 @@ class MultipleButtonActionSP(MultipleButtonAction):
     self.param_key = param
     self.params = Params()
     if self.param_key:
-      self.selected_button = int(self.params.get(self.param_key, return_default=True))
+      v = self.params.get(self.param_key, return_default=True)
+      self.selected_button = int(v) if v is not None else selected_index
     self._anim_x: float | None = None
     self.enabled_buttons: set[int] | None = None
 
@@ -199,16 +201,15 @@ class MultipleButtonActionSP(MultipleButtonAction):
         self.selected_button = i
         if self.callback:
           self.callback(i)
-
-    if self.param_key:
-      self.params.put(self.param_key, self.selected_button)
+        if self.param_key:
+          self.params.put(self.param_key, self.selected_button)
 
 
 class ListItemSP(ListItem):
   def __init__(self, title: str | Callable[[], str] = "", icon: str | None = None, description: str | Callable[[], str] | None = None,
                description_visible: bool = False, callback: Callable | None = None,
-               action_item: ItemAction | None = None, inline: bool = True, title_color: rl.Color = style.ITEM_TEXT_COLOR):
-    ListItem.__init__(self, title, icon, description, description_visible, callback, action_item)
+               action_item: ItemAction | None = None, indent: int = 0, inline: bool = True, title_color: rl.Color = style.ITEM_TEXT_COLOR):
+    ListItem.__init__(self, title, icon, description, description_visible, callback, action_item, indent)
     self.title_color = title_color
     self.inline = inline
     if not self.inline:
@@ -230,18 +231,29 @@ class ListItemSP(ListItem):
       return ""
     return str(_resolve_value(self._right_value_source, ""))
 
+  def _get_content_width(self) -> int:
+    return int(self._rect.width - style.ITEM_PADDING * 2 - self._indent)
+
+  def _draw_left_icon(self, content_x: int) -> int:
+    """Draw the row's left icon inside its slot and return where the title should start."""
+    if self._icon_texture is None:
+      return content_x
+    icon = self._icon_texture
+    icon_pos = rl.Vector2(content_x + (ICON_SIZE - icon.width) / 2,
+                          self._rect.y + (style.ITEM_BASE_HEIGHT - icon.height) / 2)
+    rl.draw_texture_ex(icon, icon_pos, 0.0, 1.0, rl.WHITE)
+    return content_x + ICON_SIZE + style.ITEM_PADDING
+
   def _update_state(self):
     prev_desc = self._prev_description
     super()._update_state()
     if self.description_visible and self._prev_description != prev_desc:
-      content_width = int(self._rect.width - style.ITEM_PADDING * 2)
-      self._rect.height = self.get_item_height(self._font, content_width)
+      self._rect.height = self.get_item_height(self._font, self._get_content_width())
 
   def set_parent_rect(self, parent_rect: rl.Rectangle) -> None:
     super().set_parent_rect(parent_rect)
     if self.description_visible:
-      content_width = int(self._rect.width - style.ITEM_PADDING * 2)
-      self._rect.height = self.get_item_height(self._font, content_width)
+      self._rect.height = self.get_item_height(self._font, self._get_content_width())
 
   def get_item_height(self, font: rl.Font, max_width: int) -> float:
     height = super().get_item_height(font, max_width)
@@ -264,13 +276,15 @@ class ListItemSP(ListItem):
     if not self.inline:
       text_size = measure_text_cached(self._font, self.title, style.ITEM_TEXT_FONT_SIZE)
       action_y = item_rect.y + text_size.y + style.ITEM_PADDING * 3
-      return rl.Rectangle(item_rect.x + style.ITEM_PADDING, action_y, item_rect.width - (style.ITEM_PADDING * 2), style.BUTTON_HEIGHT)
+      return rl.Rectangle(item_rect.x + style.ITEM_PADDING + self._indent, action_y,
+                          item_rect.width - (style.ITEM_PADDING * 2) - self._indent, style.BUTTON_HEIGHT)
 
     right_width = self.action_item.get_width_hint()
     if right_width == 0:
-      return rl.Rectangle(item_rect.x + style.ITEM_PADDING, item_rect.y, item_rect.width - (style.ITEM_PADDING * 2), style.ITEM_BASE_HEIGHT)
+      return rl.Rectangle(item_rect.x + style.ITEM_PADDING + self._indent, item_rect.y,
+                          item_rect.width - (style.ITEM_PADDING * 2) - self._indent, style.ITEM_BASE_HEIGHT)
 
-    content_width = item_rect.width - (style.ITEM_PADDING * 2)
+    content_width = item_rect.width - (style.ITEM_PADDING * 2 + self._indent)
     title_width = measure_text_cached(self._font, self.title, style.ITEM_TEXT_FONT_SIZE).x
     right_width = min(content_width - title_width, right_width)
     if isinstance(self.action_item, ToggleAction) or isinstance(self.action_item, SimpleButtonActionSP):
@@ -288,8 +302,8 @@ class ListItemSP(ListItem):
     if (self._rect.y + self.rect.height) <= self._parent_rect.y or self._rect.y >= (self._parent_rect.y + self._parent_rect.height):
       return
 
-    content_x = self._rect.x + style.ITEM_PADDING
-    text_x = content_x
+    content_x = self._rect.x + style.ITEM_PADDING + self._indent
+    text_x = self._draw_left_icon(content_x)
     left_action_item = isinstance(self.action_item, ToggleAction) or isinstance(self.action_item, SimpleButtonActionSP)
 
     if left_action_item:
@@ -343,15 +357,37 @@ class ListItemSP(ListItem):
 
     # Draw description if visible
     if self.description_visible:
-      content_width = int(self._rect.width - style.ITEM_PADDING * 2)
+      content_width = self._get_content_width()
       description_height = self._html_renderer.get_total_height(content_width)
 
       desc_y = self._rect.y + style.ITEM_DESC_V_OFFSET
       if not self.inline and self.action_item:
         desc_y = self.action_item.rect.y + style.ITEM_DESC_V_OFFSET - style.ITEM_PADDING * 0.5
 
-      description_rect = rl.Rectangle(self._rect.x + style.ITEM_PADDING, desc_y, content_width, description_height)
+      description_rect = rl.Rectangle(content_x, desc_y, content_width, description_height)
       self._html_renderer.render(description_rect)
+
+
+class ExpandableItemSP(ListItemSP):
+  """A row that toggles a group of child rows instead of toggling its description.
+
+  The caller owns the expanded state and drives its children's visibility; ``callback``
+  fires on any tap of the row itself, not on the right-aligned value.
+  """
+
+  def __init__(self, title: str | Callable[[], str], value: str | Callable[[], str] | None = None,
+               description: str | Callable[[], str] | None = None, callback: Callable | None = None, indent: int = 0):
+    super().__init__(title=title, description=description, callback=callback, indent=indent,
+                     action_item=TextAction(text=value, color=style.ITEM_TEXT_VALUE_COLOR) if value is not None else None)
+    self.set_icon("chevron_right.png")
+
+  def _handle_mouse_release(self, mouse_pos: MousePos) -> None:
+    if not self.is_visible:
+      return
+    if self.action_item is not None and rl.check_collision_point_rec(mouse_pos, self.get_right_item_rect(self._rect)):
+      return
+    if self.callback:
+      self.callback()
 
 
 def simple_button_item_sp(button_text: str | Callable[[], str], callback: Callable | None = None,
@@ -386,10 +422,16 @@ def option_item_sp(title: str | Callable[[], str], param: str,
   return ListItemSP(title=title, description=description, action_item=action, icon=icon, inline=inline)
 
 
+def expandable_item_sp(title: str | Callable[[], str], value: str | Callable[[], str] | None = None,
+                       description: str | Callable[[], str] | None = None, callback: Callable | None = None,
+                       indent: int = 0) -> ExpandableItemSP:
+  return ExpandableItemSP(title=title, value=value, description=description, callback=callback, indent=indent)
+
+
 def button_item_sp(title: str | Callable[[], str], button_text: str | Callable[[], str], description: str | Callable[[], str] | None = None,
-                   callback: Callable | None = None, enabled: bool | Callable[[], bool] = True) -> ListItemSP:
+                   callback: Callable | None = None, enabled: bool | Callable[[], bool] = True, indent: int = 0) -> ListItemSP:
   action = ButtonActionSP(text=button_text, enabled=enabled)
-  return ListItemSP(title=title, description=description, action_item=action, callback=callback)
+  return ListItemSP(title=title, description=description, action_item=action, callback=callback, indent=indent)
 
 
 def dual_button_item_sp(left_text: str | Callable[[], str], right_text: str | Callable[[], str], left_callback: Callable | None = None,
