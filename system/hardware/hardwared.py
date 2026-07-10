@@ -30,6 +30,7 @@ NetworkType = log.DeviceState.NetworkType
 NetworkStrength = log.DeviceState.NetworkStrength
 CURRENT_TAU = 15.   # 15s time constant
 TEMP_TAU = 5.   # 5s time constant
+MAX_VALID_TEMP = 120.  # sanity cap for sensor readings; clamp above this
 DISCONNECT_TIMEOUT = 5.  # wait 5 seconds before going offroad after disconnect so you get an alert
 PANDA_STATES_TIMEOUT = round(1000 / SERVICE_LIST['pandaStates'].frequency * 1.5)  # 1.5x the expected pandaState frequency
 ONROAD_CYCLE_TIME = 1  # seconds to wait offroad after requesting an onroad cycle
@@ -177,8 +178,8 @@ def hardware_thread(end_event, hw_queue) -> None:
     modem_temps=[],
   )
 
-  all_temp_filter = FirstOrderFilter(0., TEMP_TAU, DT_HW, initialized=False)
-  offroad_temp_filter = FirstOrderFilter(0., TEMP_TAU, DT_HW, initialized=False)
+  all_temp_filter = FirstOrderFilter(40., TEMP_TAU, DT_HW, initialized=True)
+  offroad_temp_filter = FirstOrderFilter(40., TEMP_TAU, DT_HW, initialized=True)
   should_start_prev = False
   in_car = False
   engaged_prev = False
@@ -257,14 +258,14 @@ def hardware_thread(end_event, hw_queue) -> None:
 
     # this subset is only used for offroad
     temp_sources = [
-      msg.deviceState.memoryTempC,
-      max(msg.deviceState.cpuTempC, default=0.),
-      max(msg.deviceState.gpuTempC, default=0.),
+      min(msg.deviceState.memoryTempC, MAX_VALID_TEMP),
+      min(max(msg.deviceState.cpuTempC, default=0.), MAX_VALID_TEMP),
+      min(max(msg.deviceState.gpuTempC, default=0.), MAX_VALID_TEMP),
     ]
     offroad_comp_temp = offroad_temp_filter.update(max(temp_sources))
 
     # this drives the thermal status while onroad
-    temp_sources.append(max(msg.deviceState.pmicTempC, default=0.))
+    temp_sources.append(min(max(msg.deviceState.pmicTempC, default=0.), MAX_VALID_TEMP))
     all_comp_temp = all_temp_filter.update(max(temp_sources))
     msg.deviceState.maxTempC = all_comp_temp
 

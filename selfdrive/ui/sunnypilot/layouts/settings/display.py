@@ -6,10 +6,11 @@ See the LICENSE.md file in the root directory for more details.
 """
 from enum import IntEnum
 
+from openpilot.system.timezone_list import TZ_LIST, tz_name
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.widgets.scroller_tici import Scroller
-from openpilot.system.ui.sunnypilot.widgets.list_view import option_item_sp
+from openpilot.system.ui.sunnypilot.widgets.list_view import option_item_sp, toggle_item_sp
 from openpilot.sunnypilot.system.params_migration import ONROAD_BRIGHTNESS_TIMER_VALUES
 
 
@@ -61,10 +62,27 @@ class DisplayLayout(Widget):
                                     f"{value} s" if value < 60 else f"{int(value/60)} m"),
       inline=True
     )
+    self._show_time_toggle = toggle_item_sp(
+      title=lambda: tr("Show Date and Time"),
+      description=lambda: tr("Display the current date and time at the top center of the onroad screen."),
+      param="dp_show_date_time",
+      initial_state=True
+    )
+    self._timezone_item = option_item_sp(
+      title=lambda: tr("Timezone"),
+      param="Timezone",
+      min_value=0,
+      max_value=len(TZ_LIST) - 1,
+      value_change_step=1,
+      label_callback=lambda v: tz_name(v),
+      inline=True
+    )
     items = [
       self._onroad_brightness,
       self._onroad_brightness_timer,
       self._interactivity_timeout,
+      self._show_time_toggle,
+      self._timezone_item,
     ]
     return items
 

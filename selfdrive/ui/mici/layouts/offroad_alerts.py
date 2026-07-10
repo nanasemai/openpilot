@@ -271,7 +271,7 @@ class MiciOffroadAlerts(Scroller):
             version, date = parts[0], parts[3]
             version_string = f"\nsunnypilot {version}, {date}\n"
 
-        update_alert_data.text = f"Update available {version_string}. Click to update. Read the release notes at blog.comma.ai."
+        update_alert_data.text = f"{tr('Update available')}{version_string}{tr('. Click to update. Read the release notes at blog.comma.ai.')}"
         update_alert_data.visible = True
         active_count += 1
       else:

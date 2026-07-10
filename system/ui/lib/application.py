@@ -245,6 +245,7 @@ class GuiApplication(GuiApplicationExt):
     self._scaled_height += self._scaled_height % 2
 
     self._render_texture: rl.RenderTexture | None = None
+    self._needs_render_texture: bool = False
     self._burn_in_shader: rl.Shader | None = None
     self._ffmpeg_proc: subprocess.Popen | None = None
     self._ffmpeg_queue: queue.Queue | None = None
@@ -257,6 +258,7 @@ class GuiApplication(GuiApplicationExt):
     self._window_close_requested = False
     self._nav_stack: list[object] = []
     self._nav_stack_ticks: list[Callable[[], None]] = []
+    self._post_render_callbacks: list[Callable] = []
     self._nav_stack_widgets_to_render = 1 if self.big_ui() else 2
 
     self._mouse = MouseState(self._scale)
@@ -513,6 +515,13 @@ class GuiApplication(GuiApplicationExt):
     """Load and resize an image, storing it for later automatic unloading."""
     image = rl.load_image(image_path)
 
+    if image.width == 0 or image.height == 0:
+      cloudlog.warning(f"Failed to load image '{image_path}', creating placeholder")
+      fallback_w = width if width is not None else 1
+      fallback_h = height if height is not None else 1
+      rl.unload_image(image)
+      return rl.gen_image_color(fallback_w, fallback_h, rl.BLACK)
+
     if alpha_premultiply:
       rl.image_alpha_premultiply(image)
 
@@ -562,9 +571,11 @@ class GuiApplication(GuiApplicationExt):
 
   def close_ffmpeg(self):
     if self._ffmpeg_thread is not None:
-      # Signal thread to stop, send sentinel, then wait for it to drain
       self._ffmpeg_stop_event.set()
-      self._ffmpeg_queue.put(None)
+      try:
+        self._ffmpeg_queue.put(None, timeout=5)
+      except Exception:
+        pass
       self._ffmpeg_thread.join(timeout=30)
 
     if self._ffmpeg_proc is not None:
@@ -602,7 +613,26 @@ class GuiApplication(GuiApplicationExt):
 
     self.close_ffmpeg()
 
+    self._post_render_callbacks.clear()
+
     rl.close_window()
+
+  def ensure_render_texture(self):
+    """Ensure render_texture is created (needed for screen recording).
+
+    Sets a flag; the actual GL call happens on the render thread to avoid
+    cross-thread GL context issues.
+    """
+    self._needs_render_texture = True
+
+  def add_post_render_callback(self, cb):
+    """Register a callback called after each frame is rendered, with (width, height, texture) args."""
+    self._post_render_callbacks.append(cb)
+
+  def remove_post_render_callback(self, cb):
+    """Remove a previously registered post-render callback."""
+    if cb in self._post_render_callbacks:
+      self._post_render_callbacks.remove(cb)
 
   @property
   def mouse_events(self) -> list[MouseEvent]:
@@ -639,6 +669,13 @@ class GuiApplication(GuiApplicationExt):
           time.sleep(1 / self._target_fps)
           yield False, 0.0, 0.0
           continue
+
+        # Lazy-create render texture on the render thread (requested from another thread)
+        if self._needs_render_texture:
+          self._needs_render_texture = False
+          if self._render_texture is None:
+            self._render_texture = rl.load_render_texture(self._scaled_width, self._scaled_height)
+            rl.set_texture_filter(self._render_texture.texture, rl.TextureFilter.TEXTURE_FILTER_BILINEAR)
 
         if self._render_texture:
           rl.begin_texture_mode(self._render_texture)
@@ -699,8 +736,19 @@ class GuiApplication(GuiApplicationExt):
           image = rl.load_image_from_texture(self._render_texture.texture)
           data_size = image.width * image.height * 4
           data = bytes(rl.ffi.buffer(image.data, data_size))
-          self._ffmpeg_queue.put(data)  # Async write via background thread
+          try:
+            self._ffmpeg_queue.put_nowait(data)
+          except Exception:
+            pass
           rl.unload_image(image)
+
+        # Post-render callbacks (screen recorder hook, etc.)
+        if self._render_texture and self._post_render_callbacks:
+          for cb in list(self._post_render_callbacks):
+            try:
+              cb(self._scaled_width, self._scaled_height, self._render_texture.texture)
+            except Exception as e:
+              cloudlog.warning(f"[ui] post-render callback error: {e}")
 
         self._monitor_fps()
         self._frame += 1

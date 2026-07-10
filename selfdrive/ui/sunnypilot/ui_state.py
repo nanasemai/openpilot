@@ -151,7 +151,8 @@ class UIStateSP:
     self.custom_interactive_timeout = self.params.get("InteractivityTimeout", return_default=True)
     self.developer_ui = self.params.get("DevUIInfo")
     self.hide_v_ego_ui = self.params.get_bool("HideVEgoUI")
-    self.onroad_brightness = int(float(self.params.get("OnroadScreenOffBrightness", return_default=True)))
+    _b = self.params.get("OnroadScreenOffBrightness", return_default=True)
+    self.onroad_brightness = int(float(_b)) if _b is not None else 0
     self.onroad_brightness_timer_param = self.params.get("OnroadScreenOffTimer", return_default=True)
     self.rainbow_path = self.params.get_bool("RainbowMode")
     self.road_name_toggle = self.params.get_bool("RoadNameToggle")
@@ -163,8 +164,10 @@ class UIStateSP:
     self.enforce_torque_control = self.params.get_bool("EnforceTorqueControl")
     self.custom_torque_params = self.params.get_bool("CustomTorqueParams")
     self.torque_override_enabled = self.params.get_bool("TorqueParamsOverrideEnabled")
-    self.torque_override_lat_accel_factor = float(self.params.get("TorqueParamsOverrideLatAccelFactor", return_default=True))
-    self.torque_override_friction = float(self.params.get("TorqueParamsOverrideFriction", return_default=True))
+    _la = self.params.get("TorqueParamsOverrideLatAccelFactor", return_default=True)
+    self.torque_override_lat_accel_factor = float(_la) if _la is not None else 2.5
+    _fr = self.params.get("TorqueParamsOverrideFriction", return_default=True)
+    self.torque_override_friction = float(_fr) if _fr is not None else 0.1
     self.true_v_ego_ui = self.params.get_bool("TrueVEgoUI")
     self.turn_signals = self.params.get_bool("ShowTurnSignals")
     self.boot_offroad_mode = self.params.get("DeviceBootMode", return_default=True)

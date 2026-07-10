@@ -33,12 +33,12 @@ class SunnylinkInfo(Widget):
     max_width = int(self._rect.width - 20)
     self.device_id_header = UnifiedLabel(tr("device id"), 48, max_width=max_width, text_color=header_color,
                                          font_weight=FontWeight.DISPLAY, shimmer=True)
-    self.device_id_text = UnifiedLabel(UNREGISTERED_SUNNYLINK_DONGLE_ID, 32, max_width=max_width, text_color=subheader_color,
+    self.device_id_text = UnifiedLabel(tr(UNREGISTERED_SUNNYLINK_DONGLE_ID), 32, max_width=max_width, text_color=subheader_color,
                                        font_weight=FontWeight.ROMAN, scroll=True)
 
     self.sponsor_header = UnifiedLabel(tr("sponsor tier"), 48, max_width=max_width, text_color=header_color,
                                        font_weight=FontWeight.DISPLAY, shimmer=True)
-    self.sponsor_text = UnifiedLabel("N/A", 32, max_width=max_width, text_color=subheader_color, font_weight=FontWeight.ROMAN)
+    self.sponsor_text = UnifiedLabel(tr("N/A"), 32, max_width=max_width, text_color=subheader_color, font_weight=FontWeight.ROMAN)
 
   def _render(self, _):
     self.device_id_header.set_position(self._rect.x + 20, self._rect.y - 10)
@@ -96,8 +96,8 @@ class SunnylinkLayoutMici(NavScroller):
     self._sunnylink_uploader_toggle.set_visible(self._sunnylink_enabled)
     self.handle_backup_restore_progress()
 
-    self._sunnylink_info.device_id_text.set_text(ui_state.params.get("SunnylinkDongleId") or UNREGISTERED_SUNNYLINK_DONGLE_ID)
-    self._sunnylink_info.sponsor_text.set_text(ui_state.sunnylink_state.get_sponsor_tier().name.lower() or "N/A")
+    self._sunnylink_info.device_id_text.set_text(ui_state.params.get("SunnylinkDongleId") or tr(UNREGISTERED_SUNNYLINK_DONGLE_ID))
+    self._sunnylink_info.sponsor_text.set_text(ui_state.sunnylink_state.get_sponsor_tier().name.lower() or tr("N/A"))
     self._sunnylink_info.set_visible(self._sunnylink_enabled)
 
     if ui_state.sunnylink_state.is_sponsor():
@@ -210,7 +210,7 @@ class SunnylinkLayoutMici(NavScroller):
         self._restore_btn.set_enabled(not ui_state.is_onroad())
         self._restore_btn.set_text(tr("restore"))
         self._restore_btn.set_value(tr("failed"))
-        gui_app.push_widget(BigDialog(title=tr("unable to restore"), description="try again later."))
+        gui_app.push_widget(BigDialog(title=tr("unable to restore"), description=tr("try again later.")))
 
       elif (restore_status == custom.BackupManagerSP.Status.completed or
             (restore_status == custom.BackupManagerSP.Status.idle and restore_progress == 100.0)):

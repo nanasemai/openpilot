@@ -23,7 +23,10 @@ DESCRIPTIONS = {
   'stop_and_go_hack': tr_noop(
     'sunnypilot will allow some Toyota/Lexus cars to auto resume during stop and go traffic. ' +
     'This feature is only applicable to certain models that are able to use longitudinal control. This is an alpha feature. Use at your own risk.'
-  )
+  ),
+  'auto_lock': tr_noop(
+    'Automatically lock doors when the vehicle speed exceeds 20 km/h while in Drive, and unlock when shifted to Park.'
+  ),
 }
 
 
@@ -47,9 +50,18 @@ class ToyotaSettings(BrandSettings):
       enabled=lambda: not ui_state.engaged,
     )
 
+    self.auto_lock = toggle_item_sp(
+      lambda: tr("Auto Door Lock/Unlock"),
+      description=lambda: tr(DESCRIPTIONS["auto_lock"]),
+      initial_state=ui_state.params.get_bool("ToyotaDoorAutoLockUnlock"),
+      callback=self._on_enable_auto_lock,
+      enabled=lambda: not ui_state.engaged,
+    )
+
     self.items = [
       self.enforce_stock_longitudinal,
       self.stop_and_go_hack,
+      self.auto_lock,
     ]
 
   def _on_enable_enforce_stock_longitudinal(self, state: bool):
@@ -93,6 +105,10 @@ class ToyotaSettings(BrandSettings):
     else:
       ui_state.params.put_bool("ToyotaStopAndGoHack", False)
       ui_state.params.put_bool("OnroadCycleRequested", True)
+
+  def _on_enable_auto_lock(self, state: bool):
+    ui_state.params.put_bool("ToyotaDoorAutoLockUnlock", state)
+    ui_state.params.put_bool("OnroadCycleRequested", True)
 
   def update_settings(self):
     if ui_state.CP is not None:

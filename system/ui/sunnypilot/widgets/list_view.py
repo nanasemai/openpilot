@@ -132,7 +132,8 @@ class MultipleButtonActionSP(MultipleButtonAction):
     self.param_key = param
     self.params = Params()
     if self.param_key:
-      self.selected_button = int(self.params.get(self.param_key, return_default=True))
+      v = self.params.get(self.param_key, return_default=True)
+      self.selected_button = int(v) if v is not None else selected_index
     self._anim_x: float | None = None
     self.enabled_buttons: set[int] | None = None
 
@@ -199,9 +200,8 @@ class MultipleButtonActionSP(MultipleButtonAction):
         self.selected_button = i
         if self.callback:
           self.callback(i)
-
-    if self.param_key:
-      self.params.put(self.param_key, self.selected_button)
+        if self.param_key:
+          self.params.put(self.param_key, self.selected_button)
 
 
 class ListItemSP(ListItem):

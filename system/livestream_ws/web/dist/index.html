@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0e1a">
+<title>C3 仪表盘</title>
+<style>
+:root {
+  --bg: #0b0e1a;
+  --card: rgba(20,24,42,.85);
+  --txt: #e2e8f0;
+  --dim: #94a3b8;
+  --accent: #38bdf8;
+  --green: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --br: 12px;
+  --bw: 1px solid rgba(255,255,255,.08);
+}
+@media (prefers-color-scheme:light) {
+  :root {
+    --bg: #f1f5f9;
+    --card: rgba(255,255,255,.92);
+    --txt: #0f172a;
+    --dim: #475569;
+    --accent: #0284c7;
+    --green: #16a34a;
+    --warn: #d97706;
+    --danger: #dc2626;
+    --bw: 1px solid rgba(0,0,0,.1);
+  }
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; user-select:none; }
+
+/* ── 仪表盘（默认视图） ── */
+#dash { display:flex; flex-direction:column; height:100%; padding:12px; gap:10px; overflow-y:auto; }
+
+/* 顶栏 */
+#topbar, .topbar { display:flex; justify-content:space-between; align-items:center; padding:10px 0; }
+#brand, .brand { font-size:1.3rem; font-weight:800; color:var(--accent); }
+#brand small, .brand small { font-weight:500; color:var(--dim); font-size:1rem; }
+#opState, .opState { font-size:1.2rem; font-weight:700; padding:6px 16px; border-radius:20px;
+  background:var(--card); border:var(--bw); color:var(--dim); }
+#opState.active, .opState.active { background:var(--green); color:#fff; border-color:var(--green); }
+
+/* 提醒 */
+#alert, .alertCard { background:var(--card); border:var(--bw); border-radius:var(--br); padding:14px 18px; }
+#alert.idle, .alertCard.idle { border-left:4px solid var(--dim); }
+#alert.warn, .alertCard.warn { border-left:4px solid var(--warn); }
+#alert.severe, .alertCard.severe { border-left:4px solid var(--danger); }
+.ah { font-size:1.1rem; color:var(--dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+.a1 { font-size:1.7rem; font-weight:800; color:var(--txt); }
+.a2 { font-size:1.25rem; color:var(--dim); margin-top:3px; font-weight:500; }
+
+/* 速度卡 */
+#speedCard, .speedCard { background:var(--card); border:var(--bw); border-radius:var(--br);
+  padding:18px 28px; text-align:center; position:relative; }
+.sigs { display:flex; justify-content:space-between; position:absolute; left:20px; right:20px; top:12px; }
+.sig { font-size:1.3rem; color:var(--dim); transition:color .2s; font-weight:700; }
+.sig.active { color:var(--warn); }
+#handIcon { display:inline-block; margin-right:10px; font-size:1.3rem; }
+.tag { display:inline-block; font-size:.7rem; font-weight:700; color:var(--dim); background:rgba(255,255,255,.08); padding:1px 5px; border-radius:4px; vertical-align:middle; }
+.tag.on { background:var(--accent); color:#fff; }
+.gear { font-size:1.3rem; color:var(--dim); font-weight:800; }
+.spd { font-size:clamp(5rem,24vw,8rem); font-weight:800; line-height:1.1; color:var(--txt); margin:2px 0; }
+.unit { font-size:1.3rem; color:var(--dim); text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+.cruise { margin-top:10px; font-size:1.3rem; color:var(--dim); display:flex; align-items:center; justify-content:center; gap:6px; font-weight:600; }
+.cruise .dot { display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--dim); }
+.cruise .dot.on { background:var(--accent); }
+.cruise .setv { color:var(--accent); font-weight:800; }
+
+/* 数据网格 */
+#grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.cell { background:var(--card); border:var(--bw); border-radius:var(--br);
+  padding:16px 12px; text-align:center; }
+.cell .k { font-size:1.1rem; color:var(--dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; }
+.cell .v { font-size:1.8rem; font-weight:800; }
+.cell .v small { font-size:1.1rem; font-weight:500; color:var(--dim); }
+.bar { height:6px; background:rgba(255,255,255,.08); border-radius:3px; margin-top:6px; overflow:hidden; }
+.bar i { display:block; height:100%; border-radius:3px; transition:width .3s; }
+#gasFill { background:var(--accent); }
+#gasCell.active .v { color:var(--accent); }
+#brakeCell.active { background:rgba(239,68,68,.1); }
+#brakeCell.active .v { color:var(--danger); }
+
+/* 系统信息 */
+#sys { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+#sys .row { background:var(--card); border:var(--bw); border-radius:var(--br);
+  padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
+#sys .k { font-size:1.2rem; color:var(--dim); font-weight:600; }
+#sys .v { font-size:1.4rem; font-weight:800; }
+
+/* 校准卡 */
+#calCard { background:var(--card); border:var(--bw); border-radius:var(--br); padding:18px; margin-bottom:6px; }
+.calTop { display:flex; justify-content:space-between; font-size:1.25rem; margin-bottom:8px; }
+.calTop .k { color:var(--dim); font-weight:600; }
+.calTop .v { font-weight:800; }
+.calBar { height:8px; background:rgba(255,255,255,.08); border-radius:4px; overflow:hidden; }
+.calBar i { display:block; height:100%; border-radius:4px; background:var(--green); transition:width .5s; }
+.calPct { font-size:1.2rem; color:var(--dim); text-align:right; margin-top:4px; font-weight:700; }
+.calAim { font-size:1.1rem; color:var(--dim); margin-top:4px; }
+
+/* 操作按钮 */
+#actions { display:flex; gap:12px; padding:10px 16px 16px; }
+#actions button { flex:1; padding:18px; border:none; border-radius:var(--br);
+  font-size:1.4rem; font-weight:800; cursor:pointer; transition:opacity .2s;
+  background:var(--card); color:var(--txt); border:var(--bw); }
+#actions button:active { opacity:.7; }
+#camBtn.open { background:var(--accent); color:#fff; }
+#diagBtn.open { background:var(--accent); color:#fff; }
+
+/* ── 摄像头页（完全仿仪表台样式） ── */
+#camView { display:none; position:fixed; inset:0; z-index:20; background:var(--bg); }
+#camView.open { display:flex; flex-direction:column; height:100%; padding:12px; gap:10px; overflow-y:auto; }
+#camClose { position:fixed; top:10px; right:10px; z-index:30; width:36px; height:36px; border-radius:50%;
+  border:none; background:rgba(0,0,0,.5); color:#fff; font-size:1.1rem; cursor:pointer; display:flex;
+  align-items:center; justify-content:center; }
+/* 摄像头画面卡片（仪表台卡片样式） */
+#camVideoCard { background:var(--card); border:var(--bw); border-radius:var(--br); padding:8px; }
+#camVideoWrap { position:relative; background:#000; border-radius:calc(var(--br) - 4px);
+  overflow:hidden; aspect-ratio:16/9; }
+#camVideoWrap canvas, #camVideoWrap video { position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; }
+#camStatus { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5;
+  padding:6px 16px; border-radius:20px; background:rgba(0,0,0,.7); color:#94a3b8; font-size:.9rem;
+  display:none; white-space:nowrap; }
+#camStatus.visible { display:block; }
+#camAlert { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:6;
+  display:none; pointer-events:none; }
+#camAlert.visible { display:block; }
+#camAlert .alarm { font-size:clamp(2.5rem,12vw,5rem); filter:drop-shadow(0 0 20px rgba(255,0,0,.6));
+  animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:.4; transform:scale(1.15); }
+}
+#camFullBtn { position:absolute; bottom:8px; right:8px; z-index:10; width:34px; height:34px;
+  border-radius:6px; border:none; background:rgba(0,0,0,.5); color:#fff; font-size:1rem;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(4px); opacity:.6; transition:opacity .2s; }
+#camFullBtn:hover { opacity:1; }
+#camView.fullscreen { padding:0; gap:0; background:#000; }
+#camView.fullscreen #camVideoCard { flex:1; border:none; border-radius:0; padding:0; display:flex; }
+#camView.fullscreen #camVideoWrap { border-radius:0; aspect-ratio:unset; flex:1; }
+#camView.fullscreen .topbar { display:none; }
+#camView.fullscreen .speedCard { display:none; }
+#camView.fullscreen .alertCard { display:none; }
+#camView.fullscreen .camSelector { display:none; }
+#camView.fullscreen #camClose { display:none; }
+
+/* ── 诊断面板 ── */
+#panel { display:none; }
+#panel.open { display:block; }
+#panelOverlay { position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.5); }
+#panelSheet { position:fixed; bottom:0; left:0; right:0; z-index:50; max-height:55vh;
+  background:var(--card); border-radius:16px 16px 0 0; padding:20px 24px 28px;
+  overflow-y:auto; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+.grab { width:40px; height:5px; background:var(--dim); border-radius:3px; margin:0 auto 14px; }
+#panelSheet h4 { font-size:1.1rem; color:var(--dim); margin:14px 0 8px; text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+#panelSheet .hint { font-size:1.1rem; color:var(--dim); padding:8px 0; font-weight:500; }
+#panelSheet .text { font-size:1.15rem; color:var(--txt); font-weight:500; }
+
+/* 诊断面板 */
+.hTag { font-size:.75rem; font-weight:600; color:var(--dim); }
+.badge { display:inline-block; font-size:.7rem; font-weight:700; color:#fff; background:var(--danger); padding:1px 7px; border-radius:8px; vertical-align:middle; }
+#logList { max-height:200px; overflow-y:auto; font-size:.85rem; font-weight:500; }
+#logList > div { padding:3px 0; display:flex; align-items:center; gap:6px; }
+#logList .severe { color:var(--danger); }
+#logList .warn { color:var(--warn); }
+.logts { font-size:.75rem; color:var(--dim); font-weight:400; min-width:65px; flex-shrink:0; }
+.logico { min-width:16px; text-align:center; }
+.plog { padding:3px 0; font-size:.85rem; display:flex; justify-content:space-between; font-weight:500; }
+#procArea h4 { margin:6px 0 4px; }
+
+/* ── 设置页（C3 仪表台风格） ── */
+#settingsView { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+#setList { flex:1; overflow-y:auto; padding:12px 16px 80px; max-width:500px; margin:0 auto; width:100%; box-sizing:border-box; }
+.setGroupTitle { font-size:1.1rem; font-weight:700; color:var(--accent); padding:16px 4px 8px; text-align:left; letter-spacing:.5px; }
+.setItem { background:var(--card); border:var(--bw); border-radius:var(--br); padding:16px 18px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.setItem .k { font-size:1rem; font-weight:700; color:var(--txt); }
+.setItem .sub { font-size:.8rem; color:var(--dim); margin-top:3px; font-weight:500; }
+.setItem.dim { opacity:.5; }
+@media (max-width:480px) {
+  #setList { padding:8px 10px 80px; }
+  .setItem { padding:14px 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ 仪表盘 ═══ -->
+<div id="dash">
+  <div id="topbar">
+    <div id="brand">C3 <small>仪表盘</small></div>
+    <div id="opState">未连接</div>
+  </div>
+
+  <div id="alert" class="idle">
+    <div class="ah">系统提醒</div>
+    <div class="a1" id="alert1">等待连接…</div>
+    <div class="a2" id="alert2"></div>
+  </div>
+
+  <div id="speedCard">
+    <div class="sigs">
+      <span><span id="handIcon" class="sig">✋</span><span id="blLeft" class="sig">◀</span></span>
+      <span><span id="blRight" class="sig">▶</span></span>
+    </div>
+    <div class="gear" id="gearG">--</div>
+    <div class="spd" id="spdN">--</div>
+    <div class="unit" id="speedUnit">km/h</div>
+    <div class="cruise">
+      <span class="dot" id="cruiseDot"></span>
+      CRUISE <span class="setv" id="cruiseSet">--</span>
+      <span class="setv" id="cruiseU">km/h</span>
+    </div>
+  </div>
+
+  <div id="grid">
+    <div class="cell"><div class="k">转向角</div><div class="v" id="steerVal">--<small>°</small></div></div>
+    <div class="cell" id="gasCell"><div class="k">油门 <span id="gasIcon" class="tag">脚</span></div><div class="v" id="gasVal">--<small>%</small></div>
+      <div class="bar"><i id="gasFill"></i></div></div>
+    <div class="cell" id="brakeCell"><div class="k">刹车</div><div class="v" id="brakeVal">OFF</div></div>
+    <div class="cell"><div class="k">驾驶风格</div><div class="v" id="styleVal">--</div></div>
+    <div class="cell"><div class="k">加速度预设</div><div class="v" id="accelVal">--</div></div>
+    <div class="cell"><div class="k">纵向控制</div><div class="v" id="longVal">--</div></div>
+    <div class="cell"><div class="k">前车距离</div><div class="v" id="leadD">--<small>m</small></div></div>
+    <div class="cell"><div class="k">相对速度</div><div class="v" id="leadVRel">--</div></div>
+    <div class="cell"><div class="k">横向控制</div><div class="v" id="latCtrlVal">--<small></small></div></div>
+  </div>
+
+  <div id="sys">
+    <div class="row"><span class="k">CPU 温度</span><span class="v" id="sCpu">--</span></div>
+    <div class="row"><span class="k">内存 / 存储</span><span class="v" id="sMem">--</span></div>
+  </div>
+
+  <div id="calCard">
+    <div class="calTop"><span class="k">摄像头校准</span><span class="v" id="calStatus">--</span></div>
+    <div class="calBar"><i id="calFill"></i></div>
+    <div class="calPct" id="calPct">--</div>
+    <div class="calAim" id="calAim">设备指向：--</div>
+  </div>
+
+  <div id="actions">
+    <button id="camBtn">📷 摄像头</button>
+    <button id="diagBtn">⚙ 诊断</button>
+    <button id="setBtn">🔧 设置</button>
+  </div>
+</div>
+
+<!-- ═══ 摄像头页（仿仪表台样式） ═══ -->
+<div id="camView">
+  <button id="camClose" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:pointer;">✕</button>
+
+  <div class="topbar" style="padding:12px 16px;">
+    <button id="camBack" style="background:none;border:none;color:var(--accent);font-size:1rem;cursor:pointer;padding:6px 12px;border-radius:8px;font-weight:600;">← 返回</button>
+    <div class="brand">C3 <small>摄像头</small></div>
+    <div class="opState" id="camOpState">未连接</div>
+  </div>
+
+  <div class="alertCard idle" id="camAlertCard" style="display:none;">
+    <div class="ah">系统提醒</div>
+    <div class="a1" id="camAlertText"></div>
+  </div>
+
+  <div id="camVideoCard">
+    <div id="camVideoWrap">
+      <canvas id="v"></canvas>
+      <video id="vMse" muted playsinline></video>
+      <div id="camAlert"><span class="alarm">⚠</span></div>
+      <div id="camStatus">连接中…</div>
+      <button id="camFullBtn" title="全屏">⛶</button>
+    </div>
+  </div>
+
+  <div class="speedCard">
+    <div class="sigs">
+      <span><span id="camBlL" class="sig">◀</span></span>
+      <span><span id="camBlR" class="sig">▶</span></span>
+    </div>
+    <div class="gear" id="camGear">--</div>
+    <div class="spd" id="camSpd">--</div>
+    <div class="unit" id="camUnit">km/h</div>
+    <div class="cruise">
+      <span class="dot" id="camCruiseDot"></span>
+      CRUISE <span class="setv" id="camCruiseSet">--</span>
+      <span class="setv" id="camCruiseU">km/h</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 诊断面板 ═══ -->
+<div id="panel">
+  <div id="panelOverlay"></div>
+  <div id="panelSheet">
+    <div class="grab"></div>
+    <div id="procArea"></div>
+    <h4>诊断日志 <span id="logCount" class="hTag">0</span></h4>
+    <div id="logList" class="hint">— 无日志 —</div>
+    <button id="clearLog" class="btn" style="margin-top:6px;font-size:.8rem;padding:4px 12px;">清空日志</button>
+  </div>
+</div>
+
+<!-- ═══ 设置页 ═══ -->
+<div id="settingsView" style="display:none;flex-direction:column;height:100%;">
+  <button id="setClose" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:pointer;">✕</button>
+  <div class="topbar" style="padding:12px 16px;">
+    <button id="setBack" style="background:none;border:none;color:var(--accent);font-size:1rem;cursor:pointer;padding:6px 12px;border-radius:8px;font-weight:600;">← 返回</button>
+    <div class="brand">C3 <small>设置</small></div>
+    <div id="setStatus" class="opState">安全</div>
+  </div>
+  <div id="setList"></div>
+</div>
+
+<!-- ═══ 确认弹窗 ═══ -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:var(--bw);border-radius:var(--br);padding:24px;max-width:360px;width:90%;margin:auto;">
+    <div style="font-size:1.5rem;font-weight:700;margin-bottom:8px;" id="confirmTitle">⚠ 确认修改</div>
+    <div style="font-size:1.1rem;font-weight:600;margin-bottom:4px;" id="confirmLabel"></div>
+    <div style="font-size:.95rem;color:var(--dim);margin-bottom:12px;" id="confirmDesc"></div>
+    <div style="font-size:.85rem;color:var(--warn);margin-bottom:16px;" id="confirmSafety"></div>
+    <div style="display:flex;gap:12px;">
+      <button id="confirmCancel" style="flex:1;padding:12px;border-radius:var(--br);border:var(--bw);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;">取消</button>
+      <button id="confirmOk" style="flex:1;padding:12px;border-radius:var(--br);border:none;background:var(--accent);color:#fff;font-size:1rem;cursor:pointer;">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═══ DOM ═══
+const $ = id => document.getElementById(id);
+const el = {
+  opState: $('opState'),
+  alert1: $('alert1'), alert2: $('alert2'), alert: $('alert'),
+  spdN: $('spdN'), speedUnit: $('speedUnit'),
+  gearG: $('gearG'),
+  blLeft: $('blLeft'), blRight: $('blRight'),
+  cruiseSet: $('cruiseSet'), cruiseU: $('cruiseU'), cruiseDot: $('cruiseDot'),
+  steerVal: $('steerVal'), gasVal: $('gasVal'), gasFill: $('gasFill'),
+  gasCell: $('gasCell'), brakeVal: $('brakeVal'), brakeCell: $('brakeCell'),
+  leadD: $('leadD'), leadVRel: $('leadVRel'), latCtrlVal: $('latCtrlVal'),
+  sCpu: $('sCpu'), sMem: $('sMem'),
+  calStatus: $('calStatus'), calFill: $('calFill'), calPct: $('calPct'), calAim: $('calAim'),
+  handIcon: $('handIcon'), gasIcon: $('gasIcon'),
+  styleVal: $('styleVal'), accelVal: $('accelVal'), longVal: $('longVal'),
+  camBtn: $('camBtn'), diagBtn: $('diagBtn'),
+  camView: $('camView'), camClose: $('camClose'), camStatus: $('camStatus'),
+  camSpd: $('camSpd'), camUnit: $('camUnit'), camAlert: $('camAlert'),
+  camOpState: $('camOpState'), camGear: $('camGear'),
+  camBlL: $('camBlL'), camBlR: $('camBlR'),
+  camAlertCard: $('camAlertCard'), camAlertText: $('camAlertText'),
+  camCruise: $('camCruise'), camCruiseDot: $('camCruiseDot'),
+  camCruiseSet: $('camCruiseSet'), camCruiseU: $('camCruiseU'),
+  panel: $('panel'), panelOverlay: $('panelOverlay'),
+  procArea: $('procArea'), logList: $('logList'), logCount: $('logCount'), clearLog: $('clearLog'),
+  canvas: $('v'),
+  // 设置页
+  setBtn: $('setBtn'), setClose: $('setClose'), setView: $('settingsView'),
+  setList: $('setList'), setStatus: $('setStatus'),
+  confirmModal: $('confirmModal'), confirmTitle: $('confirmTitle'),
+  confirmLabel: $('confirmLabel'), confirmDesc: $('confirmDesc'),
+  confirmSafety: $('confirmSafety'), confirmCancel: $('confirmCancel'), confirmOk: $('confirmOk'),
+};
+
+// ═══ 状态 ═══
+let S = {};
+let camActive = false;    // 摄像头视图是否打开
+let diagActive = false;   // 诊断面板是否打开
+let setActive = false;    // 设置页是否打开
+let settingsData = null;  // 缓存设置数据
+let pendingChange = null; // 待确认的修改 {key, value, label, desc}
+
+// ═══ 诊断日志（最多保留 30 条） ═══
+const LOG_MAX = 30;
+let timeline = [];
+let seenEvents = new Set();  // 去重：事件名+严重等级 → 只记录一次
+
+function addLog(severity, text) {
+  const now = new Date();
+  const ts = now.toTimeString().slice(0, 8);  // HH:MM:SS
+  timeline.push({ ts, severity, text });
+  if (timeline.length > LOG_MAX) timeline.shift();
+}
+
+function addUniqueLog(severity, key, text) {
+  if (seenEvents.has(key)) return;
+  seenEvents.add(key);
+  addLog(severity, text);
+}
+
+function renderTimeline() {
+  el.logCount.textContent = timeline.length;
+  if (timeline.length === 0) {
+    el.logList.innerHTML = '<div class="hint">— 无日志 —</div>';
+    return;
+  }
+  el.logList.innerHTML = timeline.map(e => {
+    const cls = e.severity >= 3 ? 'severe' : e.severity >= 1 ? 'warn' : '';
+    const ico = e.severity >= 3 ? '⚠' : e.severity >= 1 ? '⚡' : 'ℹ';
+    return '<div class="' + cls + '"><span class="logts">' + e.ts + '</span>' +
+      '<span class="logico">' + ico + '</span><span>' + e.text + '</span></div>';
+  }).join('');
+  el.logList.scrollTop = el.logList.scrollHeight;
+}
+
+el.clearLog.onclick = () => { timeline = []; seenEvents.clear(); renderTimeline(); };
+
+// ═══ 数据 WebSocket ═══
+let dataWS = null;
+function connectData() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  dataWS = new WebSocket(proto + '//' + location.host + '/ws/data');
+  dataWS.onopen = () => console.log('[data] connected');
+  dataWS.onmessage = e => {
+    try {
+      const msg = JSON.parse(e.data);
+      const changedKeys = Object.keys(msg).filter(k => k !== '_ts' && k !== '_sync');
+      if (msg._sync) S = msg;
+      else Object.assign(S, msg);
+      renderDash(changedKeys);
+    } catch (err) { console.warn('[data] parse', err); }
+  };
+  dataWS.onclose = () => setTimeout(connectData, 2000);
+  dataWS.onerror = () => dataWS.close();
+}
+
+// ═══ 仪表盘渲染（支持增量：传 changedKeys 数组只更新对应区块，不传=全量） ═══
+function renderDash(changedKeys) {
+  const changed = (key) => !changedKeys || changedKeys.includes(key);
+  const d = S, car = d.car || {}, self = d.self || {}, lead = d.lead || {},
+        dev = d.dev || {}, cal = d.cal || {},
+        procs = d.procs || {}, events = d.events || {};
+
+  // ── OP 状态 + 提醒（self） ──
+  if (changed('self')) {
+    el.opState.textContent = self.enabled ? (self.active ? '激活中' : '已介入') : '关闭';
+    el.opState.className = self.enabled ? 'active' : '';
+    el.alert1.textContent = self.alert1 || '—';
+    el.alert2.textContent = self.alert2 || '';
+    el.alert.className = self.alertStatus === 'severe' ? 'severe' :
+                         self.alertStatus === 'warning' ? 'warn' : 'idle';
+  }
+
+  // ── 速度卡 + 盲点 / 方向盘（car） ──
+  if (changed('car')) {
+    const v = car.vKph;
+    el.spdN.textContent = v != null ? Math.round(v).toString() : '--';
+    el.speedUnit.textContent = car.speedUnit || 'km/h';
+    el.cruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
+    el.cruiseU.textContent = car.speedUnit || 'km/h';
+    el.cruiseDot.className = 'dot' + (car.cruise ? ' on' : '');
+    el.gearG.textContent = car.gear || '--';
+    el.blLeft.className = 'sig' + (car.blindspotL ? ' active' : '');
+    el.blRight.className = 'sig' + (car.blindspotR ? ' active' : '');
+    el.handIcon.className = car.steeringPressed ? 'active' : '';
+  }
+
+  // ── 配置参数（_cfg / carParams） ──
+  if (changed('_cfg')) {
+    const cfg = d._cfg || {};
+    el.styleVal.textContent = cfg.personality || '--';
+    el.accelVal.textContent = cfg.accelProfile || '--';
+  }
+  // ── 纵向控制（从 carState 读取巡航状态） ──
+  if (changed('car')) {
+    el.longVal.textContent = car.cruise ? '巡航中' : '--';
+  }
+
+  // ── 网格（car / lead） ──
+  if (changed('car')) {
+    el.steerVal.innerHTML = (car.steer != null ? car.steer.toFixed(1) : '--') + '<small>°</small>';
+    if (car.gas != null) {
+      el.gasVal.textContent = Math.round(car.gas * 100) + '%';
+      el.gasFill.style.width = (car.gas * 100) + '%';
+      el.gasCell.className = 'cell' + (car.gas > 0.05 ? ' active' : '');
+      el.gasIcon.className = 'tag' + (car.gasPressed ? ' on' : '');
+    }
+    el.brakeVal.textContent = car.brake ? 'ON' : 'OFF';
+    el.brakeCell.className = 'cell' + (car.brake ? ' active' : '');
+  }
+  if (changed('lead')) {
+    if (lead.hasLead && lead.dRel != null) {
+      el.leadD.innerHTML = lead.dRel.toFixed(1) + '<small>m</small>';
+      el.leadVRel.textContent = lead.vRel != null ? lead.vRel.toFixed(1) : '--';
+    } else {
+      el.leadD.innerHTML = '--<small>m</small>';
+      el.leadVRel.textContent = '--';
+    }
+  }
+  // ── 横向控制（ctrl） ──
+  if (changed('ctrl')) {
+    const ctrl = d.ctrl || {};
+    if (ctrl.desiredCurvature != null && ctrl.curvature != null) {
+      el.latCtrlVal.innerHTML = (ctrl.curvature * 1e3).toFixed(1) + '<small> / ' + (ctrl.desiredCurvature * 1e3).toFixed(1) + '</small>';
+    } else {
+      el.latCtrlVal.innerHTML = '--<small></small>';
+    }
+  }
+
+  // ── 系统（dev） ──
+  if (changed('dev')) {
+    el.sCpu.textContent = dev.cpuTempC != null ? dev.cpuTempC.toFixed(0) + '°C' : '--';
+    const memPct = dev.memPct != null ? dev.memPct + '%' : '--';
+    const freePct = dev.freePct != null ? dev.freePct.toFixed(0) + '%' : '--';
+    el.sMem.textContent = memPct + ' / ' + freePct;
+  }
+
+  // ── 校准（cal） ──
+  if (changed('cal')) {
+    el.calStatus.textContent = ({ calibrated:'已校准', uncalibrated:'未校准', recalibrating:'校准中', invalid:'无效' })[cal.calStatus] || cal.calStatus || '--';
+    const cp = cal.calPerc;
+    el.calPct.textContent = cp != null ? cp + '%' : '--';
+    el.calFill.style.width = (cp != null ? Math.min(cp, 100) : 0) + '%';
+    if (cal.rpy) {
+      el.calAim.textContent = '设备指向：' + cal.rpy.map(v => (v * 180 / Math.PI).toFixed(1) + '°').join(' ');
+    }
+  }
+
+  // ── 摄像头 HUD（car / self） ──
+  if (camActive && (changed('car') || changed('self'))) {
+    el.camOpState.textContent = self.enabled ? (self.active ? '激活中' : '已介入') : '关闭';
+    el.camOpState.className = 'opState' + (self.enabled ? ' active' : '');
+    el.camGear.textContent = car.gear || '--';
+    const v = car.vKph;
+    el.camSpd.textContent = v != null ? Math.round(v).toString() : '--';
+    el.camUnit.textContent = car.speedUnit || 'km/h';
+    el.camCruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
+    el.camCruiseU.textContent = car.speedUnit || 'km/h';
+    el.camCruiseDot.className = 'dot' + (car.cruise ? ' on' : '');
+    el.camBlL.className = 'sig' + (car.blindspotL ? ' active' : '');
+    el.camBlR.className = 'sig' + (car.blindspotR ? ' active' : '');
+  }
+
+  // ── 摄像头告警卡片（self） ──
+  if (changed('self')) {
+    const alert1 = self.alert1 || '';
+    const alert2 = self.alert2 || '';
+    const alertStatus = self.alertStatus || '';
+    const hasAlert = alert1 && alert1 !== '—';
+    el.camAlertCard.style.display = hasAlert ? 'block' : 'none';
+    el.camAlertCard.className = 'alertCard ' + (alertStatus === 'severe' ? 'severe' :
+                                                alertStatus === 'warning' ? 'warn' : 'idle');
+    if (hasAlert) {
+      el.camAlertText.textContent = alert1 + (alert2 ? ' · ' + alert2 : '');
+    }
+  }
+
+  // ── 诊断日志（procs / events） ──
+  if (changed('procs')) {
+    if (procs.unhealthy && procs.unhealthy.length > 0) {
+      renderProcBad(procs.unhealthy);
+      procs.unhealthy.forEach(p => {
+        addUniqueLog(p.running ? 1 : 3, 'proc:' + p.name + ':' + (p.exitCode || ''),
+          '进程 ' + p.name + (p.running ? ' 状态异常' : ' 退出=' + p.exitCode));
+      });
+    } else {
+      el.procArea.innerHTML = '';
+    }
+  }
+  if (changed('events')) {
+    let hasSevere = false;
+    if (events.count !== undefined && events.count > 0) {
+      (events.list || []).forEach(e => {
+        const sev = e.severity || 0;
+        const key = 'evt:' + e.name;
+        addUniqueLog(sev, key, e.name);
+        if (sev >= 3) hasSevere = true;
+      });
+    }
+    el.camAlert.classList.toggle('visible', hasSevere);
+  }
+
+  // 诊断时间线（始终渲染，开销极低）
+  renderTimeline();
+}
+
+function renderProcBad(unhealthy) {
+  el.procArea.innerHTML = '<h4>进程状态 <span class="badge">' + unhealthy.length + ' 异常</span></h4>' +
+    unhealthy.map(p =>
+      '<div class="plog"><span class="' + (p.running ? 'ok' : 'bad') + '">' +
+      (p.running ? '●' : '○') + ' ' + p.name +
+      '</span><span>' + (p.running ? '状态异常' : '退出=' + p.exitCode) + '</span></div>'
+    ).join('');
+}
+
+// ═══ 摄像头（WebRTC 按需连接） ═══
+let pc = null;                       // RTCPeerConnection
+let wsRetry = 0;                     // 重试计数
+let _retryTimer = null;              // 重试定时器句柄
+
+function openCamera() {
+  camActive = true;
+  el.camView.classList.add('open');
+  el.camBtn.classList.add('open');
+  el.camClose.style.display = 'flex';
+  el.camStatus.classList.add('visible');
+  el.camStatus.textContent = '连接中…';
+  // 清除残余重试，关闭旧连接，避免冲突
+  if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+  closeVideo();
+  wsRetry = 0;
+  connectVideo();
+}
+
+function closeCamera() {
+  camActive = false;
+  if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+  el.camView.classList.remove('open');
+  el.camBtn.classList.remove('open');
+  el.camClose.style.display = 'none';
+  el.camStatus.classList.remove('visible');
+  closeVideo();
+}
+
+function connectVideo() {
+  // WebRTC 方案：浏览器（含 iOS Safari）原生支持，无需 WebCodecs/MSE
+  if (pc) return;
+  wsRetry++;
+  el.camStatus.classList.add('visible');
+  el.camStatus.textContent = '连接中…';
+
+  const video = document.getElementById('vMse');
+  video.style.display = 'block';
+  el.canvas.style.display = 'none';
+
+  pc = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+
+  pc.addEventListener('track', ev => {
+    if (ev.track.kind === 'video') {
+      video.srcObject = ev.streams[0];
+      video.play().catch(() => {});
+    }
+  });
+
+  pc.addEventListener('connectionstatechange', () => {
+    if (!pc) return;
+    const st = pc.connectionState;
+    if (st === 'connected') {
+      el.camStatus.classList.remove('visible');
+      wsRetry = 0;
+    } else if (st === 'failed' || st === 'disconnected' || st === 'closed') {
+      onVideoDrop();
+    }
+  });
+
+  // 只收视频，不发本地媒体
+  pc.addTransceiver('video', { direction: 'recvonly' });
+
+  pc.createOffer()
+    .then(offer => pc.setLocalDescription(offer))
+    .then(() => waitIceGathering(pc))
+    .then(() => fetch('/offer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sdp: pc.localDescription.sdp, camera: 'road' }),
+    }))
+    .then(resp => { if (!resp.ok) throw new Error('offer ' + resp.status); return resp.json(); })
+    .then(answer => pc.setRemoteDescription(answer))
+    .catch(err => { console.warn('webrtc offer failed', err); onVideoDrop(); });
+}
+
+function waitIceGathering(pc) {
+  return new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') { resolve(); return; }
+    const check = () => {
+      if (pc.iceGatheringState === 'complete') {
+        pc.removeEventListener('icegatheringstatechange', check);
+        resolve();
+      }
+    };
+    pc.addEventListener('icegatheringstatechange', check);
+    // 兜底：最多等 2 秒就用已收集到的候选发起
+    setTimeout(resolve, 2000);
+  });
+}
+
+// 连接失败/断开处理：持续重试，指数退避（2s → 4s → 8s → 10s）
+function onVideoDrop() {
+  closeVideo();
+  if (!camActive) return;
+  const delay = Math.min(2000 * Math.pow(2, Math.min(wsRetry, 3)), 10000);
+  wsRetry++;
+  _retryTimer = setTimeout(connectVideo, delay);
+}
+
+function closeVideo() {
+  const oldPc = pc;
+  pc = null;  // 先清空，这样旧连接触发的 connectionstatechange 不会误判
+  if (oldPc) {
+    try {
+      oldPc.getTransceivers && oldPc.getTransceivers().forEach(t => t.stop && t.stop());
+      oldPc.close();
+    } catch(_) {}
+  }
+  const video = document.getElementById('vMse');
+  if (video) { try { video.srcObject = null; } catch(_) {} }
+}
+
+// ═══ 全屏切换 ═══
+function toggleFullscreen() {
+  const el = document.getElementById('camView');
+  const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (isFs) {
+    (document.exitFullscreen || document.webkitExitFullscreen)().catch(() => {});
+  } else {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) req.call(el);
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  document.getElementById('camView').classList.toggle('fullscreen', !!document.fullscreenElement);
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  document.getElementById('camView').classList.toggle('fullscreen', !!document.webkitFullscreenElement);
+});
+
+// ═══ 诊断面板 ═══
+function openDiag() {
+  diagActive = true;
+  el.panel.classList.add('open');
+  el.diagBtn.classList.add('open');
+}
+
+function closeDiag() {
+  diagActive = false;
+  el.panel.classList.remove('open');
+  el.diagBtn.classList.remove('open');
+}
+
+// ═══ 事件绑定 ═══
+$('camBtn').addEventListener('click', () => { camActive ? closeCamera() : openCamera(); });
+$('camClose').addEventListener('click', closeCamera);
+$('camBack').addEventListener('click', closeCamera);
+$('camFullBtn').addEventListener('click', toggleFullscreen);
+$('diagBtn').addEventListener('click', () => { diagActive ? closeDiag() : openDiag(); });
+el.panelOverlay.addEventListener('click', closeDiag);
+$('setBtn').addEventListener('click', openSettings);
+$('setClose').addEventListener('click', closeSettings);
+$('setBack').addEventListener('click', closeSettings);
+$('confirmCancel').addEventListener('click', () => { $('confirmModal').style.display = 'none'; pendingChange = null; });
+$('confirmOk').addEventListener('click', doConfirmChange);
+
+// ═══ 设置页 ═══
+async function openSettings() {
+  setActive = true; $('dash').style.display = 'none'; $('camView').style.display = 'none'; $('settingsView').style.display = 'flex';
+  try {
+    const r = await fetch('/api/settings'); settingsData = await r.json(); renderSettings();
+  } catch (e) { $('setList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--dim);">加载失败: ' + e.message + '</div>'; }
+}
+function closeSettings() { setActive = false; $('settingsView').style.display = 'none'; $('dash').style.display = 'flex'; }
+
+// 根据 key 查找 param safety 并返回安全提示文本
+function safetyTextFor(key) {
+  const st = { offroad: '⚠ 此设置需要车辆熄火后才能修改', not_engaged: 'ℹ 此设置可在行车中修改' };
+  for (const g of (settingsData?.settings || []))
+    for (const p of g.items)
+      if (p.key === key) return st[p.safety] || 'ℹ 此设置可在行车中修改';
+  return 'ℹ 此设置可在行车中修改';
+}
+// 格式化值显示：bool 显示"开/关"，其他显示原值
+function formatValue(key, val) {
+  for (const g of (settingsData?.settings || []))
+    for (const p of g.items)
+      if (p.key === key) return p.type === 'bool' ? (val ? '开' : '关') : val;
+  return val;
+}
+
+function renderSettings() {
+  if (!settingsData) return;
+  const ctx = settingsData.context || {}, started = ctx.started, engaged = ctx.engaged, alwaysOffroad = ctx.always_offroad;
+  let statusText = '🟢 停车';
+  if (alwaysOffroad) statusText = '🟢 始终非上路';
+  else if (started) statusText = engaged ? '🔴 行驶中' : '🟡 停车(引擎启动)';
+  $('setStatus').textContent = statusText;
+  $('setStatus').className = 'opState' + (started && !alwaysOffroad ? ' active' : '');
+  let html = '';
+  for (const g of settingsData.settings) {
+    html += '<div><div class="setGroupTitle">' + g.group + '</div>';
+    for (const p of g.items) {
+      const locked = p.locked, d = locked ? ' disabled' : '';
+      const safetyNote = p.safety === 'offroad' ? '需熄火' : '随时';
+      html += '<div class="setItem' + (locked ? ' dim' : '') + '">' +
+        '<div style="flex:1;min-width:0;"><div class="k">' + p.label + '</div><div class="sub">' + safetyNote + '</div></div>';
+      if (p.type === 'select') {
+        const opts = p.options || [];
+        const curVal = p.value != null ? p.value : 0;
+        html += '<div style="display:flex;gap:4px;flex-shrink:0;">';
+        for (const o of opts) {
+          const sel = o.v === curVal ? ' background:var(--accent);color:#fff;' : ' background:var(--card);color:var(--txt);';
+          html += '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="select" data-val="' + o.v + '" style="padding:6px 12px;border-radius:8px;border:var(--bw);font-size:.85rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';' + sel + '" onclick="selectSetting(this)">' + o.l + '</button>';
+        }
+        html += '</div>';
+      } else if (p.type === 'int') {
+        const curVal = p.value != null ? p.value : 0;
+        html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
+          '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="-1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">−</button>' +
+          '<span style="font-size:1.1rem;font-weight:700;min-width:32px;text-align:center;">' + curVal + '</span>' +
+          '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">+</button></div>';
+      } else {
+        const checked = p.value ? ' checked' : '';
+        // 更清晰的开关样式：开=蓝色+对勾，关=灰色+叉号
+        html += '<label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';">' +
+          '<input type="checkbox" data-key="' + p.key + '" data-label="' + p.label + '" data-safety="' + p.safety + '" data-type="bool"' + checked + d +
+          ' style="opacity:0;width:0;height:0;" onchange="toggleSetting(this)">' +
+          '<span style="position:absolute;inset:0;background:' + (checked ? 'var(--accent)' : '#555') + ';border-radius:14px;transition:.3s;"></span>' +
+          '<span style="position:absolute;top:2px;left:' + (checked ? '26px' : '2px') + ';width:24px;height:24px;border-radius:50%;background:#fff;transition:.3s;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:' + (checked ? 'var(--accent)' : '#888') + ';">' + (checked ? '✓' : '✕') + '</span></label>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  $('setList').innerHTML = html;
+}
+
+window.toggleSetting = function(el) {
+  const key = el.dataset.key, label = el.dataset.label, safety = el.dataset.safety;
+  const newVal = el.checked;
+  el.checked = !newVal; // 恢复原状态
+  pendingChange = { key, value: newVal, label };
+  const safetyText = safety === 'offroad' ? '⚠ 此设置需要车辆熄火后才能修改' : 'ℹ 此设置可在行车中修改';
+  $('confirmTitle').textContent = '⚠ 确认修改';
+  $('confirmLabel').textContent = label;
+  $('confirmDesc').textContent = '当前: ' + (!newVal ? '开' : '关') + ' → 新值: ' + (newVal ? '开' : '关');
+  $('confirmSafety').textContent = safetyText;
+  $('confirmModal').style.display = 'flex';
+};
+
+window.selectSetting = function(el) {
+  const key = el.dataset.key, label = el.dataset.label, val = parseInt(el.dataset.val);
+  pendingChange = { key, value: val, label };
+  $('confirmTitle').textContent = '⚠ 确认修改';
+  $('confirmLabel').textContent = label;
+  $('confirmDesc').textContent = '选择: ' + el.textContent;
+  $('confirmSafety').textContent = safetyTextFor(key);
+  $('confirmModal').style.display = 'flex';
+};
+
+window.adjustSetting = function(el) {
+  const key = el.dataset.key, label = el.dataset.label, delta = parseInt(el.dataset.delta);
+  // 查找当前值
+  let curVal = 0;
+  if (settingsData) {
+    for (const g of settingsData.settings) {
+      for (const p of g.items) {
+        if (p.key === key) { curVal = p.value != null ? p.value : 0; break; }
+      }
+    }
+  }
+  const newVal = curVal + delta;
+  pendingChange = { key, value: newVal, label };
+  $('confirmTitle').textContent = '⚠ 确认修改';
+  $('confirmLabel').textContent = label;
+  $('confirmDesc').textContent = '当前: ' + curVal + ' → 新值: ' + newVal;
+  $('confirmSafety').textContent = safetyTextFor(key);
+  $('confirmModal').style.display = 'flex';
+};
+
+async function doConfirmChange() {
+  $('confirmModal').style.display = 'none';
+  if (!pendingChange) return;
+  const { key, value, label } = pendingChange;
+  // 即时更新本地状态，不等 API 返回
+  if (settingsData) {
+    for (const g of settingsData.settings) {
+      for (const p of g.items) {
+        if (p.key === key) { p.value = value; break; }
+      }
+    }
+    renderSettings();
+  }
+  try {
+    const r = await fetch('/api/settings/' + key, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({value}) });
+    const res = await r.json();
+    if (res.error === 'locked') addLog(2, '设置失败: ' + (res.reason || ''));
+    else if (res.ok) addLog(0, '设置已更改: ' + label + ' → ' + formatValue(key, value));
+    else addLog(2, '设置失败: ' + (res.message || ''));
+  } catch (e) { addLog(2, '设置失败: ' + e.message); }
+  pendingChange = null;
+  // 后台刷新确保与服务端同步
+  setTimeout(() => { if (setActive) openSettings(); }, 500);
+}
+
+// ═══ 启动 ═══
+connectData();
+
+</script>
+</body>
+</html>

@@ -30,8 +30,31 @@ KP_INTERP = [250, 120, 65, 30, 11.5, 5.5, 3.5, 2.0, KP]
 
 LP_FILTER_CUTOFF_HZ = 1.2
 JERK_LOOKAHEAD_SECONDS = 0.19
-JERK_GAIN = 0.3
+# Jerk feedforward is mixed into the friction term, amplifying the extra steering
+# torque at curve entry / direction reversal. On continuous curves (short arc, no
+# steady state) this pushes the nose toward the apex and presses the inside line,
+# while single curves mask it. Reduced to 0.25 to ease apex-cutting; ~0 impact on
+# straight/steady-state where lateral jerk is near zero.
+JERK_GAIN = 0.25
 LAT_ACCEL_REQUEST_BUFFER_SECONDS = 1.0
+
+# The friction term adds friction/latAccelFactor of extra proportional gain on the
+# error. On high-speed straights this amplifies small tracking errors and, combined
+# with steering latency, excites a slow lateral weave. The rack needs less static
+# friction compensation as speed rises, so taper the friction gain off with speed.
+# Per China's legal limits, cornering/sweeper scenarios (continuous curves up to
+# ~20 m/s = 72 km/h city or 60-80 km/h arterial) must keep the original full gain,
+# so the taper starts at 30 m/s (>=100 km/h freeway) and only eases to 0.8.
+FRICTION_INTERP_SPEEDS = [1.0, 5.0, 15.0, 20.0, 30.0, 34.0]
+FRICTION_INTERP_GAIN = [1.0, 1.0, 1.0, 1.0, 0.9, 0.8]
+
+# latAccelOffset is LIVE-LEARNED (selfdrive/locationd/torqued.py) to cancel a
+# real device-roll-vs-car-roll misalignment: the `ff -=` below means a negative
+# learned offset adds feedforward in the direction of the turn. An earlier
+# revision scaled it toward zero via LAT_OFFSET_SCALE; reverted because it was
+# dead code, the module-level float(os.getenv(...)) crashed import on an
+# unimported `os`, and roll IS published so zeroing it removes real compensation.
+
 VERSION = 1
 
 class LatControlTorque(LatControl):
@@ -69,6 +92,11 @@ class LatControlTorque(LatControl):
     pid_log.version = VERSION
     measured_curvature = -VM.calc_curvature(math.radians(CS.steeringAngleDeg - params.angleOffsetDeg), CS.vEgo, params.roll)
     measurement = measured_curvature * CS.vEgo ** 2
+    # Anchor on the measured vEgo^2 (stock comma), NOT a model-interpolated v_pred^2:
+    # that anchor was tried here (2be0fbd) and in V0 (655f877) and reverted, because
+    # np.interp over model velocity.x plus the squaring injected feedforward jitter
+    # (vPred^2 frame delta ~365x the curvDesired delta) that showed up as
+    # high-frequency steering oscillation in corners.
     future_desired_lateral_accel = desired_curvature * CS.vEgo ** 2
     self.lat_accel_request_buffer.append(future_desired_lateral_accel)
 
@@ -88,7 +116,8 @@ class LatControlTorque(LatControl):
     ff = gravity_adjusted_future_lateral_accel
     # latAccelOffset corrects roll compensation bias from device roll misalignment relative to car roll
     ff -= self.torque_params.latAccelOffset
-    ff += get_friction(error + JERK_GAIN * desired_lateral_jerk, lateral_accel_deadzone, FRICTION_THRESHOLD, self.torque_params)
+    friction_gain = float(np.interp(CS.vEgo, FRICTION_INTERP_SPEEDS, FRICTION_INTERP_GAIN))
+    ff += friction_gain * get_friction(error + JERK_GAIN * desired_lateral_jerk, lateral_accel_deadzone, FRICTION_THRESHOLD, self.torque_params)
 
     if not active:
       output_torque = 0.0

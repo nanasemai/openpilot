@@ -28,9 +28,13 @@ class ExpButton(Widget):
     self._rect.x, self._rect.y = rect.x, rect.y
 
   def _update_state(self) -> None:
-    selfdrive_state = ui_state.sm["selfdriveState"]
-    self._experimental_mode = selfdrive_state.experimentalMode
-    self._engageable = selfdrive_state.engageable or selfdrive_state.enabled
+    if ui_state.force_onroad:
+      self._experimental_mode = self._params.get_bool("ExperimentalMode")
+      self._engageable = True
+    else:
+      selfdrive_state = ui_state.sm["selfdriveState"]
+      self._experimental_mode = selfdrive_state.experimentalMode
+      self._engageable = selfdrive_state.engageable or selfdrive_state.enabled
 
   def _handle_mouse_release(self, _):
     super()._handle_mouse_release(_)
@@ -63,6 +67,8 @@ class ExpButton(Widget):
     return self._experimental_mode
 
   def _is_toggle_allowed(self):
+    if ui_state.force_onroad:
+      return True
     if not self._params.get_bool("ExperimentalModeConfirmed"):
       return False
 

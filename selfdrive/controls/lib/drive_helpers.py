@@ -14,6 +14,10 @@ MIN_STABLE_DELAY = 0.3
 MAX_LATERAL_JERK = 5.0  # m/s^3
 MAX_LATERAL_ACCEL_NO_ROLL = 3.0  # m/s^2
 
+# Reference preview distance [m] behind the lateral lane-position-offset setting.
+# Empirical constant with no in-repo derivation -- see lane_position_offset_curvature.
+LANE_OFFSET_REFERENCE_DISTANCE = 30.0
+
 
 def clamp(val, min_val, max_val):
   clamped_val = float(np.clip(val, min_val, max_val))
@@ -22,6 +26,29 @@ def clamp(val, min_val, max_val):
 def smooth_value(val, prev_val, tau, dt=DT_MDL):
   alpha = 1 - np.exp(-dt/tau) if tau > 0 else 1
   return alpha * val + (1 - alpha) * prev_val
+
+def lane_position_offset_curvature(offset_cm) -> float:
+  """Curvature bias [1/m] for the "Lane Position Offset" setting, in cm.
+
+  A lane offset cannot be produced by changing the curvature of the path itself: a
+  laterally shifted copy of a path has the same curvature. It is produced by the
+  closed loop instead -- the model re-plans to bring the car back to its lane centre,
+  so a constant curvature bias dk settles at a lateral offset of dk / k, where k is
+  the model's lane-centering gain in (1/m) per m of offset.
+
+  k is taken here as 2 / LANE_OFFSET_REFERENCE_DISTANCE**2, i.e. the curvature needed
+  to take out an offset over a 30 m preview (1/450 per m), so the settled offset is
+  offset_cm only if the model's effective centering preview is 30 m. The achieved
+  offset scales as (L/30)**2 for any other effective preview L, i.e. it is strongly
+  speed-dependent if L tracks speed. The 30 m reference is an empirical constant and
+  has no derivation in this repository; changing it changes the user-facing range.
+
+  This is the single definition of that formula -- both modeld variants call it, so
+  the two can no longer drift apart.
+  """
+  if not offset_cm:
+    return 0.0
+  return 2.0 * (offset_cm / 100.0) / (LANE_OFFSET_REFERENCE_DISTANCE ** 2)
 
 def clip_curvature(v_ego, prev_curvature, new_curvature, roll) -> tuple[float, bool]:
   # This function respects ISO lateral jerk and acceleration limits + a max curvature

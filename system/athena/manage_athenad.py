@@ -29,6 +29,11 @@ def manage_athenad(dongle_id_param, pid_param, process_name, target):
                        dirty=build_metadata.openpilot.is_dirty,
                        device=HARDWARE.get_device_type())
 
+  if params.get_bool("dp_dev_disable_connect"):
+    cloudlog.info(f"{process_name} disabled by dp_dev_disable_connect")
+    time.sleep(31536000)  # a year
+    return
+
   try:
     while 1:
       cloudlog.info(f"starting {process_name} daemon")
