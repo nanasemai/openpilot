@@ -29,7 +29,7 @@ class NetworkLayoutMici(NavScroller):
       self._network_metered_btn.set_enabled(False)
       self._wifi_manager.set_tethering_active(checked)
 
-    self._tethering_toggle_btn = BigToggle("enable tethering", "", toggle_callback=tethering_toggle_callback)
+    self._tethering_toggle_btn = BigToggle(tr("enable tethering"), "", toggle_callback=tethering_toggle_callback)
 
     def tethering_password_callback(password: str):
       if password:
@@ -39,7 +39,7 @@ class NetworkLayoutMici(NavScroller):
 
     def tethering_password_clicked():
       tethering_password = self._wifi_manager.tethering_password
-      dlg = BigInputDialog("enter password...", tethering_password, minimum_length=8,
+      dlg = BigInputDialog(tr("enter password..."), tethering_password, minimum_length=8,
                            confirm_callback=tethering_password_callback)
       gui_app.push_widget(dlg)
 

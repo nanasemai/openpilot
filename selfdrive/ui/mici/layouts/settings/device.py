@@ -72,9 +72,9 @@ def _engaged_confirmation_click(callback: Callable, action_text: str, icon: rl.T
       if not ui_state.engaged:
         callback()
 
-    gui_app.push_widget(BigConfirmationDialog(f"slide to\n{action_text.lower()}", icon, confirm_callback, exit_on_confirm=exit_on_confirm, red=red))
+    gui_app.push_widget(BigConfirmationDialog(tr(f"slide to\n{action_text.lower()}"), icon, confirm_callback, exit_on_confirm=exit_on_confirm, red=red))
   else:
-    gui_app.push_widget(BigDialog("", f"Disengage to {action_text}"))
+    gui_app.push_widget(BigDialog("", tr(f"Disengage to {action_text}")))
 
 
 class EngagedConfirmationCircleButton(BigCircleButton):
