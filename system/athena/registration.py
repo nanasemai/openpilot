@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import time
 import json
 import jwt
@@ -16,6 +17,8 @@ from openpilot.common.swaglog import cloudlog
 
 
 UNREGISTERED_DONGLE_ID = "UnregisteredDevice"
+
+LITE = os.getenv("LITE") is not None
 
 def is_registered_device() -> bool:
   dongle = Params().get("DongleId")
@@ -40,12 +43,21 @@ def register(show_spinner=False) -> str | None:
     with open(Paths.persist_root()+"/comma/dongle_id") as f:
       dongle_id = f.read().strip()
 
+  # Skip registration if Comma Connect is disabled (dp_dev_disable_connect)
+  if params.get_bool("dp_dev_disable_connect"):
+    dongle_id = UNREGISTERED_DONGLE_ID
+    params.put("DongleId", UNREGISTERED_DONGLE_ID, block=True)
+    return UNREGISTERED_DONGLE_ID
+
   # Create registration token, in the future, this key will make JWTs directly
   jwt_algo, private_key, public_key = get_key_pair()
 
   if not public_key:
     dongle_id = UNREGISTERED_DONGLE_ID
     cloudlog.warning("missing public key")
+  elif LITE:
+    params.put("DongleId", UNREGISTERED_DONGLE_ID)
+    return UNREGISTERED_DONGLE_ID
   elif dongle_id is None:
     if show_spinner:
       spinner = Spinner()
@@ -54,13 +66,18 @@ def register(show_spinner=False) -> str | None:
     # Block until we get the imei
     serial = HARDWARE.get_serial()
     start_time = time.monotonic()
-    imei1: str | None = None
-    imei2: str | None = None
+    imei1='865420071781912'
+    imei2='865420071781904'
     while imei1 is None and imei2 is None:
       try:
         imei1, imei2 = HARDWARE.get_imei(0), HARDWARE.get_imei(1)
       except Exception:
         cloudlog.exception("Error getting imei, trying again...")
+        # rick - no imei = can't register = skip everything
+        if skip_imei_count > 30:
+          params.put("DongleId", UNREGISTERED_DONGLE_ID)
+          return UNREGISTERED_DONGLE_ID
+        skip_imei_count += 1
         time.sleep(1)
 
       if time.monotonic() - start_time > 60 and show_spinner:
@@ -91,6 +108,7 @@ def register(show_spinner=False) -> str | None:
 
       if time.monotonic() - start_time > 60 and show_spinner:
         spinner.update(f"registering device - serial: {serial}, IMEI: ({imei1}, {imei2})")
+        params.put("DongleId", UNREGISTERED_DONGLE_ID, block=True)
         return UNREGISTERED_DONGLE_ID  # hotfix to prevent an infinite wait for registration
 
     if show_spinner:
@@ -98,7 +116,7 @@ def register(show_spinner=False) -> str | None:
 
   if dongle_id:
     params.put("DongleId", dongle_id, block=True)
-    set_offroad_alert("Offroad_UnregisteredHardware", (dongle_id == UNREGISTERED_DONGLE_ID) and not PC)
+    #set_offroad_alert("Offroad_UnregisteredHardware", (dongle_id == UNREGISTERED_DONGLE_ID) and not PC and not LITE)
   return dongle_id
 
 

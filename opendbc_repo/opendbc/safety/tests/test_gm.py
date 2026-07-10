@@ -207,6 +207,22 @@ class TestGmCameraEVSafety(TestGmCameraSafety, TestGmEVSafetyBase):
   pass
 
 
+class TestGmCameraIntSafety(TestGmCameraSafety):
+  # Cadillac ATS: camera interception harness (camera mode + retains stock radar)
+  TX_MSGS = [[0x180, 0],  # pt bus - LKA steering
+             [0xA1, 1], [0x306, 1], [0x308, 1], [0x310, 1],  # obs bus - radar
+             [0x1E1, 2], [0x184, 2]]  # camera bus
+  FWD_BLACKLISTED_ADDRS = {2: [0x180], 0: [0x184]}  # block LKAS message and PSCMStatus
+  BUTTONS_BUS = 2  # tx only
+
+  def setUp(self):
+    self.packer = CANPackerSafety("gm_global_a_powertrain_generated")
+    self.packer_chassis = CANPackerSafety("gm_global_a_chassis")
+    self.safety = libsafety_py.libsafety
+    self.safety.set_safety_hooks(CarParams.SafetyModel.gm, GMSafetyFlags.HW_CAM_INT | self.EXTRA_SAFETY_PARAM)
+    self.safety.init_tests()
+
+
 class TestGmCameraLongitudinalSafety(GmLongitudinalBase, TestGmCameraSafetyBase):
   TX_MSGS = [[0x180, 0], [0x315, 0], [0x2CB, 0], [0x370, 0],  # pt bus
              [0x184, 2]]  # camera bus

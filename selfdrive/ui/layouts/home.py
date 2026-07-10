@@ -1,3 +1,4 @@
+import os
 import time
 import pyray as rl
 from collections.abc import Callable
@@ -229,5 +230,36 @@ class HomeLayout(Widget):
 
   def _get_version_text(self) -> str:
     brand = "sunnypilot"
+
+    # 设备型号映射（来自设备树 model string）
+    model_map = {"tici": "C3", "tizi": "C3X", "mici": "C4"}
+    try:
+      from openpilot.system.hardware.tici.hardware import get_device_type
+      model = model_map.get(get_device_type(), "")
+    except Exception:
+      model = ""
+
+    # Panda MCU 类型（仅 C3 有 TICI_DOS/TICI_TRES 环境变量）
+    panda_type = ""
+    if "TICI_DOS" in os.environ:
+      panda_type = "F4"
+    elif "TICI_TRES" in os.environ:
+      panda_type = "H7"
+
+    # LITE 变体后缀
+    lite_suffix = ""
+    if os.getenv("LITE") is not None:
+      lite_suffix = "XLite" if "TICI_TRES" in os.environ else "Lite"
+
+    # 组合版本字符串
+    parts = [brand]
+    if model:
+      parts.append(f" - {model}")
+    if panda_type:
+      parts.append(f" ({panda_type})")
+    if lite_suffix:
+      parts.append(f" {lite_suffix}")
+
+    result = "".join(parts)
     description = self.params.get("UpdaterCurrentDescription")
-    return f"{brand} {description}" if description else brand
+    return f"{result} {description}" if description else result

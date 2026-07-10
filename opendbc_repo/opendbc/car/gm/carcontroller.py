@@ -1,13 +1,14 @@
 import numpy as np
 from opendbc.can import CANPacker
 from opendbc.car import Bus, DT_CTRL, structs
-from opendbc.car.lateral import apply_driver_steer_torque_limits
+from opendbc.car.lateral import apply_driver_steer_torque_limits, common_fault_avoidance
 from opendbc.car.gm import gmcan
 from opendbc.car.common.conversions import Conversions as CV
-from opendbc.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons
+from opendbc.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons, CAMERA_INT_CAR
 from opendbc.car.interfaces import CarControllerBase
 
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
+GearShifter = structs.CarState.GearShifter
 NetworkLocation = structs.CarParams.NetworkLocation
 LongCtrlState = structs.CarControl.Actuators.LongControlState
 
@@ -15,6 +16,11 @@ LongCtrlState = structs.CarControl.Actuators.LongControlState
 CAMERA_CANCEL_DELAY_FRAMES = 10
 # Enforce a minimum interval between steering messages to avoid a fault
 MIN_STEER_MSG_INTERVAL_MS = 15
+
+# CAMERA_INT_CAR (e.g. Cadillac ATS) EPS fault avoidance, referenced from Toyota:
+# detect driver override to avoid an EPS Counter/rate fault
+MAX_STEER_RATE = 100  # deg/s
+MAX_STEER_RATE_FRAMES = 19  # frames above rate limit before cutting the request bit
 
 
 class CarController(CarControllerBase):
@@ -30,6 +36,9 @@ class CarController(CarControllerBase):
 
     self.lka_steering_cmd_counter = 0
     self.lka_icon_status_last = (False, False)
+
+    # CAMERA_INT_CAR driver override / steer rate fault counter
+    self.steer_rate_counter = 0
 
     self.params = CarControllerParams(self.CP)
 
@@ -49,37 +58,76 @@ class CarController(CarControllerBase):
     can_sends = []
 
     # Steering (Active: 50Hz, inactive: 10Hz)
-    steer_step = self.params.STEER_STEP if CC.latActive else self.params.INACTIVE_STEER_STEP
+    if self.CP.carFingerprint in CAMERA_INT_CAR:
+      # Camera interception harness: integrated at camera, retains original radar
+      # No ASCM loopback, so self-managed counter and no interval checks
+      if (self.frame - self.last_steer_frame) >= self.params.STEER_STEP:
+        self.lka_steering_cmd_counter = (self.lka_steering_cmd_counter + 1) % 4
 
-    if self.CP.networkLocation == NetworkLocation.fwdCamera:
-      # Also send at 50Hz:
-      # - on startup, first few msgs are blocked
-      # - until we're in sync with camera so counters align when relay closes, preventing a fault.
-      #   openpilot can subtly drift, so this is activated throughout a drive to stay synced
-      out_of_sync = self.lka_steering_cmd_counter % 4 != (CS.cam_lka_steering_cmd_counter + 1) % 4
-      if CS.loopback_lka_steering_cmd_ts_nanos == 0 or out_of_sync:
-        steer_step = self.params.STEER_STEP
+        lat_active = CC.latActive
+        # GM specific: EPS trips on abnormal angle data, disable lateral control above 300 deg
+        if abs(CS.out.steeringAngleDeg) > 300:
+          lat_active = False
 
-    self.lka_steering_cmd_counter += 1 if CS.loopback_lka_steering_cmd_updated else 0
+        if lat_active:
+          new_torque = int(round(actuators.torque * self.params.STEER_MAX))
+          apply_torque = apply_driver_steer_torque_limits(new_torque, self.apply_torque_last, CS.out.steeringTorque, self.params)
+        else:
+          apply_torque = 0
 
-    # Avoid GM EPS faults when transmitting messages too close together: skip this transmit if we
-    # received the ASCMLKASteeringCmd loopback confirmation too recently
-    last_lka_steer_msg_ms = (now_nanos - CS.loopback_lka_steering_cmd_ts_nanos) * 1e-6
-    if (self.frame - self.last_steer_frame) >= steer_step and last_lka_steer_msg_ms > MIN_STEER_MSG_INTERVAL_MS:
-      # Initialize ASCMLKASteeringCmd counter using the camera until we get a msg on the bus
-      if CS.loopback_lka_steering_cmd_ts_nanos == 0:
-        self.lka_steering_cmd_counter = CS.pt_lka_steering_cmd_counter + 1
+        # Driver override detection (referenced from Toyota): cut the request bit on
+        # steer rate faults, but keep it while the driver is actively overriding
+        driver_override = (CS.out.steeringPressed or
+                           (abs(CS.out.steeringRateDeg) >= MAX_STEER_RATE and abs(apply_torque - self.apply_torque_last) <= 10))
+        self.steer_rate_counter, apply_torque_req = common_fault_avoidance(
+          abs(CS.out.steeringRateDeg) >= MAX_STEER_RATE and not driver_override, lat_active,
+          self.steer_rate_counter, MAX_STEER_RATE_FRAMES)
 
-      if CC.latActive:
-        new_torque = int(round(actuators.torque * self.params.STEER_MAX))
-        apply_torque = apply_driver_steer_torque_limits(new_torque, self.apply_torque_last, CS.out.steeringTorque, self.params)
-      else:
-        apply_torque = 0
+        # Disable LKAS message in park
+        if CS.out.gearShifter == GearShifter.park:
+          apply_torque_req = False
+          apply_torque = 0
 
-      self.last_steer_frame = self.frame
-      self.apply_torque_last = apply_torque
-      idx = self.lka_steering_cmd_counter % 4
-      can_sends.append(gmcan.create_steering_control(self.packer_pt, CanBus.POWERTRAIN, apply_torque, idx, CC.latActive))
+        if not apply_torque_req:
+          apply_torque = 0
+
+        self.last_steer_frame = self.frame
+        self.apply_torque_last = apply_torque
+        idx = self.lka_steering_cmd_counter % 4
+        can_sends.append(gmcan.create_steering_control(self.packer_pt, CanBus.POWERTRAIN, apply_torque, idx, apply_torque_req))
+
+    else:
+      steer_step = self.params.STEER_STEP if CC.latActive else self.params.INACTIVE_STEER_STEP
+
+      if self.CP.networkLocation == NetworkLocation.fwdCamera:
+        # Also send at 50Hz:
+        # - on startup, first few msgs are blocked
+        # - until we're in sync with camera so counters align when relay closes, preventing a fault.
+        #   openpilot can subtly drift, so this is activated throughout a drive to stay synced
+        out_of_sync = self.lka_steering_cmd_counter % 4 != (CS.cam_lka_steering_cmd_counter + 1) % 4
+        if CS.loopback_lka_steering_cmd_ts_nanos == 0 or out_of_sync:
+          steer_step = self.params.STEER_STEP
+
+      self.lka_steering_cmd_counter += 1 if CS.loopback_lka_steering_cmd_updated else 0
+
+      # Avoid GM EPS faults when transmitting messages too close together: skip this transmit if we
+      # received the ASCMLKASteeringCmd loopback confirmation too recently
+      last_lka_steer_msg_ms = (now_nanos - CS.loopback_lka_steering_cmd_ts_nanos) * 1e-6
+      if (self.frame - self.last_steer_frame) >= steer_step and last_lka_steer_msg_ms > MIN_STEER_MSG_INTERVAL_MS:
+        # Initialize ASCMLKASteeringCmd counter using the camera until we get a msg on the bus
+        if CS.loopback_lka_steering_cmd_ts_nanos == 0:
+          self.lka_steering_cmd_counter = CS.pt_lka_steering_cmd_counter + 1
+
+        if CC.latActive:
+          new_torque = int(round(actuators.torque * self.params.STEER_MAX))
+          apply_torque = apply_driver_steer_torque_limits(new_torque, self.apply_torque_last, CS.out.steeringTorque, self.params)
+        else:
+          apply_torque = 0
+
+        self.last_steer_frame = self.frame
+        self.apply_torque_last = apply_torque
+        idx = self.lka_steering_cmd_counter % 4
+        can_sends.append(gmcan.create_steering_control(self.packer_pt, CanBus.POWERTRAIN, apply_torque, idx, CC.latActive))
 
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz

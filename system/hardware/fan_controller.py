@@ -22,12 +22,14 @@ class FanController:
     self.last_ignition = ignition
 
     if self._mici:
+      # upstream 0.11.1 (OFFSET == 0 on mici)
       return int(self.controller.update(
-                   error=(cur_temp - (75 + OFFSET)),
+                   error=(cur_temp - (75 + OFFSET)),  # temperature setpoint in C
                    feedforward=np.interp(cur_temp, [60.0 + OFFSET, 100.0 + OFFSET], [0, 100])
                 ))
 
+    # classic pre-0.11.1 (comma three / three X)
     return int(self.controller.update(
-                 error=(cur_temp - 75),
+                 error=(cur_temp - 75),  # temperature setpoint in C
                  feedforward=np.interp(cur_temp, [60.0, 100.0], [0, 100])
               ))

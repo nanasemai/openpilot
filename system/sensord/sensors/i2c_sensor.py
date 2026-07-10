@@ -4,6 +4,17 @@ from collections.abc import Iterable
 
 from cereal import log
 from openpilot.common.i2c import SMBus
+from openpilot.system.sensord.orientation import IMU_ORIENTATION, IMU_ORIENTATIONS
+
+
+_IMU_ROT = IMU_ORIENTATIONS[IMU_ORIENTATION]
+
+
+def to_device_frame(x: float, y: float, z: float) -> list[float]:
+  (r0, r1, r2) = _IMU_ROT
+  return [r0[0] * x + r0[1] * y + r0[2] * z,
+          r1[0] * x + r1[1] * y + r1[2] * z,
+          r2[0] * x + r2[1] * y + r2[2] * z]
 
 
 class Sensor:

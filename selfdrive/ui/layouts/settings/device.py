@@ -1,4 +1,5 @@
 import os
+import json
 import math
 
 from cereal import messaging, log
@@ -159,6 +160,16 @@ class DeviceLayout(Widget):
             desc += tr(" Steering torque response calibration is complete.")
       except Exception:
         cloudlog.exception("invalid LiveTorqueParameters")
+
+    imu_bytes = self._params.get("IMUOrientationCheck")
+    if imu_bytes:
+      try:
+        imu = json.loads(imu_bytes)
+        if imu.get("status") == "mismatch":
+          desc += tr(" IMU orientation mismatch: configured {}, detected {}.").format(
+            imu.get("configured"), imu.get("detected"))
+      except Exception:
+        cloudlog.exception("invalid IMUOrientationCheck")
 
     desc += "<br><br>"
     desc += tr("sunnypilot is continuously calibrating, resetting is rarely required. " +
