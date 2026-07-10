@@ -14,9 +14,11 @@ class ToyotaFlagsSP(IntFlag):
   ZSS = 4
   STOCK_LONGITUDINAL = 8
   STOP_AND_GO_HACK = 16
+  LOCK_CTRL = 32
 
 
 class ToyotaSafetyFlagsSP:
   DEFAULT = 0
   UNSUPPORTED_DSU = 1
   GAS_INTERCEPTOR = 2
+  LOCK_CTRL = 4
