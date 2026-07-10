@@ -7,6 +7,7 @@ from opendbc.car.lateral import FRICTION_THRESHOLD, get_friction
 from openpilot.common.constants import ACCELERATION_DUE_TO_GRAVITY
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.selfdrive.controls.lib.latcontrol import LatControl
+from openpilot.selfdrive.modeld.constants import ModelConstants
 from openpilot.common.pid import PIDController
 
 from openpilot.sunnypilot.selfdrive.controls.lib.latcontrol_torque_ext import LatControlTorqueExt
@@ -30,8 +31,24 @@ KP_INTERP = [250, 120, 65, 30, 11.5, 5.5, 3.5, 2.0, KP]
 
 LP_FILTER_CUTOFF_HZ = 1.2
 JERK_LOOKAHEAD_SECONDS = 0.19
-JERK_GAIN = 0.3
+# Jerk feedforward is mixed into the friction term, amplifying the extra steering
+# torque at curve entry / direction reversal. On continuous curves (short arc, no
+# steady state) this pushes the nose toward the apex and presses the inside line,
+# while single curves mask it. Reduced to 0.25 to ease apex-cutting; ~0 impact on
+# straight/steady-state where lateral jerk is near zero.
+JERK_GAIN = 0.25
 LAT_ACCEL_REQUEST_BUFFER_SECONDS = 1.0
+
+# The friction term adds friction/latAccelFactor of extra proportional gain on the
+# error. On high-speed straights this amplifies small tracking errors and, combined
+# with steering latency, excites a slow lateral weave. The rack needs less static
+# friction compensation as speed rises, so taper the friction gain off with speed.
+# Per China's legal limits, cornering/sweeper scenarios (continuous curves up to
+# ~20 m/s = 72 km/h city or 60-80 km/h arterial) must keep the original full gain,
+# so the taper starts at 30 m/s (>=100 km/h freeway) and only eases to 0.8.
+FRICTION_INTERP_SPEEDS = [1.0, 5.0, 15.0, 20.0, 30.0, 34.0]
+FRICTION_INTERP_GAIN = [1.0, 1.0, 1.0, 1.0, 0.9, 0.8]
+
 VERSION = 1
 
 class LatControlTorque(LatControl):
@@ -49,6 +66,22 @@ class LatControlTorque(LatControl):
     self.jerk_filter = FirstOrderFilter(0.0, 1 / (2 * np.pi * LP_FILTER_CUTOFF_HZ), self.dt)
 
     self.extension = LatControlTorqueExt(self, CP, CP_SP, CI)
+
+  def get_predicted_velocity(self, CS, lat_delay):
+    # When decelerating into a corner, the model's planned velocity at the actuation
+    # horizon is lower than the current vEgo. Anchoring lateral acceleration requests
+    # (feedforward, latency buffer, jerk lookahead) on vEgo^2 over-estimates the needed
+    # lateral acceleration and causes over-rotation / line crossing. Interpolate the
+    # planned vehicle speed instead, falling back to vEgo when the model is unavailable.
+    if not self.extension.model_valid:
+      return CS.vEgo
+    model_v2 = self.extension.model_v2
+    if model_v2 is None or len(model_v2.velocity.x) < 2:
+      return CS.vEgo
+    v_pred = float(np.interp(lat_delay, ModelConstants.T_IDXS, model_v2.velocity.x))
+    if not math.isfinite(v_pred) or v_pred <= 0.0:
+      return CS.vEgo
+    return v_pred
 
   def update_live_torque_params(self, latAccelFactor, latAccelOffset, friction):
     self.torque_params.latAccelFactor = latAccelFactor
@@ -69,7 +102,8 @@ class LatControlTorque(LatControl):
     pid_log.version = VERSION
     measured_curvature = -VM.calc_curvature(math.radians(CS.steeringAngleDeg - params.angleOffsetDeg), CS.vEgo, params.roll)
     measurement = measured_curvature * CS.vEgo ** 2
-    future_desired_lateral_accel = desired_curvature * CS.vEgo ** 2
+    v_pred = self.get_predicted_velocity(CS, lat_delay)
+    future_desired_lateral_accel = desired_curvature * v_pred ** 2
     self.lat_accel_request_buffer.append(future_desired_lateral_accel)
 
     roll_compensation = params.roll * ACCELERATION_DUE_TO_GRAVITY
@@ -88,7 +122,8 @@ class LatControlTorque(LatControl):
     ff = gravity_adjusted_future_lateral_accel
     # latAccelOffset corrects roll compensation bias from device roll misalignment relative to car roll
     ff -= self.torque_params.latAccelOffset
-    ff += get_friction(error + JERK_GAIN * desired_lateral_jerk, lateral_accel_deadzone, FRICTION_THRESHOLD, self.torque_params)
+    friction_gain = float(np.interp(CS.vEgo, FRICTION_INTERP_SPEEDS, FRICTION_INTERP_GAIN))
+    ff += friction_gain * get_friction(error + JERK_GAIN * desired_lateral_jerk, lateral_accel_deadzone, FRICTION_THRESHOLD, self.torque_params)
 
     if not active:
       output_torque = 0.0

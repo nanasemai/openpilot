@@ -69,6 +69,7 @@ static bool toyota_secoc = false;
 static bool toyota_alt_brake = false;
 static bool toyota_stock_longitudinal = false;
 static bool toyota_lta = false;
+static bool toyota_lock_ctrl = false;
 static int toyota_dbc_eps_torque_factor = 100;   // conversion factor for STEER_TORQUE_EPS in %: see dbc file
 
 static uint32_t toyota_compute_checksum(const CANPacket_t *msg) {
@@ -388,10 +389,16 @@ static bool toyota_tx_hook(const CANPacket_t *msg) {
     }
   }
 
-  // UDS: Only tester present ("\x0F\x02\x3E\x00\x00\x00\x00\x00") allowed on diagnostics address
+  // UDS: Only tester present allowed on diagnostics address, unless lock ctrl is enabled
   if (msg->addr == 0x750U) {
-    // this address is sub-addressed. only allow tester present to radar (0xF)
-    bool invalid_uds_msg = (GET_BYTES(msg, 0, 4) != 0x003E020FU) || (GET_BYTES(msg, 4, 4) != 0x0U);
+    bool invalid_uds_msg = true;
+    if (!toyota_lock_ctrl) {
+      // this address is sub-addressed. only allow tester present to radar (0xF)
+      invalid_uds_msg = (GET_BYTES(msg, 0, 4) != 0x003E020FU) || (GET_BYTES(msg, 4, 4) != 0x0U);
+    } else {
+      // lock ctrl allows any UDS message on bus 0 with length 8
+      invalid_uds_msg = (msg->bus != 0U) || (GET_LEN(msg) != 8);
+    }
     if (invalid_uds_msg) {
       tx = 0;
     }
@@ -432,6 +439,7 @@ static safety_config toyota_init(uint16_t param) {
 
   const uint16_t TOYOTA_PARAM_SP_UNSUPPORTED_DSU = 1;
   const uint16_t TOYTOA_PARAM_SP_GAS_INTERCEPTOR = 2;
+  const uint16_t TOYOTA_PARAM_SP_LOCK_CTRL = 4;
 
 #ifdef ALLOW_DEBUG
   const uint32_t TOYOTA_PARAM_SECOC = 8UL << TOYOTA_PARAM_OFFSET;
@@ -445,6 +453,7 @@ static safety_config toyota_init(uint16_t param) {
 
   const bool toyota_unsupported_dsu = GET_FLAG(current_safety_param_sp, TOYOTA_PARAM_SP_UNSUPPORTED_DSU);
   enable_gas_interceptor = GET_FLAG(current_safety_param_sp, TOYTOA_PARAM_SP_GAS_INTERCEPTOR);
+  toyota_lock_ctrl = GET_FLAG(current_safety_param_sp, TOYOTA_PARAM_SP_LOCK_CTRL);
 
   // gas interceptor should not be used if openpilot is not controlling longitudinal or is a TSK car
   if (toyota_stock_longitudinal || toyota_secoc) {

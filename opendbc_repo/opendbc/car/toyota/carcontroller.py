@@ -1,8 +1,10 @@
 import math
 import numpy as np
 from opendbc.car import Bus, make_tester_present_msg, rate_limit, structs, ACCELERATION_DUE_TO_GRAVITY, DT_CTRL
+from opendbc.car.can_definitions import CanData
 from opendbc.car.lateral import apply_meas_steer_torque_limits, apply_std_steer_angle_limits, common_fault_avoidance
 from opendbc.car.carlog import carlog
+from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.common.filter_simple import FirstOrderFilter, HighPassFilter
 from opendbc.car.common.pid import PIDController
 from opendbc.car.secoc import add_mac, build_sync_mac
@@ -20,6 +22,16 @@ Ecu = structs.CarParams.Ecu
 LongCtrlState = structs.CarControl.Actuators.LongControlState
 SteerControlType = structs.CarParams.SteerControlType
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
+
+# Lock/unlock door commands - Credit goes to AlexandreSato!
+LOCK_SPEED = 20 * CV.KPH_TO_MS
+
+LOCK_UNLOCK_CAN_ID = 0x750
+UNLOCK_CMD = b'\x40\x05\x30\x11\x00\x40\x00\x00'
+LOCK_CMD = b'\x40\x05\x30\x11\x00\x80\x00\x00'
+
+PARK = structs.CarState.GearShifter.park
+DRIVE = structs.CarState.GearShifter.drive
 
 # The up limit allows the brakes/gas to unwind quickly leaving a stop,
 # the down limit roughly matches the rate of ACCEL_NET, reducing PCM compensation windup
@@ -81,6 +93,8 @@ class CarController(CarControllerBase, GasInterceptorCarController):
     self.secoc_lta_message_counter = 0
     self.secoc_acc_message_counter = 0
     self.secoc_prev_reset_counter = 0
+
+    self.doors_locked = False
 
   def update(self, CC, CC_SP, CS, now_nanos):
     actuators = CC.actuators
@@ -319,6 +333,15 @@ class CarController(CarControllerBase, GasInterceptorCarController):
     # keep radar disabled
     if self.frame % 20 == 0 and self.CP.flags & ToyotaFlags.DISABLE_RADAR.value:
       can_sends.append(make_tester_present_msg(0x750, 0, 0xF))
+
+    # lock/unlock doors automatically
+    if self.CP_SP.flags & ToyotaFlagsSP.LOCK_CTRL.value:
+      if not self.doors_locked and CS.out.gearShifter == DRIVE and CS.out.vEgo >= LOCK_SPEED:
+        can_sends.append(CanData(LOCK_UNLOCK_CAN_ID, LOCK_CMD, 0))
+        self.doors_locked = True
+      elif self.doors_locked and CS.out.gearShifter == PARK:
+        can_sends.append(CanData(LOCK_UNLOCK_CAN_ID, UNLOCK_CMD, 0))
+        self.doors_locked = False
 
     new_actuators = actuators.as_builder()
     new_actuators.torque = apply_torque / self.params.STEER_MAX

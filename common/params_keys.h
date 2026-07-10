@@ -42,6 +42,8 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"ExperimentalMode", {PERSISTENT | BACKUP, BOOL}},
     {"ExperimentalModeConfirmed", {PERSISTENT | BACKUP, BOOL}},
     {"FirmwareQueryDone", {CLEAR_ON_MANAGER_START | CLEAR_ON_ONROAD_TRANSITION, BOOL}},
+    {"ForceOnroad", {CLEAR_ON_MANAGER_START, BOOL, "0"}},
+    {"EnableLivestream", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ForcePowerDown", {PERSISTENT, BOOL}},
     {"GitBranch", {PERSISTENT, STRING}},
     {"GitCommit", {PERSISTENT, STRING}},
@@ -179,6 +181,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"OnroadUploads", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"QuickBootToggle", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"QuietMode", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"AudibleAlertMode", {PERSISTENT | BACKUP, INT, "0"}},
     {"RainbowMode", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"RocketFuel", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ShowAdvancedControls", {PERSISTENT | BACKUP, BOOL, "0"}},
@@ -225,12 +228,20 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"TeslaCoopSteering", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ToyotaEnforceStockLongitudinal", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ToyotaStopAndGoHack", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"ToyotaDoorAutoLockUnlock", {PERSISTENT | BACKUP, BOOL, "0"}},
+
+    // sunnypilot longitudinal tuning
+    {"SPAccelProfile", {PERSISTENT | BACKUP, INT, "0"}},
+    {"SPAccelProfiles", {PERSISTENT, STRING, ""}},
+    {"SPAccelProfileModeEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
 
     {"DynamicExperimentalControl", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"BlindSpot", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"RoadEdgeLcaBlindspot", {PERSISTENT | BACKUP, BOOL, "0"}},
 
     // sunnypilot model params
     {"CameraOffset", {PERSISTENT | BACKUP, FLOAT, "0.0"}},
+    {"LateralPositionOffset", {PERSISTENT | BACKUP, INT, "0"}},  // cm, positive moves left
     {"LagdToggle", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"LagdToggleDelay", {PERSISTENT | BACKUP, FLOAT, "0.2"}},
     {"LagdValueCache", {PERSISTENT, FLOAT, "0.2"}},
@@ -279,4 +290,11 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"TorqueParamsOverrideEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"TorqueParamsOverrideFriction", {PERSISTENT | BACKUP, FLOAT, "0.1"}},
     {"TorqueParamsOverrideLatAccelFactor", {PERSISTENT | BACKUP, FLOAT, "2.5"}},
+
+    // Human Turn Detection params
+    {"dp_htd_turn_angle_threshold", {PERSISTENT, INT, "60"}},
+    {"dp_htd_enabled", {PERSISTENT | BACKUP, BOOL, "0"}},
+
+    // Device
+    {"dp_dev_disable_connect", {PERSISTENT | BACKUP, BOOL, "0"}},
 };

@@ -16,7 +16,7 @@ from openpilot.sunnypilot.sunnylink.utils import sunnylink_need_register, sunnyl
 WEBCAM = os.getenv("USE_WEBCAM") is not None
 
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return started or params.get_bool("IsDriverViewEnabled")
+  return started or params.get_bool("IsDriverViewEnabled") or params.get_bool("ForceOnroad")
 
 def notcar(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and CP.notCar
@@ -61,6 +61,18 @@ def always_run(started: bool, params: Params, CP: car.CarParams) -> bool:
 def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started
 
+def encoderd_predicate(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # encoderd: 上路时编码推流；ForceOnroad 调试时也需要它才有画面
+  return started or params.get_bool("ForceOnroad")
+
+def livestream_enabled(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # livestream_ws 只受 UI 开关 EnableLivestream 控制；无画面时依然提供诊断面板
+  return params.get_bool("EnableLivestream")
+
+def livestream_video(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # WebRTC 推流后端（stream_encoderd + webrtcd）：开了 livestream 开关就启动
+  return params.get_bool("EnableLivestream")
+
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
 
@@ -99,6 +111,9 @@ def mapd_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
   return bool(os.path.exists(Paths.mapd_root()))
 
 def uploader_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
+  if params.get_bool("dp_dev_disable_connect"):
+    return False
+
   if not params.get_bool("OnroadUploads"):
     return only_offroad(started, params, CP)
 
@@ -114,9 +129,10 @@ procs = [
   DaemonProcess("manage_athenad", "system.athena.manage_athenad", "AthenadPid"),
 
   NativeProcess("loggerd", "system/loggerd", ["./loggerd"], logging),
-  NativeProcess("encoderd", "system/loggerd", ["./encoderd"], only_onroad),
-  NativeProcess("stream_encoderd", "system/loggerd", ["./encoderd", "--stream"], notcar),
+  NativeProcess("encoderd", "system/loggerd", ["./encoderd"], encoderd_predicate),
+  NativeProcess("stream_encoderd", "system/loggerd", ["./encoderd", "--stream"], or_(notcar, livestream_video)),
   PythonProcess("logmessaged", "system.logmessaged", always_run),
+  PythonProcess("livestream_ws", "system.livestream_ws.livestream_ws", livestream_enabled),
 
   NativeProcess("camerad", "system/camerad", ["./camerad"], driverview, enabled=not WEBCAM),
   PythonProcess("webcamerad", "tools.webcam.camerad", driverview, enabled=WEBCAM),
@@ -161,7 +177,7 @@ procs = [
 
   # debug procs
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], notcar),
-  PythonProcess("webrtcd", "system.webrtc.webrtcd", notcar),
+  PythonProcess("webrtcd", "system.webrtc.webrtcd", or_(notcar, livestream_video)),
   PythonProcess("webjoystick", "tools.bodyteleop.web", notcar),
   PythonProcess("joystick", "tools.joystick.joystick_control", and_(joystick, iscar)),
 

@@ -36,13 +36,25 @@ msgstr "，當您準備好回來時，我們隨時都在。"
 msgid "--"
 msgstr "--"
 
+#: selfdrive/ui/mici/layouts/offroad_alerts.py
+msgid ". Click to update. Read the release notes at blog.comma.ai."
+msgstr "。点击更新。在blog.comma.ai查看发布说明。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "0 = all sounds; 1 = suppress engage/disengage; 2 = silent"
+msgstr "0 = 所有聲音; 1 = 僅警告; 2 = 靜音"
+
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "0 MB"
-msgstr ""
+msgstr "0 MB"
+
+#: selfdrive/ui/onroad/augmented_road_view.py
+msgid "2x"
+msgstr "2倍"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "0% - Downloading Maps"
-msgstr ""
+msgstr "0% - 正在下载地图"
 
 #: selfdrive/ui/widgets/prime.py
 msgid "1 year of drive storage"
@@ -50,11 +62,11 @@ msgstr "1 年行駛資料儲存"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "1. sunnypilot is a driver assistance system."
-msgstr ""
+msgstr "1. sunnypilot 是一款驾驶辅助系统。"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "2. You must pay attention at all times."
-msgstr ""
+msgstr "2. 您必须时刻保持注意力。"
 
 #: selfdrive/ui/widgets/prime.py
 msgid "24/7 LTE connectivity"
@@ -67,7 +79,7 @@ msgstr "2G"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "3. You must be ready to take over at any time."
-msgstr ""
+msgstr "3. 您必须随时准备接管车辆。"
 
 #: selfdrive/ui/layouts/sidebar.py
 #: selfdrive/ui/mici/layouts/home.py
@@ -76,7 +88,7 @@ msgstr "3G"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "4. You are fully responsible for driving the car."
-msgstr ""
+msgstr "4. 您对驾驶车辆负全部责任。"
 
 #: selfdrive/ui/layouts/sidebar.py
 #: selfdrive/ui/mici/layouts/home.py
@@ -85,7 +97,7 @@ msgstr "5G"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "<b>Unsupported branch detected</b> - The current version of <b><u>%1</u></b> branch is no longer supported on the comma three. Please go to <b>[Device > Software]</b> and install a supported branch with <b><u>-tici</u></b> in the branch name for the comma three."
-msgstr ""
+msgstr "<b>检测到不支持的分支</b> - 当前版本的 <b><u>%1</u></b> 分支在 comma three 上不再支持。请前往 <b>[设备 > 软件]</b> 并安装分支名称中包含 <b><u>-tici</u></b> 的支持分支。"
 
 #: selfdrive/ui/layouts/settings/developer.py
 msgid "<b>WARNING: sunnypilot longitudinal control is in alpha for this car and may disable Automatic Emergency Braking (AEB).</b><br><br>On this car, sunnypilot defaults to the car's built-in ACC instead of sunnypilot's longitudinal control. Enable this to switch to sunnypilot longitudinal control. Enabling Experimental mode is recommended when enabling sunnypilot longitudinal control alpha. Changing this setting will restart sunnypilot if the car is powered on."
@@ -125,7 +137,11 @@ msgstr "新增"
 
 #: selfdrive/selfdrived/events.py
 msgid "AEB: Risk of Collision"
-msgstr ""
+msgstr "AEB: 碰撞风险"
+
+#: selfdrive/ui/sunnypilot/onroad/speed_limit.py
+msgid "AHEAD"
+msgstr "前方"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/trips.py
 msgid "ALL TIME"
@@ -134,6 +150,10 @@ msgstr "全部時間"
 #: system/ui/widgets/network.py
 msgid "APN Setting"
 msgstr "APN 設定"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Acceleration Profile"
+msgstr ""
 
 #: selfdrive/ui/widgets/offroad_alerts.py
 msgid "Acknowledge Excessive Actuation"
@@ -145,7 +165,7 @@ msgstr "執行器延遲："
 
 #: selfdrive/selfdrived/events.py
 msgid "Adaptive Cruise Disabled"
-msgstr ""
+msgstr "自适应巡航已禁用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Adjust Lane Turn Speed"
@@ -197,7 +217,7 @@ msgstr "sunnypilot 縱向控制的 Alpha 版本可連同實驗模式在非發布
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "An update to your device's operating system is downloading in the background. You will be prompted to update when it's ready to install."
-msgstr ""
+msgstr "设备操作系统更新正在后台下载。准备好安装时会提示您更新。"
 
 #: selfdrive/ui/mici/layouts/settings/firehose.py
 msgid "Any fast phone or laptop charger should be fine."
@@ -251,6 +271,10 @@ msgstr "輔助"
 msgid "Assist: Adjusts the vehicle's cruise speed based on the current road's speed limit when operating the +/- buttons."
 msgstr "輔助：操作 +/- 按鈕時，根據目前道路限速調整車輛巡航速度。"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Audible Alert Mode"
+msgstr "聲音提示模式"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/display.py
 msgid "Auto (Dark)"
 msgstr "自動（深色）"
@@ -258,6 +282,14 @@ msgstr "自動（深色）"
 #: selfdrive/ui/sunnypilot/layouts/settings/display.py
 msgid "Auto (Default)"
 msgstr "自動（預設）"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Auto Aggressive Mode"
+msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/toyota.py
+msgid "Auto Door Lock/Unlock"
+msgstr "自動車門鎖/解鎖"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
 msgid "Auto Lane Change by Blinker"
@@ -267,9 +299,37 @@ msgstr "撥桿自動變換車道"
 msgid "Auto Lane Change: Delay with Blind Spot"
 msgstr "自動變換車道：盲區時延遲"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
+msgid "Auto Lane Change: Road Edge Detection"
+msgstr ""
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Auto adjusting to last speed limit"
+msgstr "自動調整至上一限速"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Auto adjusting to speed limit"
+msgstr "自動調整至限速"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Automatic Lane Centering is OFF"
+msgstr "自動車道置中已關閉"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/toyota.py
+msgid "Automatically lock doors when the vehicle speed exceeds 20 km/h while in Drive, and unlock when shifted to Park."
+msgstr "當車速超過 20 km/h 且在 D 檔時自動鎖門，掛入 P 檔時自動解鎖。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."
+msgstr ""
+
+#: selfdrive/ui/mici/onroad/driver_camera_dialog.py
+msgid "Awareness"
+msgstr "駕駛員注意力"
+
 #: selfdrive/selfdrived/events.py
 msgid "BRAKE!"
-msgstr ""
+msgstr "刹车！"
 
 #: selfdrive/ui/layouts/onboarding.py
 #: selfdrive/ui/sunnypilot/layouts/onboarding.py
@@ -283,6 +343,10 @@ msgid "Back"
 msgstr "返回"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Backup"
+msgstr "备份"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Backup Failed"
 msgstr "備份失敗"
 
@@ -292,7 +356,7 @@ msgstr "備份設定"
 
 #: selfdrive/selfdrived/events.py
 msgid "Be ready to take over at any time"
-msgstr ""
+msgstr "随时准备接管"
 
 #: selfdrive/ui/widgets/prime.py
 msgid "Become a comma prime member at connect.comma.ai"
@@ -304,7 +368,7 @@ msgstr "成為 sunnypilot 的贊助者，可在 sunnylink 功能推出時搶先�
 
 #: selfdrive/selfdrived/events.py
 msgid "Bookmark Saved"
-msgstr ""
+msgstr "书签已保存"
 
 #: selfdrive/ui/widgets/pairing_dialog.py
 msgid "Bookmark connect.comma.ai to your home screen to use it like an app"
@@ -314,17 +378,21 @@ msgstr "將 connect.comma.ai 加到主畫面，像 App 一樣使用"
 msgid "Bottom"
 msgstr "底部"
 
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Brake Hold Active"
+msgstr "剎車保持已啟用"
+
 #: selfdrive/selfdrived/events.py
 msgid "CAN Bus Disconnected"
-msgstr ""
+msgstr "CAN 总线断开"
 
 #: selfdrive/selfdrived/events.py
 msgid "CAN Bus Disconnected: Check Connections"
-msgstr ""
+msgstr "CAN 总线断开：检查连接"
 
 #: selfdrive/selfdrived/events.py
 msgid "CAN Bus Disconnected: Likely Faulty Cable"
-msgstr ""
+msgstr "CAN 总线断开：可能是线缆故障"
 
 #: selfdrive/ui/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
@@ -344,7 +412,6 @@ msgstr "安穩模式已開啟"
 msgid "CLEAR"
 msgstr "清除"
 
-#: selfdrive/ui/layouts/sidebar.py
 #: system/ui/widgets/network.py
 msgid "CONNECT"
 msgstr "連線"
@@ -353,37 +420,57 @@ msgstr "連線"
 msgid "CONNECTING..."
 msgstr "連線中..."
 
+#: selfdrive/ui/layouts/sidebar.py
+msgid "CPU"
+msgstr "CPU"
+
 #: selfdrive/selfdrived/events.py
 msgid "Calibrating"
-msgstr ""
+msgstr "正在校准"
 
 #: selfdrive/selfdrived/events.py
 msgid "Calibration Invalid"
-msgstr ""
+msgstr "校准无效"
 
 #: selfdrive/selfdrived/events.py
 msgid "Calibration Invalid: Remount Device & Recalibrate"
-msgstr ""
+msgstr "校准无效：重新安装设备并重校准"
 
 #: selfdrive/selfdrived/events.py
 msgid "Calibration in Progress"
-msgstr ""
+msgstr "校准进行中"
+
+#: selfdrive/selfdrived/events.py
+msgid "Recalibrating"
+msgstr "重新校准中"
+
+#: selfdrive/selfdrived/events.py
+msgid "Drive Above"
+msgstr "需行驶至"
+
+#: selfdrive/selfdrived/events.py
+msgid "Calibration Incomplete"
+msgstr "校准未完成"
+
+#: selfdrive/selfdrived/events.py
+msgid "Device Remount Detected: Recalibrating"
+msgstr "检测到设备重新安装：正在重新校准"
 
 #: selfdrive/selfdrived/events.py
 msgid "Camera Frame Rate Low"
-msgstr ""
+msgstr "摄像头帧率过低"
 
 #: selfdrive/selfdrived/events.py
 msgid "Camera Frame Rate Low: Reboot Your Device"
-msgstr ""
+msgstr "摄像头帧率过低：重启设备"
 
 #: selfdrive/selfdrived/events.py
 msgid "Camera Malfunction"
-msgstr ""
+msgstr "摄像头故障"
 
 #: selfdrive/selfdrived/events.py
 msgid "Camera Malfunction: Reboot Your Device"
-msgstr ""
+msgstr "摄像头故障：重启设备"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 #: system/ui/widgets/confirm_dialog.py
@@ -399,11 +486,11 @@ msgstr "取消下載"
 
 #: selfdrive/selfdrived/events.py
 msgid "Cancel Pressed"
-msgstr ""
+msgstr "已按下取消"
 
 #: selfdrive/selfdrived/events.py
 msgid "Car Detected in Blindspot"
-msgstr ""
+msgstr "检测到盲区有车辆"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise_sub_layouts/speed_limit_policy.py
 msgid "Car First"
@@ -423,11 +510,11 @@ msgstr "僅車輛：僅使用來自車輛的限速資料"
 
 #: selfdrive/selfdrived/events.py
 msgid "Car Unrecognized"
-msgstr ""
+msgstr "车辆未识别"
 
 #: selfdrive/selfdrived/events.py
 msgid "Car in Blindspot"
-msgstr ""
+msgstr "盲区有车辆"
 
 #: system/ui/widgets/network.py
 msgid "Cellular Metered"
@@ -440,7 +527,11 @@ msgstr "變更語言"
 
 #: selfdrive/selfdrived/events.py
 msgid "Changing Lanes"
-msgstr ""
+msgstr "正在变道"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "Changing this setting will restart openpilot if the car is powered on."
+msgstr "如果车辆已通电，更改此设置将重启openpilot。"
 
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Changing this setting will restart sunnypilot if the car is powered on."
@@ -448,7 +539,7 @@ msgstr "如果車輛已通電，變更此設定將重新啟動 sunnypilot。"
 
 #: selfdrive/selfdrived/events.py
 msgid "Check Hardware"
-msgstr ""
+msgstr "检查硬件"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py
 msgid "Choose how Automatic Lane Centering (ALC) behaves after the brake pedal is manually pressed in sunnypilot."
@@ -490,6 +581,10 @@ msgstr "組合"
 msgid "Combined: Use combined Speed Limit data from Car & OpenStreetMaps"
 msgstr "組合：綜合使用來自車輛和 OpenStreetMaps 的限速資料"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Comfort"
+msgstr ""
+
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Confirm"
@@ -497,15 +592,19 @@ msgstr "確認"
 
 #: selfdrive/selfdrived/events.py
 msgid "Confirm Lane Change"
-msgstr ""
+msgstr "确认变道"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Connect to internet to check for updates. sunnypilot won't automatically start until it connects to internet to check for updates."
-msgstr ""
+msgstr "连接互联网以检查更新。sunnypilot 将不会自动启动，直到连接互联网检查更新。"
 
 #: selfdrive/selfdrived/events.py
 msgid "Controls Mismatch"
-msgstr ""
+msgstr "控制不匹配"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Controls Mismatch: Lateral"
+msgstr "控制不匹配：橫向"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Controls state of the device after boot/sleep."
@@ -525,15 +624,15 @@ msgstr "巡航"
 
 #: selfdrive/selfdrived/events.py
 msgid "Cruise Fault: Restart the Car"
-msgstr ""
+msgstr "巡航故障：重启车辆"
 
 #: selfdrive/selfdrived/events.py
 msgid "Cruise Fault: Restart the car to engage"
-msgstr ""
+msgstr "巡航故障：重启车辆以启用"
 
 #: selfdrive/selfdrived/events.py
 msgid "Cruise Is Off"
-msgstr ""
+msgstr "巡航已关闭"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Current Model"
@@ -573,7 +672,7 @@ msgstr "刪除"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "DELETING..."
-msgstr ""
+msgstr "删除中..."
 
 #: selfdrive/ui/sunnypilot/layouts/sidebar.py
 msgid "DISABLED"
@@ -581,7 +680,11 @@ msgstr "已停用"
 
 #: selfdrive/selfdrived/events.py
 msgid "DISENGAGE IMMEDIATELY"
-msgstr ""
+msgstr "立即退出"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "DISK"
+msgstr "磁碟"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "DOWNLOAD"
@@ -589,15 +692,15 @@ msgstr "下載"
 
 #: selfdrive/selfdrived/events.py
 msgid "Dashcam Mode"
-msgstr ""
+msgstr "行车记录仪模式"
 
 #: selfdrive/selfdrived/events.py
 msgid "Dashcam mode"
-msgstr ""
+msgstr "行车记录仪模式"
 
 #: selfdrive/selfdrived/events.py
 msgid "Dashcam mode for unsupported car"
-msgstr ""
+msgstr "不支持车辆的行车记录仪模式"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "Database Update"
@@ -625,6 +728,10 @@ msgstr "預設：裝置將正常開機/喚醒，並準備好啟用。"
 msgid "Delay before lateral control resumes after the turn signal ends."
 msgstr "轉向燈結束後，橫向控制恢復前的延遲時間。"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
+msgid "Detects road edges and prevents lane changes when the vehicle is too close to the edge of the road."
+msgstr ""
+
 #: selfdrive/ui/layouts/settings/settings.py
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Developer"
@@ -641,7 +748,7 @@ msgstr "裝置"
 
 #: selfdrive/selfdrived/events.py
 msgid "Device Fell Off Mount"
-msgstr ""
+msgstr "设备从支架脱落"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "Device must be registered with the comma.ai backend to pair."
@@ -649,7 +756,7 @@ msgstr "裝置必須已在 comma.ai 後端註冊才能配對。"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Device temperature too high. System cooling down before starting. Current internal component temperature: %1"
-msgstr ""
+msgstr "设备温度过高。系统正在降温后启动。当前内部组件温度：%1"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid ""
@@ -749,7 +856,7 @@ msgstr "距離"
 
 #: selfdrive/selfdrived/events.py
 msgid "Distraction Level Too High"
-msgstr ""
+msgstr "分心程度过高"
 
 #: selfdrive/ui/mici/layouts/settings/firehose.py
 msgid "Do all of my segments get pulled in Firehose Mode?"
@@ -769,9 +876,13 @@ msgstr "我執行哪種軟體有影響嗎？"
 msgid "Dongle ID"
 msgstr "裝置 ID"
 
-#: selfdrive/selfdrived/events.py
+#: sunnypilot/selfdrive/selfdrived/events.py
 msgid "Door Open"
-msgstr ""
+msgstr "车门打开"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Door Open"
+msgstr "车门打开"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "Download"
@@ -791,7 +902,7 @@ msgstr "正在下載地圖…"
 
 #: selfdrive/selfdrived/events.py
 msgid "Drive to Calibrate"
-msgstr ""
+msgstr "驾驶以校准"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "Driver Camera"
@@ -803,11 +914,11 @@ msgstr "駕駛員攝影機預覽"
 
 #: selfdrive/selfdrived/events.py
 msgid "Driver Distracted"
-msgstr ""
+msgstr "驾驶员分心"
 
 #: selfdrive/selfdrived/events.py
 msgid "Driver Unresponsive"
-msgstr ""
+msgstr "驾驶员无响应"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/trips.py
 msgid "Drives"
@@ -819,7 +930,7 @@ msgstr "駕駛模型"
 
 #: selfdrive/selfdrived/events.py
 msgid "Driving Model Lagging"
-msgstr ""
+msgstr "驾驶模型卡顿"
 
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Driving Personality"
@@ -833,7 +944,6 @@ msgstr "動態"
 msgid "EDIT"
 msgstr "編輯"
 
-#: selfdrive/ui/layouts/sidebar.py
 #: selfdrive/ui/sunnypilot/layouts/sidebar.py
 msgid "ERROR"
 msgstr "錯誤"
@@ -850,17 +960,21 @@ msgstr "實驗模式已開啟"
 msgid "Early Access: Become a sunnypilot Sponsor"
 msgstr "搶先體驗：成為 sunnypilot 贊助者"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Eco"
+msgstr ""
+
 #: selfdrive/selfdrived/events.py
 msgid "Electronic Stability Control Active"
-msgstr ""
+msgstr "电子稳定控制系统激活"
 
 #: selfdrive/selfdrived/events.py
 msgid "Electronic Stability Control Disabled"
-msgstr ""
+msgstr "电子稳定控制系统已禁用"
 
 #: selfdrive/selfdrived/events.py
 msgid "Emergency Braking: Risk of Collision"
-msgstr ""
+msgstr "紧急制动：碰撞风险"
 
 #: selfdrive/ui/layouts/settings/developer.py
 #: selfdrive/ui/layouts/settings/toggles.py
@@ -893,6 +1007,10 @@ msgstr "啟用動態實驗控制"
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Enable Lane Departure Warnings"
 msgstr "啟用偏離車道警示"
+
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Enable Livestream"
+msgstr "啟用投屏"
 
 #: system/ui/widgets/network.py
 msgid "Enable Roaming"
@@ -974,6 +1092,10 @@ msgstr "為預設不使用扭矩橫向控制的平台啟用扭矩橫向控制的
 msgid "Enabling this will display warnings when a vehicle is detected in your blind spot as long as your car has BSM supported."
 msgstr "啟用後，只要您的車輛支援 BSM（盲區偵測），當偵測到盲區內有車輛時將顯示警告。"
 
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "Enabling this will switch to openpilot longitudinal control."
+msgstr "启用此项将切换到openpilot纵向控制。"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/toyota.py
 msgid "Enforce Factory Longitudinal Control"
 msgstr "強制使用原廠縱向控制"
@@ -992,7 +1114,7 @@ msgstr "隨巡航控制的啟用同時啟用橫向和縱向控制。"
 
 #: selfdrive/selfdrived/events.py
 msgid "Ensure road ahead is clear"
-msgstr ""
+msgstr "确保前方道路畅通"
 
 #: system/ui/widgets/network.py
 msgid "Enter APN"
@@ -1036,15 +1158,15 @@ msgstr "錯誤：下載無效。請重試。"
 
 #: selfdrive/ui/mici/layouts/home.py
 msgid "Ethernet"
-msgstr ""
+msgstr "以太网"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Excessive %1 actuation detected on your last drive. Please contact support at https://comma.ai/support and share your device's Dongle ID for troubleshooting."
-msgstr ""
+msgstr "上次驾驶检测到过度%1执行。请联系支持 https://comma.ai/support 并分享您设备的 Dongle ID 进行故障排除。"
 
 #: selfdrive/selfdrived/events.py
 msgid "Excessive Actuation"
-msgstr ""
+msgstr "过度执行"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Exit Always Offroad"
@@ -1053,6 +1175,10 @@ msgstr "退出始終離車"
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Experimental Mode"
 msgstr "實驗模式"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Experimental Mode Switched"
+msgstr "已切換實驗模式"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/subaru.py
 msgid "Experimental feature to enable auto-resume during stop-and-go for certain supported Subaru platforms."
@@ -1080,15 +1206,19 @@ msgstr "正在遺忘..."
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Failed to register with comma.ai backend. It will not connect or upload to comma.ai servers, and receives no support from comma.ai. If this is a device purchased at comma.ai/shop, open a ticket at https://comma.ai/support."
-msgstr ""
+msgstr "无法注册 comma.ai 后端。将无法连接或上传到 comma.ai 服务器，且不接受 comma.ai 的支持。如果这是在 comma.ai/shop 购买的设备，请在 https://comma.ai/support 开单。"
 
 #: selfdrive/selfdrived/events.py
 msgid "Fan Malfunction"
-msgstr ""
+msgstr "风扇故障"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Fetching Latest Models"
 msgstr "正在取得最新模型"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Fine-tune where the car drives within the lane. Positive values move the car left, negative values move right."
+msgstr "微調車輛在車道內的行駛位置。正值使車輛向左偏移，負值向右偏移。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Fingerprinted automatically"
@@ -1119,6 +1249,12 @@ msgstr "固定：加入固定偏移量 [限速 + 偏移量]"
 #: system/ui/sunnypilot/widgets/sunnylink_pairing_dialog.py
 msgid "Follow the prompts to complete the pairing process"
 msgstr "依照提示完成配對流程"
+
+#: system/ui/mici_reset.py
+msgid ""
+"For a deeper reset, go to\n"
+"https://flash.comma.ai"
+msgstr ""
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "For applicable vehicles, always display the true vehicle current speed from wheel speed sensors."
@@ -1170,6 +1306,10 @@ msgstr ""
 msgid "For secure backup, restore, and remote configuration"
 msgstr "用於安全備份、恢復和遠端設定"
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Force Onroad View"
+msgstr "強制行車畫面"
+
 #: system/ui/widgets/network.py
 msgid "Forget"
 msgstr "忘記"
@@ -1190,9 +1330,25 @@ msgstr "摩擦力"
 msgid "GOOD"
 msgstr "良好"
 
-#: selfdrive/selfdrived/events.py
-msgid "Gear not D"
+#: selfdrive/ui/layouts/sidebar.py
+msgid "GPS"
+msgstr "GPS"
+
+#: selfdrive/ui/sunnypilot/onroad/circular_alerts.py
+msgid ""
+"GREEN\n"
+"LIGHT"
 msgstr ""
+"绿灯\n"
+"亮起"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Gear not D"
+msgstr "档位不是D档"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Gear not D"
+msgstr "档位不是D档"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "GitHub Runner Service"
@@ -1206,13 +1362,13 @@ msgstr "在手機上前往 https://connect.comma.ai"
 msgid "Green Traffic Light Alert (Beta)"
 msgstr "綠燈提醒（測試版）"
 
-#: selfdrive/ui/layouts/sidebar.py
-msgid "HIGH"
-msgstr "高"
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "HTD Turn Angle Threshold"
+msgstr "HTD 轉角閾值"
 
 #: selfdrive/selfdrived/events.py
 msgid "Harness Relay Malfunction"
-msgstr ""
+msgstr "线束继电器故障"
 
 #: system/ui/widgets/network.py
 msgid "Hidden Network"
@@ -1220,15 +1376,23 @@ msgstr "隱藏網路"
 
 #: selfdrive/selfdrived/events.py
 msgid "High CPU Usage"
-msgstr ""
+msgstr "CPU使用率过高"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/trips.py
 msgid "Hours"
 msgstr "小時"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Human Turn Detection (HTD)"
+msgstr "人工轉彎偵測 (HTD)"
+
 #: selfdrive/ui/mici/layouts/settings/firehose.py
 msgid "INACTIVE: connect to an unmetered network"
 msgstr "未啟用：請連接到不限流量的網路"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "INACTIVE: Comma Connect is disabled"
+msgstr "未啟用：遠端連線已停用"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "INSTALL"
@@ -1240,7 +1404,7 @@ msgstr "IP 位址"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "If it does not have a clear view of the driver, unplug and remount before continuing."
-msgstr ""
+msgstr "如果无法清晰看到驾驶员，请先拔下并重新安装后再继续。"
 
 #: system/ui/sunnypilot/widgets/sunnylink_pairing_dialog.py
 msgid "If sponsorship status was not updated, please contact a moderator on the community forum at https://community.sunnypilot.ai"
@@ -1252,7 +1416,7 @@ msgstr "當您以 20 mph（32 km/h）或以下速度行駛並打開轉向燈時�
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Immediately connect to the internet to check for updates. If you do not connect to the internet, sunnypilot won't engage in %1"
-msgstr ""
+msgstr "立即连接互联网检查更新。如果不连接互联网，sunnypilot将在%1后无法启用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise_sub_layouts/speed_limit_settings.py
 msgid "Info"
@@ -1280,7 +1444,7 @@ msgstr "互動逾時"
 
 #: selfdrive/selfdrived/events.py
 msgid "Invalid LKAS setting"
-msgstr ""
+msgstr "LKAS设置无效"
 
 #: system/ui/sunnypilot/widgets/sunnylink_pairing_dialog.py
 msgid "Join our Community Forum at https://community.sunnypilot.ai and reach out to a moderator if you have issues"
@@ -1292,19 +1456,31 @@ msgstr "搖桿除錯模式"
 
 #: selfdrive/selfdrived/events.py
 msgid "Joystick Mode"
-msgstr ""
+msgstr "摇杆模式"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/trips.py
 msgid "KM"
 msgstr "公里"
 
+#: selfdrive/ui/sunnypilot/onroad/circular_alerts.py
+msgid ""
+"LEAD VEHICLE\n"
+"DEPARTING"
+msgstr ""
+"前车\n"
+"驶离"
+
+#: selfdrive/ui/sunnypilot/onroad/speed_limit.py
+msgid "LIMIT"
+msgstr "限制"
+
 #: selfdrive/selfdrived/events.py
 msgid "LKAS Fault: Restart the Car"
-msgstr ""
+msgstr "LKAS故障：重启车辆"
 
 #: selfdrive/selfdrived/events.py
 msgid "LKAS Fault: Restart the car to engage"
-msgstr ""
+msgstr "LKAS故障：重启车辆以启用"
 
 #: selfdrive/ui/widgets/ssh_key.py
 msgid "LOADING"
@@ -1317,7 +1493,11 @@ msgstr "LTE"
 
 #: selfdrive/selfdrived/events.py
 msgid "Lane Departure Detected"
-msgstr ""
+msgstr "检测到车道偏离"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Lane Position Offset"
+msgstr "車道內位置偏移"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "Last checked {}"
@@ -1346,7 +1526,7 @@ msgstr "使用自調校時採用較寬鬆的設定。這可讓 torqued 在學習
 
 #: selfdrive/selfdrived/events.py
 msgid "Likely Hardware Issue"
-msgstr ""
+msgstr "可能是硬件问题"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Live Learning Steer Delay"
@@ -1356,9 +1536,10 @@ msgstr "即時學習轉向延遲"
 msgid "Live Steer Delay:"
 msgstr "即時轉向延遲："
 
+#: selfdrive/ui/mici/layouts/settings/developer.py
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "Loading..."
-msgstr ""
+msgstr "加载中..."
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Long Press Increment"
@@ -1371,19 +1552,35 @@ msgstr "縱向操作模式"
 
 #: selfdrive/selfdrived/events.py
 msgid "Low Battery"
-msgstr ""
+msgstr "电量低"
 
 #: selfdrive/selfdrived/events.py
 msgid "Low Communication Rate Between Processes"
-msgstr ""
+msgstr "进程间通信速率低"
+
+#: selfdrive/selfdrived/events.py
+msgid "Communication Issue Between Processes"
+msgstr "进程间通信异常"
+
+#: selfdrive/selfdrived/events.py
+msgid "Process Not Running"
+msgstr "进程未运行"
+
+#: selfdrive/selfdrived/events.py
+msgid "Posenet Speed Invalid"
+msgstr "Posenet 速度无效"
+
+#: selfdrive/selfdrived/events.py
+msgid "Reverse\nGear"
+msgstr "倒档"
 
 #: selfdrive/selfdrived/events.py
 msgid "Low Memory"
-msgstr ""
+msgstr "内存不足"
 
 #: selfdrive/selfdrived/events.py
 msgid "Low Memory: Reboot Your Device"
-msgstr ""
+msgstr "内存不足：重启设备"
 
 #: selfdrive/ui/mici/onroad/hud_renderer.py
 #: selfdrive/ui/onroad/hud_renderer.py
@@ -1391,9 +1588,21 @@ msgstr ""
 msgid "MAX"
 msgstr "最大"
 
+#: selfdrive/ui/layouts/sidebar.py
+msgid "MEM"
+msgstr "記憶體"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/torque_settings.py
 msgid "Manual Real-Time Tuning"
 msgstr "手動即時調校"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Manual Speed Control Required"
+msgstr "需要手動控制速度"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Manual Steering Required"
+msgstr "需要手動轉向"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Manually selected fingerprint"
@@ -1441,7 +1650,7 @@ msgstr "模型已在背景開始下載。我們建議重置校準。現在要重
 
 #: selfdrive/selfdrived/events.py
 msgid "Model uncertain at this speed"
-msgstr ""
+msgstr "此速度下模型不确定"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Models"
@@ -1451,9 +1660,14 @@ msgstr "模型"
 msgid "Modular Assistive Driving System (MADS)"
 msgstr "模組化輔助駕駛系統（MADS）"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Muted"
+msgstr "靜音"
+
 #: selfdrive/ui/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+#: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "N/A"
 msgstr "無"
 
@@ -1476,7 +1690,7 @@ msgstr "神經網路橫向控制（NNLC）"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "Next, we'll check if comma four can detect the driver properly."
-msgstr ""
+msgstr "接下来，我们将检查 comma four 是否能正确检测驾驶员。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "No"
@@ -1526,6 +1740,10 @@ msgstr "未辨識指紋或未手動選擇"
 msgid "Not going to lie, it's sad to see you disabled sunnylink"
 msgstr "說實話，看到您停用了 sunnylink 我們很遺憾"
 
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "Not set"
+msgstr "未设置"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py
 msgid "Note: For vehicles without LFA/LKAS button, disabling this will prevent lateral control engagement."
 msgstr "注意：對於沒有 LFA/LKAS 按鈕的車輛，停用此項將無法啟用橫向控制。"
@@ -1542,7 +1760,6 @@ msgstr "輕推"
 msgid "Nudgeless"
 msgstr "無需輕推"
 
-#: selfdrive/ui/layouts/sidebar.py
 #: selfdrive/ui/sunnypilot/layouts/sidebar.py
 msgid "OFFLINE"
 msgstr "離線"
@@ -1557,6 +1774,10 @@ msgstr "確定"
 #: selfdrive/ui/sunnypilot/layouts/sidebar.py
 msgid "ONLINE"
 msgstr "線上"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "OPEN"
+msgstr ""
 
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "OSM"
@@ -1579,7 +1800,7 @@ msgstr "關閉：停用限速功能。"
 
 #: selfdrive/ui/mici/layouts/home.py
 msgid "Offline"
-msgstr ""
+msgstr "离线"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/torque_settings.py
 msgid "Offline Only"
@@ -1592,6 +1813,10 @@ msgstr "離車"
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Offroad: Device will be in Always Offroad mode after boot/wake-up."
 msgstr "離車：裝置在開機/喚醒後將進入始終離車模式。"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "On this car, openpilot defaults to the stock system's built-in ACC."
+msgstr "在此车辆上，openpilot默认使用原厂系统的内置ACC。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "On-Policy Model"
@@ -1617,6 +1842,14 @@ msgstr "行車亮度延遲"
 msgid "Onroad Uploads"
 msgstr "行車中上傳"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Disable Comma Connect"
+msgstr "停用遠端連線"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Disable Comma connect service if you do not wish to upload / being tracked by the service."
+msgstr "如果您不希望上傳資料或被服務追蹤，可停用 Comma 遠端連線服務。"
+
 #: selfdrive/ui/widgets/setup.py
 msgid "Open"
 msgstr "開啟"
@@ -1627,10 +1860,13 @@ msgid ""
 "\n"
 "%1"
 msgstr ""
+"OpenStreetMap数据库已过期。如果您希望继续使用OpenStreetMap数据进行增强速度控制和道路名称显示，必须下载新地图。\n"
+"\n"
+"%1"
 
 #: selfdrive/selfdrived/events.py
 msgid "Out of Storage"
-msgstr ""
+msgstr "存储空间不足"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "PAIR"
@@ -1643,6 +1879,10 @@ msgstr "PANDA"
 #: selfdrive/ui/sunnypilot/layouts/settings/trips.py
 msgid "PAST WEEK"
 msgstr "過去一週"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Perform a search"
+msgstr "執行搜索"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "PREVIEW"
@@ -1685,9 +1925,13 @@ msgstr "將裝置與 comma connect（connect.comma.ai）配對，領取您的 co
 msgid "Paired"
 msgstr "已配對"
 
-#: selfdrive/selfdrived/events.py
+#: sunnypilot/selfdrive/selfdrived/events.py
 msgid "Parking Brake Engaged"
-msgstr ""
+msgstr "驻车制动已启用"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Parking Brake Engaged"
+msgstr "驻车制动已启用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py
 msgid "Pause"
@@ -1708,11 +1952,15 @@ msgstr "暫停：踩下剎車踏板時 ALC 將暫停。"
 #: selfdrive/selfdrived/events.py
 #: selfdrive/ui/mici/onroad/driver_camera_dialog.py
 msgid "Pay Attention"
-msgstr ""
+msgstr "请注意"
 
-#: selfdrive/selfdrived/events.py
+#: sunnypilot/selfdrive/selfdrived/events.py
 msgid "Pedal Pressed"
-msgstr ""
+msgstr "踏板已踩下"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Pedal Pressed"
+msgstr "踏板已踩下"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise_sub_layouts/speed_limit_settings.py
 msgid "Percent: Adds a percent offset [Speed Limit + (Offset % Speed Limit)]"
@@ -1725,6 +1973,10 @@ msgstr "請連線至 Wi‑Fi 以完成初始化配對"
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "Please connect to Wi-Fi to complete initial pairing."
 msgstr "請連接 Wi-Fi 以完成初始配對。"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "Please connect to Wi-Fi to fetch your key."
+msgstr "请连接 Wi-Fi 以获取您的密钥。"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "Please connect to Wi-Fi to update."
@@ -1744,11 +1996,11 @@ msgstr "策略模型"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Poor visibility detected for driver monitoring. Ensure the device has a clear view of the driver. This can be checked in the device settings. Extreme lighting conditions and/or unconventional mounting positions may also trigger this alert."
-msgstr ""
+msgstr "检测到驾驶员监控可见性差。确保设备能清晰看到驾驶员。可在设备设置中检查。极端光照条件和/或非常规安装位置也可能触发此警报。"
 
 #: selfdrive/selfdrived/events.py
 msgid "Possible Hardware Issue"
-msgstr ""
+msgstr "可能是硬件问题"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering.py
 msgid "Post-Blinker Delay"
@@ -1765,19 +2017,19 @@ msgstr "預測"
 
 #: selfdrive/selfdrived/events.py
 msgid "Press Resume"
-msgstr ""
+msgstr "按恢复"
 
 #: selfdrive/selfdrived/events.py
 msgid "Press Resume to Exit Brake Hold"
-msgstr ""
+msgstr "按恢复退出刹车保持"
 
 #: selfdrive/selfdrived/events.py
 msgid "Press Resume to Exit Standstill"
-msgstr ""
+msgstr "按恢复退出静止状态"
 
 #: selfdrive/selfdrived/events.py
 msgid "Press Set to Engage"
-msgstr ""
+msgstr "按设置启用"
 
 #: system/ui/widgets/network.py
 msgid "Prevent large data uploads when on a metered Wi-Fi connection"
@@ -1791,6 +2043,7 @@ msgstr "在計量制行動網路時避免大量上傳"
 msgid "Preview the driver facing camera to ensure that driver monitoring has good visibility. (vehicle must be off)"
 msgstr "預覽車內鏡頭以確保駕駛監控視野良好。（車輛須熄火）"
 
+#: selfdrive/ui/mici/widgets/pairing_dialog.py
 #: selfdrive/ui/widgets/pairing_dialog.py
 msgid "QR Code Error"
 msgstr "QR 碼錯誤"
@@ -1802,10 +2055,6 @@ msgstr "快速啟動模式"
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "Quickboot mode requires updates to be disabled.<br>Enable 'Disable Updates' in the Software panel first."
 msgstr "快速啟動模式要求先停用更新。<br>請先在軟體面板中啟用「停用更新」。"
-
-#: selfdrive/ui/sunnypilot/layouts/settings/device.py
-msgid "Quiet Mode"
-msgstr "靜音模式"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "REFRESH"
@@ -1830,11 +2079,11 @@ msgstr "檢視"
 
 #: selfdrive/selfdrived/events.py
 msgid "Radar Error: Restart the Car"
-msgstr ""
+msgstr "雷达错误：重启车辆"
 
 #: selfdrive/selfdrived/events.py
 msgid "Radar Temporarily Unavailable"
-msgstr ""
+msgstr "雷达暂时不可用"
 
 #: system/ui/sunnypilot/widgets/sunnylink_pairing_dialog.py
 msgid "Re-enter the \"sunnylink\" panel to verify sponsorship status"
@@ -1864,7 +2113,7 @@ msgstr "重新啟動並更新"
 
 #: selfdrive/selfdrived/events.py
 msgid "Reboot your Device"
-msgstr ""
+msgstr "重启设备"
 
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h)."
@@ -1884,7 +2133,7 @@ msgstr "行車時錄製並儲存麥克風音訊。音訊將包含在 comma conne
 
 #: selfdrive/selfdrived/events.py
 msgid "Recording Audio Feedback"
-msgstr ""
+msgstr "正在录制音频反馈"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Refresh Model List"
@@ -1901,7 +2150,7 @@ msgstr "從容"
 
 #: selfdrive/selfdrived/events.py
 msgid "Release Brake to Engage"
-msgstr ""
+msgstr "释放刹车以启用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py
 msgid "Remain Active"
@@ -1921,11 +2170,11 @@ msgstr "遠端擷圖"
 
 #: selfdrive/selfdrived/events.py
 msgid "Remount Detected: Recalibrating"
-msgstr ""
+msgstr "检测到重新安装：正在重新校准"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "Remount if your face is blocked, or driver monitoring has difficulty tracking your face."
-msgstr ""
+msgstr "如果您的面部被遮挡，或驾驶员监控难以追踪您的面部，请重新安装。"
 
 #: selfdrive/ui/widgets/ssh_key.py
 msgid "Request timed out"
@@ -1945,6 +2194,14 @@ msgstr "重設校正"
 msgid "Reset Settings"
 msgstr "重置設定"
 
+#: system/ui/mici_reset.py
+msgid "Resetting erases all user content & data."
+msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Restore"
+msgstr "恢复"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Restore Failed"
 msgstr "恢復失敗"
@@ -1955,21 +2212,35 @@ msgstr "恢復設定"
 
 #: selfdrive/selfdrived/events.py
 msgid "Resume Driving Manually"
-msgstr ""
+msgstr "手动恢复驾驶"
 
 #: selfdrive/selfdrived/events.py
 msgid "Reverse"
-msgstr ""
+msgstr "倒车"
 
-#: selfdrive/selfdrived/events.py
+#: sunnypilot/selfdrive/selfdrived/events.py
 msgid ""
 "Reverse\n"
 "Gear"
 msgstr ""
+"倒車\n"
+"檔位"
 
-#: selfdrive/selfdrived/events.py
-msgid "Reverse Gear"
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid ""
+"Reverse\n"
+"Gear"
 msgstr ""
+"倒車\n"
+"檔位"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Reverse Gear"
+msgstr "倒档"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Reverse Gear"
+msgstr "倒档"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "Review Training Guide"
@@ -1989,7 +2260,23 @@ msgstr "右側和底部"
 
 #: selfdrive/selfdrived/events.py
 msgid "Risk of Collision"
-msgstr ""
+msgstr "碰撞风险"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Road Edge Detected"
+msgstr "檢測到道路邊緣"
+
+#: selfdrive/ui/sunnypilot/onroad/smart_cruise_control.py
+msgid "SCC-M"
+msgstr "SCC-M"
+
+#: selfdrive/ui/sunnypilot/onroad/smart_cruise_control.py
+msgid "SCC-V"
+msgstr "SCC-V"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "SEARCH"
+msgstr "搜尋中"
 
 #: selfdrive/ui/layouts/settings/software.py
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
@@ -1999,6 +2286,10 @@ msgstr ""
 msgid "SELECT"
 msgstr "選取"
 
+#: selfdrive/ui/sunnypilot/onroad/speed_limit.py
+msgid "SPEED"
+msgstr "限速"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "SPONSOR"
 msgstr "贊助"
@@ -2006,6 +2297,14 @@ msgstr "贊助"
 #: selfdrive/ui/layouts/settings/developer.py
 msgid "SSH Keys"
 msgstr "SSH 金鑰"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "SSH keys"
+msgstr "SSH密钥"
+
+#: selfdrive/ui/sunnypilot/onroad/circular_alerts.py
+msgid "STOPPED"
+msgstr "已停止"
 
 #: selfdrive/ui/sunnypilot/layouts/sidebar.py
 msgid "SUNNYLINK"
@@ -2043,13 +2342,17 @@ msgstr "搜尋"
 msgid "Search your vehicle"
 msgstr "搜尋您的車輛"
 
-#: selfdrive/selfdrived/events.py
+#: sunnypilot/selfdrive/selfdrived/events.py
 msgid "Seatbelt Unlatched"
-msgstr ""
+msgstr "安全带未系"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Seatbelt Unlatched"
+msgstr "安全带未系"
 
 #: selfdrive/selfdrived/events.py
 msgid "Security Key Not Available"
-msgstr ""
+msgstr "安全密钥不可用"
 
 #: system/ui/widgets/option_dialog.py
 msgid "Select"
@@ -2069,6 +2372,7 @@ msgid "Select a branch"
 msgstr "選取分支"
 
 #: selfdrive/ui/layouts/settings/device.py
+#: selfdrive/ui/mici/layouts/settings/device.py
 msgid "Select a language"
 msgstr "選取語言"
 
@@ -2076,9 +2380,13 @@ msgstr "選取語言"
 msgid "Select a vehicle"
 msgstr "選擇車輛"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Select an acceleration profile to adjust how aggressively your vehicle accelerates."
+msgstr ""
+
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/torque_settings.py
 msgid "Select the version of Torque Control Tune to use."
-msgstr ""
+msgstr "选择要使用的扭矩控制调校版本。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Select vehicle to force fingerprint manually."
@@ -2094,24 +2402,36 @@ msgstr "自調校"
 
 #: selfdrive/selfdrived/events.py
 msgid "Selfdrive Process Lagging: Reboot Your Device"
-msgstr ""
+msgstr "自驾驶进程卡顿：重启设备"
 
 #: selfdrive/selfdrived/events.py
 msgid "Sensor Data Invalid"
-msgstr ""
+msgstr "传感器数据无效"
 
 #: selfdrive/ui/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Serial"
 msgstr "序號"
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Serve live camera + HUD + diagnostics on LAN port 8090. Open http://<device-ip>:8090/ in a phone browser."
+msgstr "在區域網路 8090 埠提供攝影機畫面、HUD 和診斷面板。手機瀏覽器打開 http://<車機IP>:8090/ 即可查看。"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
 msgid "Set a timer to delay the auto lane change operation when the blinker is used. No nudge on the steering wheel is required to auto lane change if a timer is set. Default is Nudge.<br>Please use caution when using this feature. Only use the blinker when traffic and road conditions permit."
 msgstr "設定計時器，在使用轉向燈時延遲自動變換車道操作。若設定了計時器，則自動變換車道無需輕推方向盤。預設為「輕推」。<br>使用此功能時請謹慎，僅在交通和路況允許時使用轉向燈。"
 
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Set speed changed"
+msgstr "設定速度已變更"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Set the maximum speed for lane turn desires. Default is 19 mph."
 msgstr "設定車道轉彎意圖的最高速度。預設為 19 mph。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Sets the steering angle threshold for Human Turn Detection. Lower values make it more sensitive."
+msgstr "設定人工轉彎偵測的方向盤轉角觸發閾值。數值越低越靈敏。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Settings backup completed."
@@ -2123,7 +2443,7 @@ msgstr "設定已恢復。確認以重新啟動介面。"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "Sharing your data with comma helps improve openpilot and sunnypilot for everyone."
-msgstr ""
+msgstr "与comma共享数据有助于为所有人改进openpilot和sunnypilot。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Short Press Increment"
@@ -2145,9 +2465,13 @@ msgstr "車輛靜止時在 HUD 上顯示計時器。"
 msgid "Show an indicator on the left side of the screen to display real-time vehicle acceleration and deceleration. This displays what the car is currently doing, not what the planner is requesting."
 msgstr "在螢幕左側顯示指示器，即時展示車輛的加速與減速。它顯示的是車輛目前的實際狀態，而非規劃器所請求的狀態。"
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Show camera and UI as if driving, even when parked."
+msgstr "在停車時顯示攝影機畫面和行車介面，方便攝影機和 UI 除錯。"
+
 #: selfdrive/selfdrived/events.py
 msgid "Slow down to engage"
-msgstr ""
+msgstr "减速以启用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Smart Cruise Control - Map"
@@ -2156,6 +2480,10 @@ msgstr "智慧巡航控制 - 地圖"
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Smart Cruise Control - Vision"
 msgstr "智慧巡航控制 - 視覺"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Smart/Adaptive Cruise Control: OFF"
+msgstr "智慧/自適應巡航：關閉"
 
 #: selfdrive/ui/widgets/offroad_alerts.py
 msgid "Snooze Update"
@@ -2189,11 +2517,11 @@ msgstr "限速資料來源"
 
 #: selfdrive/selfdrived/events.py
 msgid "Speed Too High"
-msgstr ""
+msgstr "速度过高"
 
 #: selfdrive/selfdrived/events.py
 msgid "Speed too low"
-msgstr ""
+msgstr "速度过低"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Speedometer: Always Display True Speed"
@@ -2211,7 +2539,13 @@ msgstr "贊助狀態"
 msgid "Sponsorship isn't required for basic backup/restore"
 msgstr "基本的備份/恢復無需贊助"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Sport"
+msgstr ""
+
 #: selfdrive/ui/layouts/settings/toggles.py
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Standard"
 msgstr "標準"
 
@@ -2236,19 +2570,19 @@ msgstr "狀態"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steer Left"
-msgstr ""
+msgstr "向左转向"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steer Left to Start Lane Change Once Safe"
-msgstr ""
+msgstr "安全后向左转向开始变道"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steer Right"
-msgstr ""
+msgstr "向右转向"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steer Right to Start Lane Change Once Safe"
-msgstr ""
+msgstr "安全后向右转向开始变道"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Steering"
@@ -2260,7 +2594,7 @@ msgstr "轉向弧線"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steering Assist Temporarily Unavailable"
-msgstr ""
+msgstr "转向辅助暂时不可用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py
 msgid "Steering Mode on Brake Pedal"
@@ -2268,19 +2602,19 @@ msgstr "踩剎車時的轉向模式"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steering Pressed"
-msgstr ""
+msgstr "方向盘已被操纵"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steering Temporarily Unavailable"
-msgstr ""
+msgstr "转向暂时不可用"
 
 #: selfdrive/selfdrived/events.py
 msgid "Stock AEB: Risk of Collision"
-msgstr ""
+msgstr "原厂AEB：碰撞风险"
 
 #: selfdrive/selfdrived/events.py
 msgid "Stock LKAS: Lane Departure Detected"
-msgstr ""
+msgstr "原厂LKAS：检测到车道偏离"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/subaru.py
 msgid "Stop and Go (Beta)"
@@ -2296,11 +2630,11 @@ msgstr "手動駐車制動的走走停停（測試版）"
 
 #: selfdrive/selfdrived/events.py
 msgid "System Initializing"
-msgstr ""
+msgstr "系统初始化中"
 
 #: selfdrive/selfdrived/events.py
 msgid "System Overheated"
-msgstr ""
+msgstr "系统过热"
 
 #: selfdrive/ui/onroad/alert_renderer.py
 msgid "System Unresponsive"
@@ -2312,7 +2646,7 @@ msgstr "變更需要重新啟動系統才能生效。現在重新啟動嗎？"
 
 #: selfdrive/selfdrived/events.py
 msgid "TAKE CONTROL"
-msgstr ""
+msgstr "接管控制"
 
 #: selfdrive/ui/onroad/alert_renderer.py
 msgid "TAKE CONTROL IMMEDIATELY"
@@ -2328,11 +2662,11 @@ msgstr "感謝 ♥"
 
 #: selfdrive/selfdrived/events.py
 msgid "Take Control"
-msgstr ""
+msgstr "接管控制"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "Taking camera snapshots. System won't start until finished."
-msgstr ""
+msgstr "正在拍摄摄像头快照。系统完成前不会启动。"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "Target Branch"
@@ -2455,15 +2789,15 @@ msgstr "總延遲："
 
 #: selfdrive/selfdrived/events.py
 msgid "Touch Steering Wheel"
-msgstr ""
+msgstr "触摸方向盘"
 
 #: selfdrive/selfdrived/events.py
 msgid "Touch Steering Wheel: No Face Detected"
-msgstr ""
+msgstr "触摸方向盘：未检测到人脸"
 
 #: selfdrive/ui/mici/onroad/driver_camera_dialog.py
 msgid "Touch Wheel"
-msgstr ""
+msgstr "触摸方向盘"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Training Guide"
@@ -2475,7 +2809,15 @@ msgstr "行程"
 
 #: selfdrive/selfdrived/events.py
 msgid "Turn Exceeds Steering Limit"
-msgstr ""
+msgstr "转向超出限制"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Turning Left"
+msgstr "正在左轉"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Turning Right"
+msgstr "正在右轉"
 
 #: selfdrive/ui/layouts/settings/developer.py
 msgid "UI Debug Mode"
@@ -2491,13 +2833,15 @@ msgstr "更新"
 
 #: selfdrive/selfdrived/events.py
 msgid "USB Error: Reboot Your Device"
-msgstr ""
+msgstr "USB错误：重启设备"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid ""
 "Unable to download updates\n"
 "%1"
 msgstr ""
+"无法下载更新\n"
+"%1"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Unable to restore the settings, try again later."
@@ -2517,11 +2861,19 @@ msgstr "未知"
 
 #: selfdrive/selfdrived/events.py
 msgid "Unknown Vehicle Variant"
-msgstr ""
+msgstr "未知车辆型号"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Unrecognized Vehicle"
 msgstr "未辨識的車輛"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
+msgid "UnregisteredDevice"
+msgstr "未註冊設備"
+
+#: selfdrive/ui/mici/layouts/offroad_alerts.py
+msgid "Update available"
+msgstr "有可用更新"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "Updates are only downloaded while the car is off."
@@ -2555,6 +2907,10 @@ msgstr "使用 sunnypilot 系統實現自適應巡航控制和車道保持駕駛
 msgid "Use vision path predictions to estimate the appropriate speed to drive through turns ahead."
 msgstr "使用視覺路徑預測估算通過前方彎道的合適速度。"
 
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "Using Experimental mode is recommended with openpilot longitudinal control alpha."
+msgstr "建议在使用openpilot纵向控制alpha时启用实验模式。"
+
 #: selfdrive/ui/layouts/sidebar.py
 msgid "VEHICLE"
 msgstr "車輛"
@@ -2571,19 +2927,47 @@ msgstr "車輛"
 
 #: selfdrive/selfdrived/events.py
 msgid "Vehicle Sensors Calibrating"
-msgstr ""
+msgstr "车辆传感器校准中"
 
 #: selfdrive/selfdrived/events.py
 msgid "Vehicle Sensors Invalid"
-msgstr ""
+msgstr "车辆传感器无效"
 
 #: selfdrive/selfdrived/events.py
 msgid "Vehicle Steering Time Limit"
-msgstr ""
+msgstr "车辆转向时间限制"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "View the error log for sunnypilot crashes."
 msgstr "查看 sunnypilot 當機的錯誤日誌。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System Logs"
+msgstr "系統日誌"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Clear or format swaglog files. Only available when offroad."
+msgstr "清除或轉換系統日誌格式。僅在非上路模式下可用。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System log operations are only available when offroad."
+msgstr "系統日誌操作僅在非上路模式下可用。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "No swaglog files found."
+msgstr "找不到系統日誌檔案。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} swaglog file(s) found, {size} total.<br><br>Are you sure you want to delete them?"
+msgstr "找到 {count} 個系統日誌檔案，共 {size}。<br><br>確定要刪除嗎？"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Delete All"
+msgstr "全部刪除"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} swaglog file(s) cleared."
+msgstr "已清除 {count} 個系統日誌檔案。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Vision Model"
@@ -2595,7 +2979,11 @@ msgstr "視覺效果"
 
 #: selfdrive/selfdrived/events.py
 msgid "WARNING: This branch is not tested"
-msgstr ""
+msgstr "警告：此分支未经测试"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "WARNING: alpha longitudinal control may disable Automatic Emergency Braking (AEB)"
+msgstr "警告：alpha纵向控制可能会禁用自动紧急制动（AEB）"
 
 #: selfdrive/ui/onroad/alert_renderer.py
 msgid "Waiting to start"
@@ -2621,6 +3009,10 @@ msgstr "警告：超過目前道路限速時發出警告。"
 msgid "Warning: This grants SSH access to all public keys in your GitHub settings. Never enter a GitHub username other than your own. A comma employee will NEVER ask you to add their GitHub username."
 msgstr "警告：此項將向您 GitHub 設定中的所有公鑰授予 SSH 存取權限。切勿輸入非您本人的 GitHub 使用者名稱。comma 員工絕不會要求您新增他們的 GitHub 使用者名稱。"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Warnings Only"
+msgstr "僅警告"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Welcome back!! We're excited to see you've enabled sunnylink again!"
 msgstr "歡迎回來！！很高興看到您再次啟用了 sunnylink！"
@@ -2632,6 +3024,10 @@ msgstr "歡迎使用 sunnypilot"
 #: selfdrive/ui/mici/layouts/settings/firehose.py
 msgid "What's a good USB-C adapter?"
 msgstr "什麼樣的 USB-C 轉接器比較好？"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "When enabled, HTD detects the driver actively steering into a sharp turn at low speed (≤35 km/h) and temporarily releases lane keeping to avoid LKAS resistance. Once the turn is complete, lateral control resumes automatically within 0.5~1 second."
+msgstr "啟用後，HTD 在低速（≤35 km/h）偵測到駕駛員主動大角度轉向時，暫時釋放車道保持避免 LKAS 較勁。轉彎完成後，橫向控制將在 0.5~1 秒內自動恢復。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/software.py
 msgid "When enabled, automatic software updates will be off.<br><b>This requires a reboot to take effect.</b>"
@@ -2667,7 +3063,7 @@ msgstr "Wi‑Fi 計量網路"
 
 #: selfdrive/ui/mici/layouts/home.py
 msgid "WiFi"
-msgstr ""
+msgstr "Wi-Fi"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "Would you like to delete this log?"
@@ -2695,7 +3091,7 @@ msgstr "您必須接受服務條款才能使用 sunnypilot。"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "You must accept the Terms of Service to use sunnypilot."
-msgstr ""
+msgstr "您必须接受服务条款才能使用sunnypilot。"
 
 #: selfdrive/ui/layouts/onboarding.py
 msgid "You must accept the Terms of Service to use sunnypilot. Read the latest terms at https://sunnypilot.ai/terms before continuing."
@@ -2718,6 +3114,8 @@ msgid ""
 "accept\n"
 "terms"
 msgstr ""
+"接受\n"
+"条款"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "active model"
@@ -2725,23 +3123,27 @@ msgstr "目前模型"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "aggressive"
-msgstr ""
+msgstr "激进"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "allow data uploading"
-msgstr ""
+msgstr "允许数据上传"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "alpha longitudinal"
+msgstr "alpha纵向控制"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "always-on driver monitor"
-msgstr ""
+msgstr "始终开启驾驶员监控"
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 msgid "apn settings"
-msgstr ""
+msgstr "APN设置"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "back"
-msgstr ""
+msgstr "返回"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "backing up"
@@ -2769,26 +3171,69 @@ msgstr "快取大小"
 msgid "camera starting"
 msgstr "相機啟動中"
 
+#: system/ui/mici_reset.py
+msgid "cancel"
+msgstr ""
+
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "cancel download"
 msgstr "取消下載"
 
+#: system/ui/mici_setup.py
+msgid ""
+"caution: installing\n"
+"3rd party software"
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 msgid "cellular metered"
-msgstr ""
+msgstr "蜂窝网络计量"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "change language"
+msgstr "切換語言"
 
 #: selfdrive/ui/layouts/settings/software.py
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "checking..."
 msgstr "檢查中..."
 
+#: system/ui/mici_setup.py
+msgid "choose software"
+msgstr ""
+
 #: selfdrive/ui/widgets/prime.py
 msgid "comma prime"
 msgstr "comma prime"
 
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "connect"
+msgstr "连接"
+
+#: system/ui/mici_setup.py
+msgid ""
+"connect to\n"
+"continue"
+msgstr ""
+
+#: system/ui/mici_setup.py
+msgid ""
+"connect to\n"
+"internet"
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "connect.comma.ai"
-msgstr ""
+msgstr "connect.comma.ai"
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "connected"
+msgstr "已连接"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "connecting..."
+msgstr "正在连接..."
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "copyparty Service"
@@ -2798,11 +3243,17 @@ msgstr "copyparty 服務"
 msgid "copyparty is a very capable file server, you can use it to download your routes, view your logs and even make some edits on some files from your browser. Requires you to connect to your comma locally via its IP address."
 msgstr "copyparty 是一個功能強大的檔案伺服器，您可以用它來下載行程、檢視日誌，甚至在瀏覽器中編輯部分檔案。需要透過 IP 位址在本機連接到您的 comma 裝置。"
 
+#: system/ui/mici_setup.py
+msgid "custom software URL..."
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid ""
 "decline &\n"
 "uninstall"
 msgstr ""
+"拒绝 &\n"
+"卸载"
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 #: system/ui/widgets/network.py
@@ -2811,11 +3262,11 @@ msgstr "預設"
 
 #: selfdrive/ui/mici/layouts/settings/settings.py
 msgid "developer"
-msgstr ""
+msgstr "开发者"
 
 #: selfdrive/ui/mici/layouts/settings/settings.py
 msgid "device"
-msgstr ""
+msgstr "设备"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
@@ -2827,6 +3278,8 @@ msgid ""
 "disable\n"
 "sunnylink"
 msgstr ""
+"禁用\n"
+"sunnylink"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/settings.py
 msgid "disengage to enable always offroad"
@@ -2834,11 +3287,17 @@ msgstr "脫離以啟用始終離車"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "do you want to share video data for training?"
-msgstr ""
+msgstr "您想分享视频数据用于训练吗？"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "down"
 msgstr "下"
+
+#: system/ui/mici_updater.py
+msgid ""
+"download\n"
+"& install"
+msgstr ""
 
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "download failed"
@@ -2846,13 +3305,15 @@ msgstr "下載失敗"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "download update"
-msgstr ""
+msgstr "下载更新"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
+#: system/ui/mici_updater.py
 msgid "downloading"
 msgstr "下載中"
 
 #: selfdrive/ui/layouts/settings/software.py
+#: system/ui/mici_setup.py
 msgid "downloading..."
 msgstr "下載中..."
 
@@ -2861,34 +3322,52 @@ msgid ""
 "driver\n"
 "camera preview"
 msgstr ""
+"驾驶员\n"
+"摄像头预览"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "driver camera data"
-msgstr ""
+msgstr "驾驶员摄像头数据"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid ""
 "driver monitoring\n"
 "check"
 msgstr ""
+"驾驶员监控\n"
+"检查"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "driving personality"
-msgstr ""
+msgstr "驾驶风格"
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 msgid "edit"
-msgstr ""
+msgstr "编辑"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/onboarding.py
 msgid ""
 "enable\n"
 "sunnylink"
 msgstr ""
+"启用\n"
+"sunnylink"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid ""
+"enable alpha\n"
+"longitudinal"
+msgstr ""
+"启用alpha\n"
+"纵向控制"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "enable livestream"
+msgstr ""
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 msgid "enable roaming"
-msgstr ""
+msgstr "启用漫游"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "enable sunnylink"
@@ -2896,7 +3375,28 @@ msgstr "啟用 sunnylink"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "enable sunnypilot"
+msgstr "启用sunnypilot"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "enable tethering"
+msgstr "启用热点"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "enabling alpha longitudinal"
+msgstr "启用alpha纵向控制"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "enter APN..."
 msgstr ""
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "enter GitHub username..."
+msgstr "输入GitHub用户名..."
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "enter password..."
+msgstr "输入密码..."
 
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "error"
@@ -2904,6 +3404,10 @@ msgstr "錯誤"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "experimental mode"
+msgstr "实验模式"
+
+#: system/ui/mici_reset.py
+msgid "factory reset"
 msgstr ""
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
@@ -2916,7 +3420,7 @@ msgstr "檢查更新失敗"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "failed to update"
-msgstr ""
+msgstr "更新失败"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "finalizing update..."
@@ -2924,15 +3428,33 @@ msgstr "正在完成更新..."
 
 #: selfdrive/ui/mici/layouts/settings/settings.py
 msgid "firehose"
-msgstr ""
+msgstr "Firehose"
 
 #: system/ui/widgets/network.py
 msgid "for \"{}\""
 msgstr "適用於「{}」"
 
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "forgetting..."
+msgstr "正在忘记..."
+
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "h"
 msgstr "時"
+
+#: system/ui/mici_setup.py
+msgid ""
+"how to restore to a\n"
+"factory state later"
+msgstr ""
+
+#: system/ui/mici_setup.py
+msgid "install openpilot"
+msgstr ""
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "joystick debug mode"
+msgstr "操纵杆调试模式"
 
 #: selfdrive/ui/mici/onroad/hud_renderer.py
 #: selfdrive/ui/onroad/hud_renderer.py
@@ -2943,7 +3465,11 @@ msgstr "km/h"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "lane departure warnings"
-msgstr ""
+msgstr "车道偏离警告"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "lateral maneuver mode"
+msgstr "横向机动模式"
 
 #: system/ui/widgets/network.py
 msgid "leave blank for automatic configuration"
@@ -2953,17 +3479,25 @@ msgstr "留空以自動設定"
 msgid "left"
 msgstr "左"
 
+#: system/ui/mici_updater.py
+msgid "loading"
+msgstr ""
+
 #: selfdrive/selfdrived/events.py
 msgid "locationd Permanent Error"
-msgstr ""
+msgstr "locationd永久性错误"
 
 #: selfdrive/selfdrived/events.py
 msgid "locationd Temporary Error"
-msgstr ""
+msgstr "locationd暂时性错误"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "longitudinal maneuver mode"
+msgstr "纵向机动模式"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "looking for driver"
-msgstr ""
+msgstr "寻找驾驶员"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "m"
@@ -2974,6 +3508,8 @@ msgid ""
 "make sure comma\n"
 "four can see your face"
 msgstr ""
+"确保 comma\n"
+"four 可以看到您的脸"
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 #: system/ui/widgets/network.py
@@ -2993,19 +3529,21 @@ msgstr "mph"
 
 #: selfdrive/ui/mici/layouts/settings/settings.py
 msgid "network"
-msgstr ""
+msgstr "网络"
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 msgid "network usage"
-msgstr ""
+msgstr "网络使用"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "never"
 msgstr "從不"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
+#: system/ui/mici_setup.py
+#: system/ui/mici_updater.py
 msgid "next"
-msgstr ""
+msgstr "下一步"
 
 #: selfdrive/ui/mici/layouts/offroad_alerts.py
 msgid "no alerts"
@@ -3017,24 +3555,50 @@ msgstr "無網路連接"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "no, don't upload"
+msgstr "不，不上传"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "not connected"
 msgstr ""
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "not in range"
+msgstr "不在范围内"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "now"
 msgstr "現在"
 
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "obtaining IP..."
+msgstr ""
+
 #: selfdrive/selfdrived/events.py
 msgid "openpilot Canceled"
+msgstr "openpilot已取消"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "openpilot Unavailable"
+msgstr "openpilot 不可用"
+
+#: selfdrive/ui/mici/onroad/augmented_road_view.py
+msgid ""
+"openpilot can't start\n"
+"check alerts"
 msgstr ""
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "or go to https://sunnypilot.ai/terms"
-msgstr ""
+msgstr "或前往 https://sunnypilot.ai/terms"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "pair"
 msgstr "配對"
+
+#: selfdrive/ui/mici/widgets/pairing_dialog.py
+msgid "pair with comma connect"
+msgstr "与comma connect配对"
 
 #: selfdrive/ui/sunnypilot/mici/widgets/sunnylink_pairing_dialog.py
 msgid "pair with sunnylink"
@@ -3047,11 +3611,11 @@ msgstr "已配對"
 
 #: selfdrive/selfdrived/events.py
 msgid "paramsd Permanent Error"
-msgstr ""
+msgstr "paramsd永久性错误"
 
 #: selfdrive/selfdrived/events.py
 msgid "paramsd Temporary Error"
-msgstr ""
+msgstr "paramsd暂时性错误"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "please connect to WiFi & try again"
@@ -3063,7 +3627,11 @@ msgstr "請重新啟動後重試"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "power off"
-msgstr ""
+msgstr "关机"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "pending"
+msgstr "待處理"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "progress"
@@ -3073,32 +3641,72 @@ msgstr "進度"
 msgid "ready"
 msgstr "就緒"
 
+#: selfdrive/ui/mici/layouts/home.py
+msgid "release"
+msgstr "發布版"
+
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "reboot"
+msgstr "重启"
+
+#: system/ui/mici_reset.py
+msgid ""
+"reboot\n"
+"device"
+msgstr ""
+
+#: system/ui/mici_reset.py
+msgid "reboot to try again"
 msgstr ""
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "record & upload driver camera"
-msgstr ""
+msgstr "录制并上传驾驶员摄像头"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "record & upload mic audio"
-msgstr ""
+msgstr "录制并上传麦克风音频"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "regulatory info"
-msgstr ""
+msgstr "法规信息"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "relaxed"
-msgstr ""
+msgstr "轻松"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "reset"
+msgstr "重置"
+
+#: system/ui/mici_reset.py
+msgid ""
+"reset &\n"
+"erase"
 msgstr ""
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "reset calibration"
+msgstr "重置校准"
+
+#: system/ui/mici_reset.py
+msgid "reset failed"
+msgstr ""
+
+#: system/ui/mici_reset.py
+msgid ""
+"reset triggered by\n"
+"tapping the screen"
+msgstr ""
+
+#: system/ui/mici_reset.py
+msgid "resetting device"
+msgstr ""
+
+#: system/ui/mici_reset.py
+msgid ""
+"resetting erases\n"
+"all user content & data"
 msgstr ""
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
@@ -3118,6 +3726,8 @@ msgid ""
 "review\n"
 "training guide"
 msgstr ""
+"查看\n"
+"训练指南"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "right"
@@ -3128,9 +3738,14 @@ msgid "s"
 msgstr "秒"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
+#: selfdrive/ui/mici/layouts/settings/developer.py
 #: selfdrive/ui/sunnypilot/mici/layouts/onboarding.py
 msgid "scroll to continue"
-msgstr ""
+msgstr "滚动继续"
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "searching for networks"
+msgstr "正在搜索网络"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "select model"
@@ -3138,7 +3753,7 @@ msgstr "選擇模型"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "serial"
-msgstr ""
+msgstr "序列号"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "settings backed up"
@@ -3156,9 +3771,13 @@ msgstr "滑動以退出始終離車"
 msgid "slide to force offroad"
 msgstr "滑動以強制離車"
 
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "slide to forget"
+msgstr "滑动以忘记"
+
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "slide to restart"
-msgstr ""
+msgstr "滑动重启"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "slide to restore"
@@ -3174,11 +3793,29 @@ msgstr "贊助等級"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "standard"
+msgstr "标准"
+
+#: system/ui/mici_setup.py
+msgid "start"
 msgstr ""
+
+#: selfdrive/ui/mici/onroad/augmented_road_view.py
+msgid ""
+"start the car to\n"
+"use sunnypilot"
+msgstr ""
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "starting"
+msgstr ""
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "starting..."
+msgstr "正在启动..."
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "subscribed"
-msgstr ""
+msgstr "已订阅"
 
 #: selfdrive/ui/sunnypilot/layouts/onboarding.py
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
@@ -3201,7 +3838,7 @@ msgstr "sunnylink 讓您可以從任何地方安全地遠端存取您的 comma �
 
 #: selfdrive/ui/sunnypilot/mici/layouts/onboarding.py
 msgid "sunnylink enables secured remote access to your comma device from anywhere."
-msgstr ""
+msgstr "sunnylink支持从任何地方安全远程访问您的comma设备。"
 
 #: selfdrive/ui/sunnypilot/layouts/onboarding.py
 msgid "sunnylink is designed to be enabled as part of sunnypilot's core functionality. If sunnylink is disabled, features such as settings management, remote monitoring, real-time dashboards will be unavailable."
@@ -3213,7 +3850,7 @@ msgstr "sunnylink 上傳器"
 
 #: selfdrive/ui/mici/layouts/home.py
 msgid "sunnypilot"
-msgstr ""
+msgstr "sunnypilot"
 
 #: selfdrive/ui/layouts/settings/developer.py
 msgid "sunnypilot Longitudinal Control (Alpha)"
@@ -3237,7 +3874,7 @@ msgstr "sunnypilot 預設以安穩模式駕駛。實驗模式會啟用尚未成�
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "sunnypilot detected a change in the device's mounting position. Ensure the device is fully seated in the mount and the mount is firmly secured to the windshield."
-msgstr ""
+msgstr "sunnypilot检测到设备安装位置发生变化。确保设备完全安装在支架中，且支架牢固固定在挡风玻璃上。"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "sunnypilot is continuously calibrating, resetting is rarely required. Resetting calibration will restart sunnypilot if the car is powered on."
@@ -3264,11 +3901,11 @@ msgstr "sunnypilot 要求裝置的安裝角度在左右 4° 以內、向上 5° 
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "sunnypilot uses the cabin camera to check if the driver is distracted."
-msgstr ""
+msgstr "sunnypilot使用车内摄像头检查驾驶员是否分心。"
 
 #: selfdrive/selfdrived/alerts_offroad.json
 msgid "sunnypilot was unable to identify your car. Your car is either unsupported or its ECUs are not recognized. Please submit a pull request to add the firmware versions to the proper vehicle. Need help? Join discord.comma.ai."
-msgstr ""
+msgstr "sunnypilot无法识别您的车辆。您的车辆要么不支持，要么其ECU未被识别。请提交pull request将固件版本添加到正确的车辆。需要帮助？加入discord.comma.ai。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/toyota.py
 msgid "sunnypilot will allow some Toyota/Lexus cars to auto resume during stop and go traffic. This feature is only applicable to certain models that are able to use longitudinal control. This is an alpha feature. Use at your own risk."
@@ -3278,37 +3915,87 @@ msgstr "sunnypilot 將允許部分豐田/雷克薩斯車輛在走走停停的交
 msgid "sunnypilot will not take over control of gas and brakes. Factory Toyota longitudinal control will be used."
 msgstr "sunnypilot 將不會接管油門和剎車的控制。將使用原廠豐田縱向控制。"
 
+#: system/ui/mici_setup.py
+msgid "swipe down to go back"
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "swipe for QR code"
+msgstr "滑动查看二维码"
+
+#: selfdrive/ui/mici/onroad/augmented_road_view.py
+msgid "system booting"
 msgstr ""
 
 #: selfdrive/selfdrived/events.py
 msgid "take control"
-msgstr ""
+msgstr "接管控制"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid ""
 "terms &\n"
 "conditions"
 msgstr ""
+"条款 &\n"
+"条件"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid ""
 "terms of\n"
 "service"
 msgstr ""
+"服务\n"
+"条款"
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "tethering"
+msgstr "热点中"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "tethering password"
+msgstr "热点密码"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "thanks"
 msgstr "感謝"
 
+#: system/ui/mici_updater.py
+msgid ""
+"the download size\n"
+"is approximately 1 GB"
+msgstr ""
+
+#: system/ui/mici_reset.py
+msgid ""
+"this may take up to\n"
+"a minute"
+msgstr ""
+
+#: system/ui/mici_reset.py
+msgid ""
+"this may take up to\n"
+"a minute..."
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/settings/settings.py
 msgid "toggles"
-msgstr ""
+msgstr "开关"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
+msgid "try again later."
+msgstr "稍后重试。"
 
 #: selfdrive/selfdrived/events.py
 msgid "turn exceeds limit"
-msgstr ""
+msgstr "转向超出限制"
+
+#: selfdrive/ui/body/layouts/onroad.py
+msgid "turn on ignition to use"
+msgstr "请启动车辆以使用"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "ui debug mode"
+msgstr "UI调试模式"
 
 #: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
 msgid "unable to restore"
@@ -3316,16 +4003,20 @@ msgstr "無法恢復"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "uninstall"
-msgstr ""
+msgstr "卸载"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "uninstall sunnypilot"
-msgstr ""
+msgstr "卸载 sunnypilot"
 
 #: selfdrive/ui/mici/layouts/settings/network/network_layout.py
 #: system/ui/widgets/network.py
 msgid "unmetered"
 msgstr "不限流量"
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "unsupported"
+msgstr "不支持"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid "up"
@@ -3333,7 +4024,7 @@ msgstr "上"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "up to date"
-msgstr ""
+msgstr "已是最新"
 
 #: selfdrive/ui/layouts/settings/software.py
 msgid "up to date, last checked never"
@@ -3347,31 +4038,61 @@ msgstr "已為最新，最後檢查：{}"
 msgid "update available"
 msgstr "有可用更新"
 
+#: system/ui/mici_updater.py
+msgid "update failed"
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "update now"
+msgstr "立即更新"
+
+#: system/ui/mici_updater.py
+msgid "update required"
 msgstr ""
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "update sunnypilot"
-msgstr ""
+msgstr "更新 sunnypilot"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid ""
 "updater failed\n"
 "to respond"
 msgstr ""
+"更新器失败\n"
+"响应"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "upgrade to prime"
-msgstr ""
+msgstr "升级到 prime"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "use metric units"
+msgstr "使用公制单位"
+
+#: system/ui/mici_reset.py
+msgid ""
+"user data partition\n"
+"could not be mounted"
+msgstr ""
+
+#: system/ui/mici_setup.py
+msgid ""
+"waiting for\n"
+"internet..."
 msgstr ""
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "what is sunnypilot?"
+msgstr "什么是sunnypilot？"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "wi-fi"
 msgstr ""
+
+#: selfdrive/ui/mici/layouts/settings/network/wifi_ui.py
+msgid "wrong password"
+msgstr "密码错误"
 
 #: selfdrive/ui/layouts/home.py
 msgid "{} ALERT"
@@ -3403,6 +4124,18 @@ msgid_plural "{} segments of your driving is in the training dataset so far."
 msgstr[0] "目前已有 {} 個您的駕駛片段納入訓練資料集。"
 msgstr[1] "目前已有 {} 個您的駕駛片段納入訓練資料集。"
 
+#: system/ui/mici_setup.py
+msgid "• It has not been tested by comma."
+msgstr ""
+
+#: system/ui/mici_setup.py
+msgid "• It may damage your device and/or vehicle."
+msgstr ""
+
+#: system/ui/mici_setup.py
+msgid "• It may not comply with safety standards."
+msgstr ""
+
 #: selfdrive/ui/widgets/prime.py
 msgid "✓ SUBSCRIBED"
 msgstr "✓ 已訂閱"
@@ -3410,4 +4143,36 @@ msgstr "✓ 已訂閱"
 #: selfdrive/ui/widgets/setup.py
 msgid "🔥 Firehose Mode 🔥"
 msgstr "🔥 Firehose 模式 🔥"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "🚀 sunnylink 🚀"
+msgstr "🚀 sunnylink 🚀"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "FORMAT"
+msgstr "格式轉換"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format completed successfully."
+msgstr "格式轉換完成。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format failed (exit code {code})."
+msgstr "格式轉換失敗（退出碼 {code}）。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format timed out after 120 seconds."
+msgstr "格式轉換逾時（120 秒）。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Error running format script: {error}"
+msgstr "執行格式轉換指令碼出錯：{error}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format script not found: {path}"
+msgstr "找不到格式轉換指令碼：{path}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Output"
+msgstr "輸出"
 

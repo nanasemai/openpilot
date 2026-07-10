@@ -190,6 +190,9 @@ class FirehoseLayoutBase(Widget):
     return y
 
   def _get_status(self) -> tuple[str, rl.Color]:
+    if self._params.get_bool("dp_dev_disable_connect"):
+      return tr("INACTIVE: Comma Connect is disabled"), self.RED
+
     network_type = ui_state.sm["deviceState"].networkType
     network_metered = ui_state.sm["deviceState"].networkMetered
 
