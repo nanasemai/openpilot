@@ -52,10 +52,17 @@ class LaneChangeSettingsLayout(Widget):
                              "(BSM) detects a obstructing vehicle, ensuring safe maneuvering."),
     )
 
+    self._road_edge_toggle = toggle_item_sp(
+      param="RoadEdgeLcaBlindspot",
+      title=lambda: tr("Auto Lane Change: Road Edge Detection"),
+      description=lambda: tr("Detects road edges and prevents lane changes when the vehicle is too close to the edge of the road."),
+    )
+
     items = [
       self._lane_change_timer,
       LineSeparatorSP(40),
       self._bsm_delay,
+      self._road_edge_toggle,
     ]
 
     return items

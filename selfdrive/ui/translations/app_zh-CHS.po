@@ -267,6 +267,14 @@ msgstr "拨杆自动变道"
 msgid "Auto Lane Change: Delay with Blind Spot"
 msgstr "自动变道：盲区时延迟"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
+msgid "Auto Lane Change: Road Edge Detection"
+msgstr "自动变道：路缘检测"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
+msgid "Detects road edges and prevents lane changes when the vehicle is too close to the edge of the road."
+msgstr "检测路缘，当车辆过于靠近道路边缘时阻止变道。"
+
 #: selfdrive/selfdrived/events.py
 msgid "BRAKE!"
 msgstr "刹车！"
@@ -889,6 +897,38 @@ msgstr "启用自定义调校"
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Enable Dynamic Experimental Control"
 msgstr "启用动态实验控制"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Acceleration Profile"
+msgstr "加速曲线预设"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Select an acceleration profile to adjust how aggressively your vehicle accelerates."
+msgstr "选择加速曲线预设，调整车辆加速的激进程度。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Standard"
+msgstr "标准"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Eco"
+msgstr "节能"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Sport"
+msgstr "运动"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Comfort"
+msgstr "舒适"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Auto Aggressive Mode"
+msgstr "自动激进模式"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."
+msgstr "低速时自动切换到激进驾驶人格，保持更近的跟车距离防止被加塞。车速超过70km/h后自动恢复。"
 
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Enable Lane Departure Warnings"

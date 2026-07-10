@@ -267,6 +267,14 @@ msgstr ""
 msgid "Auto Lane Change: Delay with Blind Spot"
 msgstr ""
 
+#: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
+msgid "Auto Lane Change: Road Edge Detection"
+msgstr "Auto Lane Change: Road Edge Detection"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/lane_change_settings.py
+msgid "Detects road edges and prevents lane changes when the vehicle is too close to the edge of the road."
+msgstr "Detects road edges and prevents lane changes when the vehicle is too close to the edge of the road."
+
 #: selfdrive/selfdrived/events.py
 msgid "BRAKE!"
 msgstr ""
@@ -887,6 +895,38 @@ msgstr ""
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Enable Dynamic Experimental Control"
 msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Acceleration Profile"
+msgstr "Acceleration Profile"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Select an acceleration profile to adjust how aggressively your vehicle accelerates."
+msgstr "Select an acceleration profile to adjust how aggressively your vehicle accelerates."
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Standard"
+msgstr "Standard"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Eco"
+msgstr "Eco"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Sport"
+msgstr "Sport"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Comfort"
+msgstr "Comfort"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Auto Aggressive Mode"
+msgstr "Auto Aggressive Mode"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."
+msgstr "Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."
 
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Enable Lane Departure Warnings"

@@ -30,6 +30,8 @@ ACC_NOLONG_DESCRIPTION = tr_noop("This feature can only be used with sunnypilot 
 ACC_PCMCRUISE_DISABLED_DESCRIPTION = tr_noop("This feature is not supported on this platform due to vehicle limitations.")
 ONROAD_ONLY_DESCRIPTION = tr_noop("Start the vehicle to check vehicle compatibility.")
 
+ACCEL_PROFILE_DESC = tr_noop("Select an acceleration profile to adjust how aggressively your vehicle accelerates.")
+
 
 class CruiseLayout(Widget):
   def __init__(self):
@@ -87,9 +89,26 @@ class CruiseLayout(Widget):
       description=lambda: tr("Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal."),
       param="DynamicExperimentalControl")
 
+    self.accel_profile_selector = option_item_sp(
+      title=lambda: tr("Acceleration Profile"),
+      description=lambda: tr(ACCEL_PROFILE_DESC),
+      param="SPAccelProfile",
+      min_value=0, max_value=3,
+      value_change_step=1,
+      value_map={0: 0, 1: 1, 2: 2, 3: 3},
+      label_callback=lambda v: {0: tr("Standard"), 1: tr("Eco"), 2: tr("Sport"), 3: tr("Comfort")}.get(v, tr("Standard")),
+      inline=False)
+
+    self.apm_toggle = toggle_item_sp(
+      title=lambda: tr("Auto Aggressive Mode"),
+      description=lambda: tr("Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."),
+      param="SPAccelProfileModeEnabled")
+
     items = [
       self.icbm_toggle,
       self.dec_toggle,
+      self.accel_profile_selector,
+      self.apm_toggle,
       self.scc_v_toggle,
       self.scc_m_toggle,
       self.custom_acc_toggle,
@@ -145,6 +164,8 @@ class CruiseLayout(Widget):
       if has_long or has_icbm:
         self.custom_acc_toggle.action_item.set_enabled(((has_long and not ui_state.CP.pcmCruise) or has_icbm) and ui_state.is_offroad())
         self.dec_toggle.action_item.set_enabled(has_long)
+        self.accel_profile_selector.action_item.set_enabled(has_long and ui_state.is_offroad())
+        self.apm_toggle.action_item.set_enabled(has_long and ui_state.is_offroad())
         self.scc_v_toggle.action_item.set_enabled(True)
         self.scc_m_toggle.action_item.set_enabled(True)
       else:
@@ -154,6 +175,8 @@ class CruiseLayout(Widget):
         ui_state.params.remove("SmartCruiseControlMap")
         self.custom_acc_toggle.action_item.set_enabled(False)
         self.dec_toggle.action_item.set_enabled(False)
+        self.accel_profile_selector.action_item.set_enabled(False)
+        self.apm_toggle.action_item.set_enabled(False)
         self.scc_v_toggle.action_item.set_enabled(False)
         self.scc_m_toggle.action_item.set_enabled(False)
 
