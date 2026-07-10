@@ -29,7 +29,7 @@ class NetworkLayoutMici(NavScroller):
       self._network_metered_btn.set_enabled(False)
       self._wifi_manager.set_tethering_active(checked)
 
-    self._tethering_toggle_btn = BigToggle("enable tethering", "", toggle_callback=tethering_toggle_callback)
+    self._tethering_toggle_btn = BigToggle(tr("enable tethering"), "", toggle_callback=tethering_toggle_callback)
 
     def tethering_password_callback(password: str):
       if password:
@@ -39,12 +39,12 @@ class NetworkLayoutMici(NavScroller):
 
     def tethering_password_clicked():
       tethering_password = self._wifi_manager.tethering_password
-      dlg = BigInputDialog("enter password...", tethering_password, minimum_length=8,
+      dlg = BigInputDialog(tr("enter password..."), tethering_password, minimum_length=8,
                            confirm_callback=tethering_password_callback)
       gui_app.push_widget(dlg)
 
     txt_tethering = gui_app.texture("icons_mici/settings/network/tethering.png", 64, 54)
-    self._tethering_password_btn = BigButton("tethering password", "", txt_tethering)
+    self._tethering_password_btn = BigButton(tr("tethering password"), "", txt_tethering)
     self._tethering_password_btn.set_click_callback(tethering_password_clicked)
 
     # ******** Network Metered ********
@@ -121,7 +121,7 @@ class NetworkLayoutMici(NavScroller):
         ui_state.params.put("GsmApn", apn)
 
     current_apn = ui_state.params.get("GsmApn") or ""
-    dlg = BigInputDialog("enter APN...", current_apn, minimum_length=0, confirm_callback=update_apn)
+    dlg = BigInputDialog(tr("enter APN..."), current_apn, minimum_length=0, confirm_callback=update_apn)
     gui_app.push_widget(dlg)
 
   def _on_network_updated(self, networks: list[Network]):

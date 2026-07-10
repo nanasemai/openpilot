@@ -52,6 +52,6 @@ class ProgressBarAction(ItemAction):
     rl.draw_text_ex(self._font, self.text, rl.Vector2(bar_rect.x + text_x, bar_rect.y + (bar_height - text_size.y) / 2), font_size, 0, self.text_color)
 
 
-def progress_item(title):
+def progress_item(title, indent: int = 0):
   action = ProgressBarAction()
-  return ListItem(title=title, action_item=action)
+  return ListItem(title=title, action_item=action, indent=indent)

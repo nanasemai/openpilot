@@ -56,6 +56,17 @@ FONT_SIZES = FontSizes()
 COLORS = Colors()
 
 
+def set_speed_box(rect: rl.Rectangle) -> rl.Rectangle:
+  """Rectangle of the MAX speed indicator box.
+
+  Centered at the same x for both metric and imperial, so widgets anchored
+  below it (the record button) do not shift when the unit changes.
+  """
+  set_speed_width = UI_CONFIG.set_speed_width_metric if ui_state.is_metric else UI_CONFIG.set_speed_width_imperial
+  x = rect.x + 60 + (UI_CONFIG.set_speed_width_imperial - set_speed_width) // 2
+  return rl.Rectangle(x, rect.y + 45, set_speed_width, UI_CONFIG.set_speed_height)
+
+
 class HudRenderer(Widget):
   def __init__(self):
     super().__init__()
@@ -126,11 +137,9 @@ class HudRenderer(Widget):
 
   def _draw_set_speed(self, rect: rl.Rectangle) -> None:
     """Draw the MAX speed indicator box."""
-    set_speed_width = UI_CONFIG.set_speed_width_metric if ui_state.is_metric else UI_CONFIG.set_speed_width_imperial
-    x = rect.x + 60 + (UI_CONFIG.set_speed_width_imperial - set_speed_width) // 2
-    y = rect.y + 45
-
-    set_speed_rect = rl.Rectangle(x, y, set_speed_width, UI_CONFIG.set_speed_height)
+    set_speed_rect = set_speed_box(rect)
+    set_speed_width = set_speed_rect.width
+    x, y = set_speed_rect.x, set_speed_rect.y
     rl.draw_rectangle_rounded(set_speed_rect, 0.35, 10, COLORS.BLACK_TRANSLUCENT)
     rl.draw_rectangle_rounded_lines_ex(set_speed_rect, 0.35, 10, 6, COLORS.BORDER_TRANSLUCENT)
 

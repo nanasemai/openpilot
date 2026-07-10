@@ -237,7 +237,7 @@ class MiciHomeLayout(Widget):
       self._date_label.render()
 
       self._branch_label.set_max_width(gui_app.width - self._version_label.text_width - self._date_label.text_width - 32)
-      self._branch_label.set_text(" " + ("release" if release_branch else self._version_text[1]))
+      self._branch_label.set_text(" " + (tr("release") if release_branch else self._version_text[1]))
       self._branch_label.set_position(version_pos.x + self._version_label.text_width + self._date_label.text_width + 20, version_pos.y)
       self._branch_label.render()
 

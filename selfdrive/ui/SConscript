@@ -16,6 +16,8 @@ def _get_language_codes():
 # build the fonts
 generator = File("#selfdrive/assets/fonts/process.py")
 source_files = Glob("#selfdrive/assets/fonts/*.ttf") + Glob("#selfdrive/assets/fonts/*.otf")
+# Track translation files as dependencies so font atlases are rebuilt when translations change
+translation_deps = Glob("#selfdrive/ui/translations/*.po") + [File("#selfdrive/ui/translations/languages.json")]
 
 output_files = []
 for f in source_files:
@@ -32,7 +34,7 @@ for f in source_files:
 
 env.Command(
   target=output_files,
-  source=[generator, source_files],
+  source=[generator, source_files] + translation_deps,
   action=f"python3 {generator}",
 )
 

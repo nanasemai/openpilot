@@ -181,6 +181,13 @@ class Multilang:
       cloudlog.error(f"No translation file found for language: {self._language}, using default.")
       self._translations = {}
       self._plurals = {}
+    except Exception as e:
+      # A malformed .po must not take down the caller. selfdrive/selfdrived/events.py
+      # imports `tr` from this module, so a parse error here would otherwise crash
+      # selfdrived at import time, not just the UI. Degrade to untranslated instead.
+      cloudlog.error(f"Failed to parse translations for {self._language}, using default: {e}")
+      self._translations = {}
+      self._plurals = {}
 
   def change_language(self, language_code: str) -> None:
     self._params.put("LanguageSetting", language_code, block=True)

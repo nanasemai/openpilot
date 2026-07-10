@@ -22,6 +22,7 @@ ITEM_DESC_FONT_SIZE = 40
 ITEM_DESC_V_OFFSET = 140
 RIGHT_ITEM_PADDING = 20
 ICON_SIZE = 80
+ITEM_INDENT_WIDTH = ICON_SIZE + ITEM_PADDING  # one nesting level, lines children up under the parent row's title
 BUTTON_WIDTH = 250
 BUTTON_HEIGHT = 100
 BUTTON_BORDER_RADIUS = 50
@@ -272,7 +273,7 @@ class MultipleButtonAction(ItemAction):
 class ListItem(Widget):
   def __init__(self, title: str | Callable[[], str] = "", icon: str | None = None, description: str | Callable[[], str] | None = None,
                description_visible: bool = False, callback: Callable | None = None,
-               action_item: ItemAction | None = None):
+               action_item: ItemAction | None = None, indent: int = 0):
     super().__init__()
     self._title = title
     self.set_icon(icon)
@@ -281,6 +282,7 @@ class ListItem(Widget):
     self.callback = callback
     self.description_opened_callback: Callable | None = None
     self.action_item = action_item
+    self._indent = indent * ITEM_INDENT_WIDTH
 
     self.set_rect(rl.Rectangle(0, 0, ITEM_BASE_WIDTH, ITEM_BASE_HEIGHT))
     self._font = gui_app.font(FontWeight.NORMAL)
@@ -330,8 +332,7 @@ class ListItem(Widget):
         # Call _update_state to catch any description changes
         self._update_state()
 
-      content_width = int(self._rect.width - ITEM_PADDING * 2)
-      self._rect.height = self.get_item_height(self._font, content_width)
+      self._rect.height = self.get_item_height(self._font, self._get_content_width())
 
   def _update_state(self):
     # Detect changes if description is callback
@@ -348,7 +349,7 @@ class ListItem(Widget):
       self._rect.y >= (self._parent_rect.y + self._parent_rect.height)):
       return
 
-    content_x = self._rect.x + ITEM_PADDING
+    content_x = self._rect.x + ITEM_PADDING + self._indent
     text_x = content_x
 
     # Only draw title and icon for items that have them
@@ -365,10 +366,10 @@ class ListItem(Widget):
 
     # Draw description if visible
     if self.description_visible:
-      content_width = int(self._rect.width - ITEM_PADDING * 2)
+      content_width = self._get_content_width()
       description_height = self._html_renderer.get_total_height(content_width)
       description_rect = rl.Rectangle(
-        self._rect.x + ITEM_PADDING,
+        content_x,
         self._rect.y + ITEM_DESC_V_OFFSET,
         content_width,
         description_height
@@ -413,17 +414,20 @@ class ListItem(Widget):
       height += description_height - (ITEM_BASE_HEIGHT - ITEM_DESC_V_OFFSET) + ITEM_PADDING
     return height
 
+  def _get_content_width(self) -> int:
+    return int(self._rect.width - ITEM_PADDING * 2 - self._indent)
+
   def get_right_item_rect(self, item_rect: rl.Rectangle) -> rl.Rectangle:
     if not self.action_item:
       return rl.Rectangle(0, 0, 0, 0)
 
     right_width = self.action_item.get_width_hint()
     if right_width == 0:  # Full width action (like DualButtonAction)
-      return rl.Rectangle(item_rect.x + ITEM_PADDING, item_rect.y,
-                          item_rect.width - (ITEM_PADDING * 2), ITEM_BASE_HEIGHT)
+      return rl.Rectangle(item_rect.x + ITEM_PADDING + self._indent, item_rect.y,
+                          item_rect.width - (ITEM_PADDING * 2) - self._indent, ITEM_BASE_HEIGHT)
 
     # Clip width to available space, never overlapping this Item's title
-    content_width = item_rect.width - (ITEM_PADDING * 2)
+    content_width = item_rect.width - (ITEM_PADDING * 2 + self._indent)
     title_width = measure_text_cached(self._font, self.title, ITEM_TEXT_FONT_SIZE).x
     right_width = min(content_width - title_width, right_width)
 

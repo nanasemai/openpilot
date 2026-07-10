@@ -243,4 +243,12 @@ EVENTS_SP: dict[int, dict[str, Alert | AlertCallbackType]] = {
       AlertStatus.normal, AlertSize.none,
       Priority.MID, VisualAlert.none, AudibleAlert.prompt, 3.),
   },
+
+  EventNameSP.laneChangeRoadEdge: {
+    ET.WARNING: Alert(
+      "Road Edge Detected",
+      "Take Control",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.prompt, 3.),
+  },
 }

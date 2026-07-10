@@ -74,8 +74,9 @@ class MainLayout(Widget):
     self._content_rect = rl.Rectangle(self._rect.x + x_offset, self._rect.y, self._rect.width - x_offset, self._rect.height)
 
   def _handle_onroad_transition(self):
-    if ui_state.started != self._prev_onroad:
-      self._prev_onroad = ui_state.started
+    should_be_onroad = ui_state.started or ui_state.force_onroad
+    if should_be_onroad != self._prev_onroad:
+      self._prev_onroad = should_be_onroad
 
       self._set_mode_for_state()
 
@@ -86,7 +87,7 @@ class MainLayout(Widget):
       self._sidebar.set_visible(not ui_state.ignition)
       return
 
-    if ui_state.started:
+    if ui_state.started or ui_state.force_onroad:
       # Don't hide sidebar from interactive timeout
       if self._current_mode != MainState.ONROAD:
         self._sidebar.set_visible(False)
