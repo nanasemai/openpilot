@@ -1850,6 +1850,22 @@ msgstr "快速启动模式要求先禁用更新。<br>请先在软件面板中�
 msgid "Quiet Mode"
 msgstr "静音模式"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Audible Alert Mode"
+msgstr "声音提示模式"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "0 = all sounds; 1 = suppress engage/disengage; 2 = silent"
+msgstr "0 = 所有声音; 1 = 仅警告; 2 = 静音"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Warnings Only"
+msgstr "仅警告"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Muted"
+msgstr "静音"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "REFRESH"
 msgstr "刷新"

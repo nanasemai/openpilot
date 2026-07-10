@@ -80,15 +80,19 @@ class DeviceLayoutSP(DeviceLayout):
       inline=True,
     )
 
-    self._quiet_mode_and_dcam = dual_button_item_sp(
-      left_text=lambda: tr("Quiet Mode"),
-      right_text=lambda: tr("Driver Camera Preview"),
-      left_callback=lambda: ui_state.params.put_bool("QuietMode", not ui_state.params.get_bool("QuietMode")),
-      right_callback=lambda: gui_app.push_widget(DriverCameraDialog())
+    self._audible_alert_mode_item = multiple_button_item_sp(
+      title=lambda: tr("Audible Alert Mode"),
+      description=lambda: tr("0 = all sounds; 1 = suppress engage/disengage; 2 = silent"),
+      buttons=[lambda: tr("Standard"), lambda: tr("Warnings Only"), lambda: tr("Muted")],
+      param="AudibleAlertMode",
+      inline=False,
     )
-    self._quiet_mode_and_dcam.action_item.right_button.set_button_style(ButtonStyle.NORMAL)
-    if os.getenv("DISABLE_DRIVER"):
-      self._quiet_mode_and_dcam.action_item.right_button.set_visible(False)
+
+    self._driver_cam_btn = button_item_sp(
+      title=lambda: tr("Driver Camera Preview"),
+      button_text=lambda: tr("OPEN"),
+      callback=lambda: gui_app.push_widget(DriverCameraDialog()),
+    )
 
     self._reg_and_training = dual_button_item_sp(
       left_text=lambda: tr("Regulatory"),
@@ -127,7 +131,9 @@ class DeviceLayoutSP(DeviceLayout):
       LineSeparator(),
       self._max_time_offroad,
       LineSeparator(height=10),
-      self._quiet_mode_and_dcam,
+      self._audible_alert_mode_item,
+      LineSeparator(),
+      ] + ([self._driver_cam_btn, LineSeparator(height=10)] if not os.getenv("DISABLE_DRIVER") else [Spacer(0)]) + [
       self._reg_and_training,
       self._onroad_uploads_and_reset_settings,
       Spacer(10),
@@ -210,16 +216,13 @@ class DeviceLayoutSP(DeviceLayout):
     else:
       self._scroller._items.insert(0, self._always_offroad_btn)
 
-    # Quiet Mode button
-    self._quiet_mode_and_dcam.action_item.left_button.set_button_style(ButtonStyle.PRIMARY if ui_state.params.get_bool("QuietMode") else ButtonStyle.NORMAL)
-
     # Onroad Uploads
     self._onroad_uploads_and_reset_settings.action_item.left_button.set_button_style(
       ButtonStyle.PRIMARY if ui_state.params.get_bool("OnroadUploads") else ButtonStyle.NORMAL
     )
 
     # Offroad only buttons
-    self._quiet_mode_and_dcam.action_item.right_button.set_enabled(ui_state.is_offroad())
+    self._driver_cam_btn.action_item.set_enabled(ui_state.is_offroad())
     self._reg_and_training.action_item.left_button.set_enabled(ui_state.is_offroad())
     self._reg_and_training.action_item.right_button.set_enabled(ui_state.is_offroad())
     self._onroad_uploads_and_reset_settings.action_item.right_button.set_enabled(ui_state.is_offroad())

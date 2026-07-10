@@ -798,6 +798,22 @@ msgid "Quiet Mode"
 msgstr ""
 
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Audible Alert Mode"
+msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "0 = all sounds; 1 = suppress engage/disengage; 2 = silent"
+msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Warnings Only"
+msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Muted"
+msgstr ""
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Driver Camera Preview"
 msgstr ""
 

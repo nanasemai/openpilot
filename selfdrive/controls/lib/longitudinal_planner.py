@@ -18,6 +18,7 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.sunnypilot.selfdrive.controls.lib.longitudinal_planner import LongitudinalPlannerSP
 from openpilot.sunnypilot.selfdrive.controls.lib.accel_eq import AccelEq
 from openpilot.sunnypilot.selfdrive.controls.lib.apm import APM
+from openpilot.sunnypilot.selfdrive.controls.lib.accel_logger import AccelLogger
 
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
@@ -70,6 +71,7 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
 
     self.accel_eq = AccelEq(A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
     self.apm = APM()
+    self.accel_logger = AccelLogger(CP)
 
   @staticmethod
   def parse_model(model_msg):
@@ -93,6 +95,8 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
 
   def update(self, sm):
     LongitudinalPlannerSP.update(self, sm)
+
+    self.accel_logger.update(sm)
 
     self.accel_eq.maybe_refresh()
     self.apm.maybe_refresh()
