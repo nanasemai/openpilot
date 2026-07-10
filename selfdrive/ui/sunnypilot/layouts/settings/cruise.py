@@ -9,7 +9,7 @@ from enum import IntEnum
 from openpilot.selfdrive.ui.sunnypilot.layouts.settings.cruise_sub_layouts.speed_limit_settings import SpeedLimitSettingsLayout
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.multilang import tr, tr_noop
-from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp, option_item_sp, simple_button_item_sp
+from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp, option_item_sp, simple_button_item_sp, multiple_button_item_sp
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.scroller_tici import Scroller
 
@@ -89,14 +89,11 @@ class CruiseLayout(Widget):
       description=lambda: tr("Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal."),
       param="DynamicExperimentalControl")
 
-    self.accel_profile_selector = option_item_sp(
+    self.accel_profile_selector = multiple_button_item_sp(
       title=lambda: tr("Acceleration Profile"),
       description=lambda: tr(ACCEL_PROFILE_DESC),
+      buttons=[lambda: tr("Standard"), lambda: tr("Eco"), lambda: tr("Sport"), lambda: tr("Comfort")],
       param="SPAccelProfile",
-      min_value=0, max_value=3,
-      value_change_step=1,
-      value_map={0: 0, 1: 1, 2: 2, 3: 3},
-      label_callback=lambda v: {0: tr("Standard"), 1: tr("Eco"), 2: tr("Sport"), 3: tr("Comfort")}.get(v, tr("Standard")),
       inline=False)
 
     self.apm_toggle = toggle_item_sp(

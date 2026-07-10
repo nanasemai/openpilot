@@ -2196,11 +2196,11 @@ msgstr "减速以启用"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Smart Cruise Control - Map"
-msgstr "智能巡航控制 - 地图"
+msgstr "智能巡航控制 - 地图(SCC-M)"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Smart Cruise Control - Vision"
-msgstr "智能巡航控制 - 视觉"
+msgstr "智能巡航控制 - 视觉(SCC-V)"
 
 #: selfdrive/ui/widgets/offroad_alerts.py
 msgid "Snooze Update"
