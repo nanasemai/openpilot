@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pyray as rl
 from cereal import log
@@ -6,10 +8,13 @@ from openpilot.selfdrive.ui import UI_BORDER_SIZE
 from openpilot.selfdrive.ui.ui_state import ui_state, UIStatus
 from openpilot.selfdrive.ui.onroad.alert_renderer import AlertRenderer
 from openpilot.selfdrive.ui.onroad.driver_state import DriverStateRenderer
-from openpilot.selfdrive.ui.onroad.hud_renderer import HudRenderer
+from openpilot.selfdrive.ui.onroad.hud_renderer import HudRenderer, set_speed_box
 from openpilot.selfdrive.ui.onroad.model_renderer import ModelRenderer
+from openpilot.system.ui.onroad.time_display import TimeDisplay
+from openpilot.system.ui.lib.multilang import tr
 from openpilot.selfdrive.ui.onroad.cameraview import CameraView
-from openpilot.system.ui.lib.application import gui_app
+from openpilot.system.ui.lib.application import gui_app, FontWeight
+from openpilot.common.params import Params
 from openpilot.common.transformations.camera import DEVICE_CAMERAS, DeviceCameraConfig, view_frame_from_device_frame
 from openpilot.common.transformations.orientation import rot_from_euler
 
@@ -52,14 +57,18 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     self._cached_matrix: np.ndarray | None = None
     self._content_rect = rl.Rectangle()
 
+    self._params = Params()
+
     self.model_renderer = ModelRenderer()
     self._hud_renderer = HudRenderer()
     self.alert_renderer = AlertRenderer()
     self.driver_state_renderer = DriverStateRenderer()
+    self._time_display = TimeDisplay()
 
   def _render(self, rect):
     # Only render when system is started to avoid invalid data access
-    if not ui_state.started:
+    # force_onroad allows showing camera/UI in debug mode when parked
+    if not (ui_state.started or ui_state.force_onroad):
       return
 
     self._switch_stream_if_needed(ui_state.sm)
@@ -96,6 +105,8 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
 
     # Custom UI extension point - add custom overlays here
     # Use self._content_rect for positioning within camera bounds
+    if ui_state.force_onroad:
+      self._draw_focus_assist(self._content_rect)
 
     # End clipping region
     rl.end_scissor_mode()
@@ -103,12 +114,91 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     # Draw colored border based on driving state
     self._draw_border(rect)
 
+    # Draw time/date display at top-center
+    self._time_display.render(rl.Rectangle(rect.x, rect.y, rect.width, 80))
+
+    # Show debug mode indicator when force_onroad is active
+    if ui_state.force_onroad:
+      rl.draw_text("DEBUG MODE", int(rect.x + rect.width - 160), int(rect.y + 10), 20, rl.Color(0, 255, 100, 180))
+
+  def _draw_focus_assist(self, rect: rl.Rectangle):
+    cx = int(rect.x + rect.width / 2)
+    cy = int(rect.y + rect.height / 2)
+    color = rl.Color(0, 255, 100, 200)
+
+    # ---- Crosshair ----
+    gap = 20  # gap at center so we can see the actual image pixels
+    arm_len = 40
+    # Horizontal lines (left and right of gap)
+    rl.draw_line(cx - arm_len, cy, cx - gap, cy, color)
+    rl.draw_line(cx + gap, cy, cx + arm_len, cy, color)
+    # Vertical lines (above and below gap)
+    rl.draw_line(cx, cy - arm_len, cx, cy - gap, color)
+    rl.draw_line(cx, cy + gap, cx, cy + arm_len, color)
+
+    # ---- Center dot ----
+    rl.draw_circle(cx, cy, 2, color)
+
+    # ---- Focus zone brackets ----
+    zone = 80  # half-size of focus zone
+    bracket = 20  # length of bracket arm
+    # Top-left bracket
+    rl.draw_line(cx - zone, cy - zone, cx - zone + bracket, cy - zone, color)
+    rl.draw_line(cx - zone, cy - zone, cx - zone, cy - zone + bracket, color)
+    # Top-right bracket
+    rl.draw_line(cx + zone, cy - zone, cx + zone - bracket, cy - zone, color)
+    rl.draw_line(cx + zone, cy - zone, cx + zone, cy - zone + bracket, color)
+    # Bottom-left bracket
+    rl.draw_line(cx - zone, cy + zone, cx - zone + bracket, cy + zone, color)
+    rl.draw_line(cx - zone, cy + zone, cx - zone, cy + zone - bracket, color)
+    # Bottom-right bracket
+    rl.draw_line(cx + zone, cy + zone, cx + zone - bracket, cy + zone, color)
+    rl.draw_line(cx + zone, cy + zone, cx + zone, cy + zone - bracket, color)
+
+    # ---- Zoom window (center area magnified 2x in bottom-right corner) ----
+    zoom_size = 160
+    zoom_margin = 10
+    zoom_x = int(rect.x + rect.width - zoom_size - zoom_margin)
+    zoom_y = int(rect.y + rect.height - zoom_size - zoom_margin)
+
+    # Background for zoom window
+    bg_color = rl.Color(0, 0, 0, 120)
+    rl.draw_rectangle(zoom_x, zoom_y, zoom_size, zoom_size, bg_color)
+
+    # Draw zoomed center area by reading framebuffer
+    try:
+      capture = rl.load_image_from_screen()
+      if capture.data:
+        # Crop center region (in-place, raylib >=5.5 ImageCrop returns void)
+        rl.image_crop(capture, rl.Rectangle(
+          float(cx - zoom_size // 4), float(cy - zoom_size // 4),
+          float(zoom_size // 2), float(zoom_size // 2),
+        ))
+        if capture.width > 0 and capture.height > 0 and capture.data:
+          # Scale up to zoom_size (in-place)
+          rl.image_resize(capture, zoom_size, zoom_size)
+          zoom_tex = rl.load_texture_from_image(capture)
+          rl.draw_texture(zoom_tex, zoom_x, zoom_y, rl.WHITE)
+          rl.unload_texture(zoom_tex)
+    finally:
+      try:
+        rl.unload_image(capture)
+      except Exception:
+        pass
+
+    # Zoom window border
+    rl.draw_rectangle_lines_ex(
+      rl.Rectangle(float(zoom_x), float(zoom_y), float(zoom_size), float(zoom_size)),
+      1, color
+    )
+    # "2x" label
+    rl.draw_text(tr("2x"), zoom_x + 4, zoom_y + 4, 14, color)
+
   def _handle_mouse_press(self, _):
     if not self._hud_renderer.user_interacting() and self._click_callback is not None:
       self._click_callback()
 
   def _handle_mouse_release(self, _):
-    # We only call click callback on press if not interacting with HUD
     pass
 
   def _draw_border(self, rect: rl.Rectangle):
@@ -120,7 +210,10 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     rl.draw_rectangle_rounded_lines_ex(border_rect, border_roundness, 10, UI_BORDER_SIZE, border_color)
 
   def _switch_stream_if_needed(self, sm):
-    if sm['selfdriveState'].experimentalMode and WIDE_CAM in self.available_streams:
+    if ui_state.force_onroad:
+      # In debug mode, cycle cameras via ExperimentalMode param (exp button)
+      target = WIDE_CAM if self._params.get_bool("ExperimentalMode") else ROAD_CAM
+    elif sm['selfdriveState'].experimentalMode and WIDE_CAM in self.available_streams:
       v_ego = sm['carState'].vEgo
       if v_ego < WIDE_CAM_MAX_SPEED:
         target = WIDE_CAM

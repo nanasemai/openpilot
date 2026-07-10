@@ -192,7 +192,9 @@ class Soundd(QuietMode):
 
         rk.keep_time()
 
-        assert stream.active
+        if not stream.active:
+          cloudlog.warning("soundd stream inactive, restarting")
+          break
 
 
 def main():

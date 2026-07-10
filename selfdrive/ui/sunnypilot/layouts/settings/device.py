@@ -13,7 +13,7 @@ from openpilot.system.hardware import HARDWARE
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.sunnypilot.widgets.list_view import option_item_sp, multiple_button_item_sp, button_item_sp, \
-  dual_button_item_sp, Spacer
+  dual_button_item_sp, toggle_item_sp, Spacer
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.system.ui.widgets.button import ButtonStyle
 from openpilot.system.ui.widgets.confirm_dialog import alert_dialog, ConfirmDialog
@@ -80,15 +80,19 @@ class DeviceLayoutSP(DeviceLayout):
       inline=True,
     )
 
-    self._quiet_mode_and_dcam = dual_button_item_sp(
-      left_text=lambda: tr("Quiet Mode"),
-      right_text=lambda: tr("Driver Camera Preview"),
-      left_callback=lambda: ui_state.params.put_bool("QuietMode", not ui_state.params.get_bool("QuietMode")),
-      right_callback=lambda: gui_app.push_widget(DriverCameraDialog())
+    self._audible_alert_mode_item = multiple_button_item_sp(
+      title=lambda: tr("Audible Alert Mode"),
+      description=lambda: tr("0 = all sounds; 1 = suppress engage/disengage; 2 = silent"),
+      buttons=[lambda: tr("Standard"), lambda: tr("Warnings Only"), lambda: tr("Muted")],
+      param="AudibleAlertMode",
+      inline=False,
     )
-    self._quiet_mode_and_dcam.action_item.right_button.set_button_style(ButtonStyle.NORMAL)
-    if os.getenv("DISABLE_DRIVER"):
-      self._quiet_mode_and_dcam.action_item.right_button.set_visible(False)
+
+    self._driver_cam_btn = button_item_sp(
+      title=lambda: tr("Driver Camera Preview"),
+      button_text=lambda: tr("OPEN"),
+      callback=lambda: gui_app.push_widget(DriverCameraDialog()),
+    )
 
     self._reg_and_training = dual_button_item_sp(
       left_text=lambda: tr("Regulatory"),
@@ -103,6 +107,13 @@ class DeviceLayoutSP(DeviceLayout):
       left_callback=lambda: ui_state.params.put_bool("OnroadUploads", not ui_state.params.get_bool("OnroadUploads")),
       right_text=lambda: tr("Reset Settings"),
       right_callback=self._reset_settings
+    )
+
+    self._disable_connect_toggle = toggle_item_sp(
+      title=lambda: tr("Disable Comma Connect"),
+      description=lambda: tr("Disable Comma connect service if you do not wish to upload / being tracked by the service."),
+      param="dp_dev_disable_connect",
+      callback=self._on_disable_connect_changed,
     )
 
     self._power_buttons = dual_button_item_sp(
@@ -127,7 +138,11 @@ class DeviceLayoutSP(DeviceLayout):
       LineSeparator(),
       self._max_time_offroad,
       LineSeparator(height=10),
-      self._quiet_mode_and_dcam,
+      self._audible_alert_mode_item,
+      LineSeparator(height=10),
+      self._disable_connect_toggle,
+      LineSeparator(),
+      ] + ([self._driver_cam_btn, LineSeparator(height=10)] if not os.getenv("DISABLE_DRIVER") else [Spacer(0)]) + [
       self._reg_and_training,
       self._onroad_uploads_and_reset_settings,
       Spacer(10),
@@ -190,6 +205,12 @@ class DeviceLayoutSP(DeviceLayout):
     label += tr(" (Default)") if value == 1800 else ""
     return label
 
+  @staticmethod
+  def _on_disable_connect_changed(state: bool):
+    # Disabling Comma Connect must also force Onroad Uploads off
+    if state:
+      ui_state.params.put_bool("OnroadUploads", False)
+
   def _update_state(self):
     super()._update_state()
 
@@ -210,16 +231,16 @@ class DeviceLayoutSP(DeviceLayout):
     else:
       self._scroller._items.insert(0, self._always_offroad_btn)
 
-    # Quiet Mode button
-    self._quiet_mode_and_dcam.action_item.left_button.set_button_style(ButtonStyle.PRIMARY if ui_state.params.get_bool("QuietMode") else ButtonStyle.NORMAL)
-
     # Onroad Uploads
+    disable_connect = ui_state.params.get_bool("dp_dev_disable_connect")
     self._onroad_uploads_and_reset_settings.action_item.left_button.set_button_style(
       ButtonStyle.PRIMARY if ui_state.params.get_bool("OnroadUploads") else ButtonStyle.NORMAL
     )
+    # Onroad Uploads cannot be enabled while Comma Connect is disabled
+    self._onroad_uploads_and_reset_settings.action_item.left_button.set_enabled(not disable_connect)
 
     # Offroad only buttons
-    self._quiet_mode_and_dcam.action_item.right_button.set_enabled(ui_state.is_offroad())
+    self._driver_cam_btn.action_item.set_enabled(ui_state.is_offroad())
     self._reg_and_training.action_item.left_button.set_enabled(ui_state.is_offroad())
     self._reg_and_training.action_item.right_button.set_enabled(ui_state.is_offroad())
     self._onroad_uploads_and_reset_settings.action_item.right_button.set_enabled(ui_state.is_offroad())

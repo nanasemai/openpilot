@@ -42,6 +42,8 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"ExperimentalMode", {PERSISTENT | BACKUP, BOOL}},
     {"ExperimentalModeConfirmed", {PERSISTENT | BACKUP, BOOL}},
     {"FirmwareQueryDone", {CLEAR_ON_MANAGER_START | CLEAR_ON_ONROAD_TRANSITION, BOOL}},
+    {"ForceOnroad", {CLEAR_ON_MANAGER_START, BOOL, "0"}},
+    {"EnableLivestream", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ForcePowerDown", {PERSISTENT, BOOL}},
     {"GitBranch", {PERSISTENT, STRING}},
     {"GitCommit", {PERSISTENT, STRING}},
@@ -69,8 +71,9 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"JoystickDebugMode", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, BOOL}},
     {"LanguageSetting", {PERSISTENT | BACKUP, STRING, "en"}},
     {"LastAthenaPingTime", {CLEAR_ON_MANAGER_START, INT}},
-    {"LastGPSPosition", {PERSISTENT, STRING}},
-    {"LastManagerExitReason", {CLEAR_ON_MANAGER_START, STRING}},
+     {"LastGPSPosition", {PERSISTENT, STRING}},
+     {"LastValidTime", {PERSISTENT, INT, "0"}},
+     {"LastManagerExitReason", {CLEAR_ON_MANAGER_START, STRING}},
     {"LastOffroadStatusPacket", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, JSON}},
     {"LastAgnosPowerMonitorShutdown", {CLEAR_ON_MANAGER_START, STRING}},
     {"LastPowerDropDetected", {CLEAR_ON_MANAGER_START, STRING}},
@@ -106,16 +109,27 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"OpenpilotEnabledToggle", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"PandaHeartbeatLost", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, BOOL}},
     {"PrimeType", {PERSISTENT, INT}},
-    {"RecordAudio", {PERSISTENT | BACKUP, BOOL}},
-    {"RecordAudioFeedback", {PERSISTENT | BACKUP, BOOL, "0"}},
-    {"RecordFront", {PERSISTENT | BACKUP, BOOL}},
-    {"RecordFrontLock", {PERSISTENT, BOOL}},  // for the internal fleet
-    {"SecOCKey", {PERSISTENT | DONT_LOG | BACKUP, STRING}},
+     {"RecordAudio", {PERSISTENT | BACKUP, BOOL}},
+     {"RecordAudioFeedback", {PERSISTENT | BACKUP, BOOL, "0"}},
+     {"RecordFront", {PERSISTENT | BACKUP, BOOL}},
+     {"RecordFrontLock", {PERSISTENT, BOOL}},  // for the internal fleet
+     {"ScreenRecord", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, BOOL}},
+    {"ScreenRecordRes",      {PERSISTENT | BACKUP, INT, "0"}},
+    {"ScreenRecordFps", {PERSISTENT | BACKUP, INT, "2"}},
+    {"ScreenRecordSlice", {PERSISTENT | BACKUP, INT, "1"}},
+    {"ScreenRecordBitrate", {PERSISTENT | BACKUP, INT, "1"}},
+    {"ScreenRecorderEncoder", {PERSISTENT | BACKUP, INT, "0"}},
+     {"ScreenRecordUdisk", {PERSISTENT | BACKUP, BOOL, "1"}},
+     {"ScreenRecordMaxHours", {PERSISTENT | BACKUP, INT, "8"}},
+     {"USBAutoMount", {PERSISTENT | BACKUP, BOOL, "0"}},
+     {"SecOCKey", {PERSISTENT | DONT_LOG | BACKUP, STRING}},
     {"ShowDebugInfo", {PERSISTENT, BOOL}},
     {"RouteCount", {PERSISTENT, INT, "0"}},
     {"SnoozeUpdate", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, BOOL}},
-    {"SshEnabled", {PERSISTENT | BACKUP, BOOL}},
-    {"TermsVersion", {PERSISTENT, STRING}},
+     {"SshEnabled", {PERSISTENT | BACKUP, BOOL}},
+     {"Timezone", {PERSISTENT | BACKUP, INT, "0"}},
+     {"TimeSyncNtpServers", {PERSISTENT, STRING}},
+     {"TermsVersion", {PERSISTENT, STRING}},
     {"TorqueBar", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"TrainingVersion", {PERSISTENT, STRING}},
     {"UbloxAvailable", {PERSISTENT, BOOL}},
@@ -179,6 +193,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"OnroadUploads", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"QuickBootToggle", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"QuietMode", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"AudibleAlertMode", {PERSISTENT | BACKUP, INT, "0"}},
     {"RainbowMode", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"RocketFuel", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ShowAdvancedControls", {PERSISTENT | BACKUP, BOOL, "0"}},
@@ -225,12 +240,20 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"TeslaCoopSteering", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ToyotaEnforceStockLongitudinal", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"ToyotaStopAndGoHack", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"ToyotaDoorAutoLockUnlock", {PERSISTENT | BACKUP, BOOL, "0"}},
+
+    // sunnypilot longitudinal tuning
+    {"SPAccelProfile", {PERSISTENT | BACKUP, INT, "0"}},
+    {"SPAccelProfiles", {PERSISTENT, STRING, ""}},
+    {"SPAccelProfileModeEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
 
     {"DynamicExperimentalControl", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"BlindSpot", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"RoadEdgeLcaBlindspot", {PERSISTENT | BACKUP, BOOL, "0"}},
 
     // sunnypilot model params
     {"CameraOffset", {PERSISTENT | BACKUP, FLOAT, "0.0"}},
+    {"LateralPositionOffset", {PERSISTENT | BACKUP, INT, "0"}},  // cm, positive moves left
     {"LagdToggle", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"LagdToggleDelay", {PERSISTENT | BACKUP, FLOAT, "0.2"}},
     {"LagdValueCache", {PERSISTENT, FLOAT, "0.2"}},
@@ -279,4 +302,14 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"TorqueParamsOverrideEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"TorqueParamsOverrideFriction", {PERSISTENT | BACKUP, FLOAT, "0.1"}},
     {"TorqueParamsOverrideLatAccelFactor", {PERSISTENT | BACKUP, FLOAT, "2.5"}},
+
+    // Human Turn Detection params
+    {"dp_htd_turn_angle_threshold", {PERSISTENT, INT, "60"}},
+    {"dp_htd_enabled", {PERSISTENT | BACKUP, BOOL, "0"}},
+
+    // Display
+    {"dp_show_date_time", {PERSISTENT | BACKUP, BOOL, "1"}},
+
+    // Device
+    {"dp_dev_disable_connect", {PERSISTENT | BACKUP, BOOL, "0"}},
 };

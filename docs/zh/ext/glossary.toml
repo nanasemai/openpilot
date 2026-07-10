@@ -1,0 +1,8 @@
+[glossary]
+onroad = "openpilot 在点火状态下的系统状态。"
+offroad = "openpilot 在熄火状态下的系统状态。"
+route = "路线是一次驾驶过程的录制文件。"
+segment = "路线被划分为每分钟一段称为 segment（片段）。"
+"comma connect" = "所有路线的网页浏览器；请在 [connect.comma.ai](https://connect.comma.ai) 查看。"
+panda = "设备上实现功能安全并直接通过 CAN 与汽车通信的辅助处理器。参见 [panda 仓库](https://github.com/commaai/panda)。"
+"comma four" = "comma.ai 为运行 openpilot 推出的最新硬件。更多信息请访问 [comma.ai/shop/comma-four](https://www.comma.ai/shop/comma-four)。"

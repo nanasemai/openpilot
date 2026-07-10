@@ -16,6 +16,9 @@ from openpilot.selfdrive.car.cruise import V_CRUISE_MAX, V_CRUISE_UNSET
 from openpilot.common.swaglog import cloudlog
 
 from openpilot.sunnypilot.selfdrive.controls.lib.longitudinal_planner import LongitudinalPlannerSP
+from openpilot.sunnypilot.selfdrive.controls.lib.accel_eq import AccelEq
+from openpilot.sunnypilot.selfdrive.controls.lib.apm import APM
+from openpilot.sunnypilot.selfdrive.controls.lib.accel_logger import AccelLogger
 
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
@@ -66,6 +69,10 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
 
+    self.accel_eq = AccelEq(A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
+    self.apm = APM()
+    self.accel_logger = AccelLogger(CP)
+
   @staticmethod
   def parse_model(model_msg):
     if (len(model_msg.position.x) == ModelConstants.IDX_N and
@@ -89,6 +96,11 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
   def update(self, sm):
     LongitudinalPlannerSP.update(self, sm)
 
+    self.accel_logger.update(sm)
+
+    self.accel_eq.maybe_refresh()
+    self.apm.maybe_refresh()
+
     if len(sm['carControl'].orientationNED) == 3:
       accel_coast = get_coast_accel(sm['carControl'].orientationNED[1])
     else:
@@ -110,7 +122,7 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
-    accel_clip = [ACCEL_MIN, get_max_accel(v_ego)]
+    accel_clip = [ACCEL_MIN, self.accel_eq.max_accel(v_ego)]
     steer_angle_without_offset = sm['carState'].steeringAngleDeg - sm['liveParameters'].angleOffsetDeg
     accel_clip = limit_accel_in_turns(v_ego, steer_angle_without_offset, accel_clip, self.CP)
 
@@ -130,15 +142,57 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
       clipped_accel_coast_interp = np.interp(v_ego, [MIN_ALLOW_THROTTLE_SPEED, MIN_ALLOW_THROTTLE_SPEED*2], [accel_clip[1], clipped_accel_coast])
       accel_clip[1] = min(accel_clip[1], clipped_accel_coast_interp)
 
+    # ================================================================
+    # Coast Deadband: when v_ego is close to v_cruise, limit braking
+    # to natural coast acceleration so MPC can settle into cruise
+    # without ping-pong acceleration/deceleration oscillations.
+    # Also limit acceleration to 50% to prevent overshooting.
+    # Skipped when lead vehicle is approaching to avoid conflicting
+    # with safety braking.
+    #
+    # NOTE: 原版实现 `max(accel_clip[0], coast_drag + 1.0)` 经数值
+    # 验证会在水平路面强制 MPC 输出 +0.7 m/s² 加速、在陡下坡强制
+    # +1.26 m/s² 加速，与"防振荡"目标完全相反（见
+    # .hermes/reviews/control-review-round1.md Round 1 P1-1）。
+    # 当前改为：水平/上坡时下限 = 自然阻力 coast_drag，上限保持 50% 限制。
+    # MPC 在 [coast_drag, 0.5*原上限] 区间内自由维持 cruise。
+    # 下坡时 coast_drag > 0，若设 min=coast_drag 会强迫正加速且与上限反转，
+    # 因此下坡时不应用 deadband 约束（min 保持 ACCEL_MIN），
+    # 允许 MPC 自由制动减速到巡航速度。
+    # ================================================================
+    COAST_DEADBAND = 0.3  # m/s
+    lead_status = sm['radarState'].leadOne.status
+    lead_dRel = sm['radarState'].leadOne.dRel
+    if (v_cruise_initialized and abs(v_ego - v_cruise) < COAST_DEADBAND
+        and not (lead_status and lead_dRel < 50.0)):
+      coast_drag = get_coast_accel(sm['carControl'].orientationNED[1]) if len(sm['carControl'].orientationNED) == 3 else -0.3
+      if coast_drag <= 0:
+        accel_clip[0] = max(accel_clip[0], coast_drag)
+      # 上限 = 50% 原值（防振荡设计，防止 overshoot）
+      accel_clip[1] = min(accel_clip[1], max(0.1, accel_clip[1] * 0.5))
+
+    # ================================================================
+    # Early Coast Interception: when lead vehicle is approaching,
+    # cut throttle early to allow natural engine braking coast.
+    # ================================================================
+    if v_cruise_initialized and not reset_state:
+      lead = sm['radarState'].leadOne
+      if lead.status and lead.dRel > 10.0:
+        # Dynamic relative velocity threshold: higher at higher speeds
+        v_rel_thresh = float(np.interp(v_ego, [16.0, 22.0], [0.5, 1.0]))
+        if lead.vRel < -v_rel_thresh:
+          accel_clip[1] = min(accel_clip[1], -1e-3)  # cut throttle, allow engine braking
+
     # Get new v_cruise and a_desired from Smart Cruise Control and Speed Limit Assist
     v_cruise, self.a_desired = LongitudinalPlannerSP.update_targets(self, sm, self.v_desired_filter.x, self.a_desired, v_cruise)
 
     if force_slow_decel:
       v_cruise = 0.0
 
-    self.mpc.set_weights(prev_accel_constraint, personality=sm['selfdriveState'].personality)
+    personality = self.apm.get_personality(v_ego, sm['selfdriveState'].personality)
+    self.mpc.set_weights(prev_accel_constraint, personality=personality)
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
-    self.mpc.update(sm['radarState'], v_cruise, personality=sm['selfdriveState'].personality)
+    self.mpc.update(sm['radarState'], v_cruise, personality=personality)
 
     self.v_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(CONTROL_N_T_IDX, T_IDXS_MPC, self.mpc.a_solution)

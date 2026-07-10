@@ -55,11 +55,13 @@ class SoftwareLayoutSP(SoftwareLayout):
     branches_str = ui_state.params.get("UpdaterAvailableBranches") or ""
     branches = [b for b in branches_str.split(",") if b]
     current_target = ui_state.params.get("UpdaterTargetBranch") or ""
-    top_level_branches = [current_git_branch, "release-mici", "release-tizi", "staging", "dev", "master"]
+    top_level_branches = [current_git_branch, "release-mici", "release-tizi", "staging", "dev", "master",
+                          "sp-dev", "sp-master", "sp-c3xl-one", "sp-c3xl-sp", "cp-master", "cp-nav", "dp-dev", "dp-master"]
 
     if HARDWARE.get_device_type() == "tici":
-      top_level_branches = ["release-tici", "staging-tici"]
-      branches = [b for b in branches if b.endswith("-tici")]
+      top_level_branches = ["release-tici", "staging-tici",
+                            "sp-dev", "sp-master", "sp-c3xl-one", "sp-c3xl-sp", "cp-master", "cp-nav", "dp-dev", "dp-master"]
+      branches = [b for b in branches if b.endswith("-tici") or b in top_level_branches]
 
     top_level_nodes = [TreeNode(b, {'display_name': b}) for b in top_level_branches if b in branches]
     remaining_branches = [b for b in branches if b not in top_level_branches]
