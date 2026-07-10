@@ -2,6 +2,7 @@ import pyray as rl
 from dataclasses import dataclass
 from collections.abc import Callable
 from cereal import log
+from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos, FONT_SCALE
 from openpilot.system.ui.lib.multilang import tr, tr_noop
@@ -14,6 +15,10 @@ METRIC_WIDTH = 240
 METRIC_MARGIN = 30
 METRIC_START_Y = 290
 FONT_SIZE = 35
+
+# Temperature smoothing / sanity limits
+MAX_VALID_TEMP = 120.0  # ignore obviously bad sensor readings above this
+TEMP_FILTER_RC = 5.0    # low-pass time constant (seconds) to smooth startup spikes
 
 SETTINGS_BTN = rl.Rectangle(50, 35, 200, 117)
 
@@ -74,6 +79,9 @@ class Sidebar(Widget):
     self._gps_status = MetricData(tr_noop("GPS"), tr_noop("SEARCH"), Colors.WARNING)
     self._recording_audio = False
 
+    # Low-pass filter for CPU temperature to smooth out startup spikes
+    self._temp_filter = FirstOrderFilter(0.0, TEMP_FILTER_RC, 1.0 / gui_app.target_fps, initialized=False)
+
     self._settings_img = gui_app.texture("images/button_settings.png", SETTINGS_BTN.width, SETTINGS_BTN.height)
     self._mic_img = gui_app.texture("icons/microphone.png", 30, 30)
     self._mic_indicator_rect = rl.Rectangle(0, 0, 0, 0)
@@ -122,8 +130,13 @@ class Sidebar(Widget):
     self._net_strength = max(0, min(5, strength.raw + 1)) if strength.raw > 0 else 0
 
   def _update_temperature_status(self, device_state):
-    temps = [t for t in device_state.cpuTempC if t > 0]
-    cpu_temp = sum(temps) / len(temps) if temps else 0.0
+    # Filter out invalid / obviously wrong sensor readings (e.g. startup spikes)
+    temps = [t for t in device_state.cpuTempC if 0 < t < MAX_VALID_TEMP]
+    if temps:
+      raw_temp = sum(temps) / len(temps)
+      cpu_temp = self._temp_filter.update(raw_temp)
+    else:
+      cpu_temp = self._temp_filter.x
 
     if cpu_temp >= 75.0:
       color = Colors.DANGER
