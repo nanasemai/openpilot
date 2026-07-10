@@ -7,7 +7,7 @@ from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.gm.carcontroller import CarController
 from opendbc.car.gm.carstate import CarState
 from opendbc.car.gm.radar_interface import RadarInterface, RADAR_HEADER_MSG, CAMERA_DATA_HEADER_MSG
-from opendbc.car.gm.values import CAR, CarControllerParams, EV_CAR, CAMERA_ACC_CAR, SDGM_CAR, ALT_ACCS, CanBus, GMSafetyFlags
+from opendbc.car.gm.values import CAR, CarControllerParams, EV_CAR, CAMERA_ACC_CAR, CAMERA_INT_CAR, SDGM_CAR, ALT_ACCS, CanBus, GMSafetyFlags
 from opendbc.car.interfaces import CarInterfaceBase, TorqueFromLateralAccelCallbackType, LateralAccelFromTorqueCallbackType
 
 from opendbc.sunnypilot.car.gm.interface_ext import CarInterfaceExt
@@ -138,6 +138,23 @@ class CarInterface(CarInterfaceBase, CarInterfaceExt):
         ret.openpilotLongitudinalControl = False
         ret.minEnableSpeed = -1.  # engage speed is decided by PCM
 
+    elif candidate in CAMERA_INT_CAR:
+      # Camera interception harness: integrated at camera, retains original radar
+      ret.networkLocation = NetworkLocation.fwdCamera
+      ret.radarUnavailable = False  # keep radar
+      ret.pcmCruise = True  # stock longitudinal control
+      ret.safetyConfigs[0].safetyParam |= GMSafetyFlags.HW_CAM_INT.value
+      ret.minEnableSpeed = 5 * CV.KPH_TO_MS
+      ret.minSteerSpeed = 10 * CV.KPH_TO_MS
+      ret.openpilotLongitudinalControl = False
+      ret.alphaLongitudinalAvailable = False
+
+      # Tuning
+      ret.longitudinalTuning.kiV = [0.72]
+      ret.stoppingDecelRate = 2.0
+      ret.vEgoStopping = 0.25
+      ret.vEgoStarting = 0.25
+
     else:  # ASCM, OBD-II harness
       ret.openpilotLongitudinalControl = True
       ret.networkLocation = NetworkLocation.gateway
@@ -233,6 +250,10 @@ class CarInterface(CarInterfaceBase, CarInterfaceExt):
       ret.steerActuatorDelay = 0.5
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
       ret.dashcamOnly = True  # Needs steerRatio, tireStiffness, and lat accel factor tuning
+
+    elif candidate == CAR.CADILLAC_ATS:
+      ret.steerActuatorDelay = 0.2
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     return ret
 

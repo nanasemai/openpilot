@@ -65,6 +65,7 @@ class GMSafetyFlags(IntFlag):
   HW_CAM = 1
   HW_CAM_LONG = 2
   EV = 4
+  HW_CAM_INT = 8  # Cadillac ATS: camera interception harness (camera mode + retains stock radar)
 
 
 class Footnote(Enum):
@@ -138,7 +139,7 @@ class CAR(Platforms):
     [GMCarDocs("Chevrolet Volt 2017-18", min_enable_speed=0, video="https://youtu.be/QeMCN_4TFfQ")],
     GMCarSpecs(mass=1607, wheelbase=2.69, steerRatio=17.7, centerToFrontRatio=0.45, tireStiffnessFactor=0.469),
   )
-  CADILLAC_ATS = GMASCMPlatformConfig(
+  CADILLAC_ATS = GMPlatformConfig(
     [GMCarDocs("Cadillac ATS Premium Performance 2018")],
     GMCarSpecs(mass=1601, wheelbase=2.78, steerRatio=15.3),
   )
@@ -344,6 +345,9 @@ ALT_ACCS = {CAR.GMC_YUKON}
 
 # We're integrated at the Safety Data Gateway Module on these cars
 SDGM_CAR = {CAR.CADILLAC_XT4, CAR.CHEVROLET_VOLT_2019, CAR.CHEVROLET_TRAVERSE}
+
+# Camera interception harness: integrated at camera but retains original radar
+CAMERA_INT_CAR = {CAR.CADILLAC_ATS}
 
 STEER_THRESHOLD = 1.0
 
