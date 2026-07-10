@@ -1,5 +1,4 @@
 import pyray as rl
-import time
 from dataclasses import dataclass
 from collections.abc import Callable
 from cereal import log
@@ -9,18 +8,15 @@ from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
 
-from openpilot.selfdrive.ui.sunnypilot.layouts.sidebar import SidebarSP
-
 SIDEBAR_WIDTH = 300
-METRIC_HEIGHT = 126
+METRIC_HEIGHT = 110
 METRIC_WIDTH = 240
 METRIC_MARGIN = 30
+METRIC_START_Y = 290
 FONT_SIZE = 35
 
 SETTINGS_BTN = rl.Rectangle(50, 35, 200, 117)
-HOME_BTN = rl.Rectangle(60, 860, 180, 180)
 
-ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType
 
 
@@ -31,7 +27,7 @@ class Colors:
   GRAY = rl.Color(84, 84, 84, 255)
 
   # Status colors
-  GOOD = rl.WHITE
+  GOOD = rl.Color(0, 153, 102, 255)
   WARNING = rl.Color(218, 202, 37, 255)
   DANGER = rl.Color(201, 34, 49, 255)
 
@@ -64,20 +60,20 @@ class MetricData:
     self.color = color
 
 
-class Sidebar(Widget, SidebarSP):
+class Sidebar(Widget):
   def __init__(self):
     Widget.__init__(self)
-    SidebarSP.__init__(self)
     self._net_type = NETWORK_TYPES.get(NetworkType.none)
     self._net_strength = 0
 
-    self._temp_status = MetricData(tr_noop("TEMP"), tr_noop("GOOD"), Colors.GOOD)
     self._panda_status = MetricData(tr_noop("VEHICLE"), tr_noop("ONLINE"), Colors.GOOD)
-    self._connect_status = MetricData(tr_noop("CONNECT"), tr_noop("OFFLINE"), Colors.WARNING)
+    self._temp_status = MetricData(tr_noop("TEMP"), tr_noop("GOOD"), Colors.GOOD)
+    self._cpu_status = MetricData(tr_noop("CPU"), tr_noop("--"), Colors.GOOD)
+    self._mem_status = MetricData(tr_noop("MEM"), tr_noop("--"), Colors.GOOD)
+    self._disk_status = MetricData(tr_noop("DISK"), tr_noop("--"), Colors.GOOD)
+    self._gps_status = MetricData(tr_noop("GPS"), tr_noop("SEARCH"), Colors.WARNING)
     self._recording_audio = False
 
-    self._home_img = gui_app.texture("images/button_home.png", HOME_BTN.width, HOME_BTN.height)
-    self._flag_img = gui_app.texture("images/button_flag.png", HOME_BTN.width, HOME_BTN.height)
     self._settings_img = gui_app.texture("images/button_settings.png", SETTINGS_BTN.width, SETTINGS_BTN.height)
     self._mic_img = gui_app.texture("icons/microphone.png", 30, 30)
     self._mic_indicator_rect = rl.Rectangle(0, 0, 0, 0)
@@ -105,17 +101,20 @@ class Sidebar(Widget, SidebarSP):
 
   def _update_state(self):
     sm = ui_state.sm
+
+    self._recording_audio = ui_state.recording_audio
+    self._update_panda_status()
+    self._update_gps_status()
+
     if not sm.updated['deviceState']:
       return
 
     device_state = sm['deviceState']
-
-    self._recording_audio = ui_state.recording_audio
     self._update_network_status(device_state)
     self._update_temperature_status(device_state)
-    self._update_connection_status(device_state)
-    self._update_panda_status()
-    SidebarSP._update_sunnylink_status(self)
+    self._update_cpu_status(device_state)
+    self._update_memory_status(device_state)
+    self._update_disk_status(device_state)
 
   def _update_network_status(self, device_state):
     self._net_type = NETWORK_TYPES.get(device_state.networkType.raw, tr_noop("Unknown"))
@@ -123,21 +122,50 @@ class Sidebar(Widget, SidebarSP):
     self._net_strength = max(0, min(5, strength.raw + 1)) if strength.raw > 0 else 0
 
   def _update_temperature_status(self, device_state):
-    thermal_status = device_state.thermalStatus
+    temps = [t for t in device_state.cpuTempC if t > 0]
+    cpu_temp = sum(temps) / len(temps) if temps else 0.0
 
-    if thermal_status == ThermalStatus.ok:
-      self._temp_status.update(tr_noop("TEMP"), tr_noop("GOOD"), Colors.GOOD)
+    if cpu_temp >= 75.0:
+      color = Colors.DANGER
+    elif cpu_temp >= 60.0:
+      color = Colors.WARNING
     else:
-      self._temp_status.update(tr_noop("TEMP"), tr_noop("HIGH"), Colors.DANGER)
+      color = Colors.GOOD
+    self._temp_status.update(tr_noop("TEMP"), f"{cpu_temp:.1f}\u00b0C", color)
 
-  def _update_connection_status(self, device_state):
-    last_ping = device_state.lastAthenaPingTime
-    if last_ping == 0:
-      self._connect_status.update(tr_noop("CONNECT"), tr_noop("OFFLINE"), Colors.WARNING)
-    elif time.monotonic_ns() - last_ping < 80_000_000_000:  # 80 seconds in nanoseconds
-      self._connect_status.update(tr_noop("CONNECT"), tr_noop("ONLINE"), Colors.GOOD)
+  def _update_cpu_status(self, device_state):
+    usages = list(device_state.cpuUsagePercent)
+    cpu_usage = sum(usages) / len(usages) if usages else 0.0
+
+    if cpu_usage > 75:
+      color = Colors.DANGER
+    elif cpu_usage > 55:
+      color = Colors.WARNING
     else:
-      self._connect_status.update(tr_noop("CONNECT"), tr_noop("ERROR"), Colors.DANGER)
+      color = Colors.GOOD
+    self._cpu_status.update(tr_noop("CPU"), f"{cpu_usage:.1f}%", color)
+
+  def _update_memory_status(self, device_state):
+    mem_usage = device_state.memoryUsagePercent
+
+    if mem_usage > 85:
+      color = Colors.DANGER
+    elif mem_usage > 70:
+      color = Colors.WARNING
+    else:
+      color = Colors.GOOD
+    self._mem_status.update(tr_noop("MEM"), f"{mem_usage:.1f}%", color)
+
+  def _update_disk_status(self, device_state):
+    disk_usage = 100.0 - device_state.freeSpacePercent
+
+    if disk_usage > 90:
+      color = Colors.DANGER
+    elif disk_usage > 80:
+      color = Colors.WARNING
+    else:
+      color = Colors.GOOD
+    self._disk_status.update(tr_noop("DISK"), f"{disk_usage:.1f}%", color)
 
   def _update_panda_status(self):
     if ui_state.panda_type == log.PandaState.PandaType.unknown:
@@ -145,13 +173,18 @@ class Sidebar(Widget, SidebarSP):
     else:
       self._panda_status.update(tr_noop("VEHICLE"), tr_noop("ONLINE"), Colors.GOOD)
 
+  def _update_gps_status(self):
+    gps = ui_state.sm['gpsLocationExternal']
+    if gps.hasFix:
+      accuracy = min(99.0, gps.horizontalAccuracy)
+      self._gps_status.update(tr_noop("GPS"), f"{accuracy:.2f} m", Colors.GOOD)
+    else:
+      self._gps_status.update(tr_noop("GPS"), tr_noop("SEARCH"), Colors.WARNING)
+
   def _handle_mouse_release(self, mouse_pos: MousePos):
     if rl.check_collision_point_rec(mouse_pos, SETTINGS_BTN):
       if self._on_settings_click:
         self._on_settings_click()
-    elif rl.check_collision_point_rec(mouse_pos, HOME_BTN) and ui_state.started:
-      if self._on_flag_click:
-        self._on_flag_click()
     elif self._recording_audio and rl.check_collision_point_rec(mouse_pos, self._mic_indicator_rect):
       if self._open_settings_callback:
         self._open_settings_callback()
@@ -164,13 +197,6 @@ class Sidebar(Widget, SidebarSP):
     settings_down = mouse_down and rl.check_collision_point_rec(mouse_pos, SETTINGS_BTN)
     tint = Colors.BUTTON_PRESSED if settings_down else Colors.BUTTON_NORMAL
     rl.draw_texture_ex(self._settings_img, rl.Vector2(SETTINGS_BTN.x, SETTINGS_BTN.y), 0.0, 1.0, tint)
-
-    # Home/Flag button
-    flag_pressed = mouse_down and rl.check_collision_point_rec(mouse_pos, HOME_BTN)
-    button_img = self._flag_img if ui_state.started else self._home_img
-
-    tint = Colors.BUTTON_PRESSED if (ui_state.started and flag_pressed) else Colors.BUTTON_NORMAL
-    rl.draw_texture_ex(button_img, rl.Vector2(HOME_BTN.x, HOME_BTN.y), 0.0, 1.0, tint)
 
     # Microphone button
     if self._recording_audio:
@@ -202,22 +228,27 @@ class Sidebar(Widget, SidebarSP):
     rl.draw_text_ex(self._font_regular, tr(self._net_type), text_pos, FONT_SIZE, 0, Colors.WHITE)
 
   def _draw_metrics(self, rect: rl.Rectangle):
-    if gui_app.sunnypilot_ui():
-      metrics, start_y, spacing = SidebarSP._draw_metrics_w_sunnylink(self, rect, self._temp_status, self._panda_status, self._connect_status)
-      for idx, metric in enumerate(metrics):
-        self._draw_metric(rect, metric, start_y + idx * spacing)
+    metrics = [
+      self._panda_status,
+      self._temp_status,
+      self._cpu_status,
+      self._mem_status,
+      self._disk_status,
+      self._gps_status,
+    ]
 
-      return
+    start_y = int(rect.y) + METRIC_START_Y
+    bottom = int(rect.y + rect.height) - METRIC_MARGIN
+    available_height = max(0, bottom - METRIC_HEIGHT - start_y)
+    spacing = available_height / max(1, len(metrics) - 1)
 
-    metrics = [(self._temp_status, 338), (self._panda_status, 496), (self._connect_status, 654)]
-
-    for metric, y_offset in metrics:
-      self._draw_metric(rect, metric, rect.y + y_offset)
+    for idx, metric in enumerate(metrics):
+      self._draw_metric(rect, metric, start_y + idx * spacing)
 
   def _draw_metric(self, rect: rl.Rectangle, metric: MetricData, y: float):
     metric_rect = rl.Rectangle(rect.x + METRIC_MARGIN, y, METRIC_WIDTH, METRIC_HEIGHT)
     # Draw colored left edge (clipped rounded rectangle)
-    edge_rect = rl.Rectangle(metric_rect.x + 4, metric_rect.y + 4, 100, 118)
+    edge_rect = rl.Rectangle(metric_rect.x + 4, metric_rect.y + 4, 100, metric_rect.height - 8)
     rl.begin_scissor_mode(int(metric_rect.x + 4), int(metric_rect.y), 18, int(metric_rect.height))
     rl.draw_rectangle_rounded(edge_rect, 0.3, 10, metric.color)
     rl.end_scissor_mode()
