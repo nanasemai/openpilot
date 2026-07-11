@@ -2311,6 +2311,303 @@ msgstr "向右转向"
 msgid "Steer Right to Start Lane Change Once Safe"
 msgstr "安全后向右转向开始变道"
 
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Turning Left"
+msgstr "正在左转"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Turning Right"
+msgstr "正在右转"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Auto adjusting to speed limit"
+msgstr "自动调整至限速"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Auto adjusting to last speed limit"
+msgstr "自动调整至上一限速"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Set speed changed"
+msgstr "设定速度已更改"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Automatic Lane Centering is OFF"
+msgstr "自动车道居中已关闭"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Manual Steering Required"
+msgstr "需要手动转向"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Smart/Adaptive Cruise Control: OFF"
+msgstr "智能/自适应巡航：关闭"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Manual Speed Control Required"
+msgstr "需要手动控制速度"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Brake Hold Active"
+msgstr "刹车保持已激活"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "openpilot Unavailable"
+msgstr "openpilot 不可用"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Reverse\nGear"
+msgstr "倒车\n档位"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Controls Mismatch: Lateral"
+msgstr "控制不匹配：横向"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Experimental Mode Switched"
+msgstr "已切换实验模式"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "CPU"
+msgstr "CPU"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "MEM"
+msgstr "内存"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "DISK"
+msgstr "磁盘"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "GPS"
+msgstr "GPS"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "SEARCH"
+msgstr "搜索中"
+
+#: selfdrive/ui/layouts/settings/device.py
+msgid " Your device is pointed {:.1f}° {} and {:.1f}° {}."
+msgstr " 您的设备朝向为 {:.1f}° {} 和 {:.1f}° {}。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid ""
+"Device will automatically shutdown after set time once the engine is turned "
+"off.\n"
+"(30h is the default)"
+msgstr ""
+"发动机熄火后，设备将在设定时间后自动关机。\n"
+"（默认为 30 小时）"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid ""
+"For maximum effectiveness, bring your device inside and connect to a good "
+"USB-C adapter and Wi-Fi weekly.\n"
+"\n"
+"Firehose Mode can also work while you're driving if connected to a hotspot "
+"or unlimited SIM card."
+msgstr ""
+"为达到最佳效果，请每周将设备带入室内，连接优质的 USB-C 充电器和 Wi-Fi。\n"
+"\n"
+"如果连接到热点或不限流量的 SIM 卡，Firehose 模式在您驾驶时也能工作。"
+
+#: selfdrive/ui/layouts/settings/firehose.py
+msgid ""
+"For maximum effectiveness, bring your device inside and connect to a good "
+"USB-C adapter and Wi-Fi weekly.\n"
+"\n"
+"Firehose Mode can also work while you're driving if connected to a hotspot "
+"or unlimited SIM card.\n"
+"\n"
+"\n"
+"Frequently Asked Questions\n"
+"\n"
+"Does it matter how or where I drive? Nope, just drive as you normally would.\n"
+"\n"
+"Do all of my segments get pulled in Firehose Mode? No, we selectively pull a "
+"subset of your segments.\n"
+"\n"
+"What's a good USB-C adapter? Any fast phone or laptop charger should be fine.\n"
+"\n"
+"Does it matter which software I run? Yes, only upstream openpilot (and "
+"particular forks) are able to be used for training."
+msgstr ""
+"为达到最佳效果，请每周将设备带入室内，连接优质的 USB-C 充电器和 Wi-Fi。\n"
+"\n"
+"如果连接到热点或不限流量的 SIM 卡，Firehose 模式在您驾驶时也能工作。\n"
+"\n"
+"\n"
+"常见问题\n"
+"\n"
+"我如何驾驶或在哪里驾驶重要吗？不重要，像平常一样驾驶即可。\n"
+"\n"
+"我的所有片段都会在 Firehose 模式下被上传吗？不会，我们会有选择地上传您的部分片段。\n"
+"\n"
+"什么是优质的 USB-C 充电器？任何快速的手机或笔记本电脑充电器都可以。\n"
+"\n"
+"我运行的软件重要吗？重要，只有上游 openpilot（及特定分支）才能用于训练。"
+
+#: selfdrive/ui/sunnypilot/onroad/circular_alerts.py
+msgid ""
+"GREEN\n"
+"LIGHT"
+msgstr ""
+"绿灯\n"
+"通行"
+
+#: selfdrive/ui/sunnypilot/onroad/circular_alerts.py
+msgid ""
+"LEAD VEHICLE\n"
+"DEPARTING"
+msgstr ""
+"前车\n"
+"起步"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "OPEN"
+msgstr "打开"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "THANKS ♥"
+msgstr "感谢 ♥"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid ""
+"This will delete ALL downloaded maps\n"
+"\n"
+"Are you sure you want to delete all maps?"
+msgstr ""
+"这将删除所有已下载的地图\n"
+"\n"
+"您确定要删除全部地图吗？"
+
+#: selfdrive/ui/mici/layouts/onboarding.py
+msgid ""
+"accept\n"
+"terms"
+msgstr ""
+"接受\n"
+"条款"
+
+#: selfdrive/ui/mici/layouts/onboarding.py
+msgid ""
+"decline &\n"
+"uninstall"
+msgstr ""
+"拒绝并\n"
+"卸载"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/onboarding.py
+msgid ""
+"disable\n"
+"sunnylink"
+msgstr ""
+"禁用\n"
+"sunnylink"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid ""
+"driver\n"
+"camera preview"
+msgstr ""
+"驾驶员\n"
+"摄像头预览"
+
+#: selfdrive/ui/mici/layouts/onboarding.py
+msgid ""
+"driver monitoring\n"
+"check"
+msgstr ""
+"驾驶员监控\n"
+"检查"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/onboarding.py
+msgid ""
+"enable\n"
+"sunnylink"
+msgstr ""
+"启用\n"
+"sunnylink"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid ""
+"enable alpha\n"
+"longitudinal"
+msgstr ""
+"启用 alpha\n"
+"纵向控制"
+
+#: selfdrive/ui/mici/layouts/onboarding.py
+msgid ""
+"make sure comma\n"
+"four can see your face"
+msgstr ""
+"确保 comma\n"
+"four 能看到您的脸"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid ""
+"review\n"
+"training guide"
+msgstr ""
+"查看\n"
+"培训指南"
+
+#: selfdrive/ui/layouts/settings/firehose.py
+msgid ""
+"sunnypilot learns to drive by watching humans, like you, drive.\n"
+"\n"
+"Firehose Mode allows you to maximize your training data uploads to improve "
+"openpilot's driving models. More data means bigger models, which means "
+"better Experimental Mode."
+msgstr ""
+"sunnypilot 通过观察像您这样的人类驾驶来学习驾驶。\n"
+"\n"
+"Firehose 模式让您最大化上传训练数据，以改进 openpilot 的驾驶模型。数据越多，模型越大，实验模式也就越好。"
+
+#: selfdrive/ui/layouts/settings/device.py
+msgid ""
+"sunnypilot requires the device to be mounted within 4° left or right and "
+"within 5° up or 9° down."
+msgstr "sunnypilot 要求设备安装时左右偏差在 4° 以内，向上 5° 或向下 9° 以内。"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid ""
+"terms &\n"
+"conditions"
+msgstr ""
+"条款与\n"
+"条件"
+
+#: selfdrive/ui/mici/layouts/onboarding.py
+msgid ""
+"terms of\n"
+"service"
+msgstr ""
+"服务\n"
+"条款"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid ""
+"updater failed\n"
+"to respond"
+msgstr ""
+"更新程序\n"
+"无响应"
+
+#: selfdrive/ui/widgets/prime.py
+msgid "✓ SUBSCRIBED"
+msgstr "✓ 已订阅"
+
+#: selfdrive/ui/widgets/setup.py
+msgid "🔥 Firehose Mode 🔥"
+msgstr "🔥 Firehose 模式 🔥"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "🚀 sunnylink 🚀"
+msgstr "🚀 sunnylink 🚀"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Steering"
 msgstr "转向"

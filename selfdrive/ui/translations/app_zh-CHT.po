@@ -2459,6 +2459,82 @@ msgstr "向右转向"
 msgid "Steer Right to Start Lane Change Once Safe"
 msgstr "安全后向右转向开始变道"
 
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Turning Left"
+msgstr "正在左轉"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Turning Right"
+msgstr "正在右轉"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Auto adjusting to speed limit"
+msgstr "自動調整至限速"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Auto adjusting to last speed limit"
+msgstr "自動調整至上一限速"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Set speed changed"
+msgstr "設定速度已變更"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Automatic Lane Centering is OFF"
+msgstr "自動車道置中已關閉"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Manual Steering Required"
+msgstr "需要手動轉向"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Smart/Adaptive Cruise Control: OFF"
+msgstr "智慧/自適應巡航：關閉"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Manual Speed Control Required"
+msgstr "需要手動控制速度"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Brake Hold Active"
+msgstr "剎車保持已啟用"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "openpilot Unavailable"
+msgstr "openpilot 不可用"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Reverse\nGear"
+msgstr "倒車\n檔位"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Controls Mismatch: Lateral"
+msgstr "控制不匹配：橫向"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Experimental Mode Switched"
+msgstr "已切換實驗模式"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "CPU"
+msgstr "CPU"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "MEM"
+msgstr "記憶體"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "DISK"
+msgstr "磁碟"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "GPS"
+msgstr "GPS"
+
+#: selfdrive/ui/layouts/sidebar.py
+msgid "SEARCH"
+msgstr "搜尋中"
+
 #: selfdrive/selfdrived/events.py
 msgid "Steer ratio mismatch"
 msgstr "转向比不匹配"
