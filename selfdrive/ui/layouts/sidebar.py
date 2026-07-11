@@ -2,6 +2,7 @@ import pyray as rl
 from dataclasses import dataclass
 from collections.abc import Callable
 from cereal import log
+from openpilot.common.gps import get_gps_location_service
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos, FONT_SCALE
@@ -77,6 +78,8 @@ class Sidebar(Widget):
     self._mem_status = MetricData(tr_noop("MEM"), tr_noop("--"), Colors.GOOD)
     self._disk_status = MetricData(tr_noop("DISK"), tr_noop("--"), Colors.GOOD)
     self._gps_status = MetricData(tr_noop("GPS"), tr_noop("SEARCH"), Colors.WARNING)
+    # ublox (external GNSS chip) -> 'gpsLocationExternal', qcomgpsd (modem GNSS) -> 'gpsLocation'
+    self._gps_location_service = get_gps_location_service(ui_state.params)
     self._recording_audio = False
 
     # Low-pass filter for CPU temperature to smooth out startup spikes
@@ -187,15 +190,12 @@ class Sidebar(Widget):
       self._panda_status.update(tr_noop("VEHICLE"), tr_noop("ONLINE"), Colors.GOOD)
 
   def _update_gps_status(self):
-    # ublox (external GNSS chip) publishes 'gpsLocationExternal',
-    # qcomgpsd (Quectel modem GNSS) publishes 'gpsLocation'. Prefer ublox, fall back to qcom.
-    gps = ui_state.sm['gpsLocationExternal']
-    if not gps.hasFix:
-      qcom_gps = ui_state.sm['gpsLocation']
-      if qcom_gps.hasFix:
-        gps = qcom_gps
-
-    if gps.hasFix:
+    sm = ui_state.sm
+    service = self._gps_location_service
+    gps = sm[service]
+    # Only trust the fix while the GPS stream is alive; otherwise fall back to SEARCH
+    # so a disconnect/stale feed doesn't keep showing the last accuracy value.
+    if gps.hasFix and sm.alive[service] and sm.valid[service]:
       accuracy = min(99.0, gps.horizontalAccuracy)
       self._gps_status.update(tr_noop("GPS"), f"{accuracy:.2f} m", Colors.GOOD)
     else:
