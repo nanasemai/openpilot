@@ -10,6 +10,7 @@ from openpilot.selfdrive.ui.onroad.hud_renderer import HudRenderer
 from openpilot.selfdrive.ui.onroad.model_renderer import ModelRenderer
 from openpilot.selfdrive.ui.onroad.cameraview import CameraView
 from openpilot.system.ui.lib.application import gui_app
+from openpilot.common.params import Params
 from openpilot.common.transformations.camera import DEVICE_CAMERAS, DeviceCameraConfig, view_frame_from_device_frame
 from openpilot.common.transformations.orientation import rot_from_euler
 
@@ -51,6 +52,8 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     self._matrix_cache_key = (0, 0.0, 0.0, stream_type)
     self._cached_matrix: np.ndarray | None = None
     self._content_rect = rl.Rectangle()
+
+    self._params = Params()
 
     self.model_renderer = ModelRenderer()
     self._hud_renderer = HudRenderer()
@@ -125,7 +128,10 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     rl.draw_rectangle_rounded_lines_ex(border_rect, border_roundness, 10, UI_BORDER_SIZE, border_color)
 
   def _switch_stream_if_needed(self, sm):
-    if sm['selfdriveState'].experimentalMode and WIDE_CAM in self.available_streams:
+    if ui_state.force_onroad:
+      # In debug mode, cycle cameras via ExperimentalMode param (exp button)
+      target = WIDE_CAM if self._params.get_bool("ExperimentalMode") else ROAD_CAM
+    elif sm['selfdriveState'].experimentalMode and WIDE_CAM in self.available_streams:
       v_ego = sm['carState'].vEgo
       if v_ego < WIDE_CAM_MAX_SPEED:
         target = WIDE_CAM
