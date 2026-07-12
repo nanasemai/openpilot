@@ -59,6 +59,8 @@ allowed_system_libs = {
   "EGL", "GLESv2", "GL",
   "Qt5Charts", "Qt5Core", "Qt5Gui", "Qt5Widgets",
   "dl", "drm", "gbm", "m", "pthread",
+  # dragonpilot: comma3 multi-panda USB (selfdrive/pandad_tici) needs libusb.
+  "usb-1.0",
 }
 
 def _resolve_lib(env, name):
@@ -114,13 +116,15 @@ env = Environment(
   CPPPATH=[
     "#",
     "#msgq",
+    "#third_party/libusb/include",
     acados_include_dirs,
     [x.INCLUDE_DIR for x in pkgs],
   ],
   LIBPATH=[
     "#common",
     "#msgq_repo",
-    "#selfdrive/pandad",
+    "#third_party/libusb/lib",
+    "#selfdrive/pandad_tici" if "TICI_DOS" in os.environ else "#selfdrive/pandad",
     "#rednose/helpers",
     [x.LIB_DIR for x in pkgs],
   ],
@@ -231,6 +235,9 @@ Export('messaging')
 
 # Build other submodules
 SConscript(['panda/SConscript'])
+# dragonpilot: panda_tici (C3 F4/DOS SPI panda 固件) 无条件构建，预编译发布包需含全部设备固件。
+# F4/H7 的 CAN 布局差异由 panda_tici 自带的条件化 opendbc/safety/can.h 处理（不影响主线 opendbc）。
+SConscript(['panda_tici/SConscript'])
 
 # Build rednose library
 SConscript(['rednose/SConscript'])
@@ -252,6 +259,10 @@ SConscript([
   'selfdrive/modeld/SConscript',
   'selfdrive/ui/SConscript',
 ])
+
+# pandad_tici: 无条件编译。PC 交叉编译用 third_party/libusb 的 ARM64 .a；
+# C3/C3X/C4 原生编译也用同一套 ARM64 库。运行时由 launch 脚本区分是否启用。
+SConscript(['selfdrive/pandad_tici/SConscript'])
 
 SConscript(['sunnypilot/SConscript'])
 

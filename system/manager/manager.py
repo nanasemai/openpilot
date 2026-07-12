@@ -12,7 +12,7 @@ import openpilot.system.sentry as sentry
 from openpilot.common.utils import atomic_write
 from openpilot.common.params import Params, ParamKeyFlag
 from openpilot.common.text_window import TextWindow
-from openpilot.system.hardware import HARDWARE
+from openpilot.system.hardware import HARDWARE, TICI
 from openpilot.system.manager.helpers import unblock_stdout, write_onroad_params, save_bootlog
 from openpilot.system.manager.process import ensure_running
 from openpilot.system.manager.process_config import managed_processes
@@ -23,6 +23,15 @@ from openpilot.system.hardware.hw import Paths
 from openpilot.system.hardware import PC
 
 from openpilot.sunnypilot.system.params_migration import run_migration
+
+# DP: 根据设备类型动态导入 panda 模块。仅在 C3 (TICI) 上执行，
+# C3X/C4 保持原始行为不变，不引入新的 import 路径。
+if TICI:
+  import importlib
+  target_mod = "panda_tici" if "TICI_DOS" in os.environ else "panda"
+  _mod = importlib.import_module(target_mod)
+  sys.modules["panda"] = _mod  # 使 panda_tici 内部的 "from panda import ..." 生效
+  globals().update({k: v for k, v in _mod.__dict__.items() if not k.startswith("_")})
 
 
 def manager_init() -> None:
@@ -86,7 +95,7 @@ def manager_init() -> None:
   if reg_res:
     dongle_id = reg_res
   else:
-    raise Exception(f"Registration failed for device {serial}")
+    dongle_id = UNREGISTERED_DONGLE_ID
   os.environ['DONGLE_ID'] = dongle_id  # Needed for swaglog
   os.environ['GIT_ORIGIN'] = build_metadata.openpilot.git_normalized_origin # Needed for swaglog
   os.environ['GIT_BRANCH'] = build_metadata.channel # Needed for swaglog
