@@ -1025,6 +1025,22 @@ msgid "Enable this to enforce sunnypilot to steer with Torque lateral control."
 msgstr "啟用此項以強制 sunnypilot 使用扭矩橫向控制進行轉向。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Human Turn Detection (HTD)"
+msgstr "人工轉彎偵測 (HTD)"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "When enabled, HTD detects the driver taking over the steering wheel for big turns (e.g., at intersections) and temporarily releases lane keeping. Lateral control resumes automatically after the turn."
+msgstr "啟用後，HTD 會偵測駕駛員在路口等場景大角度轉動方向盤的操作，自動暫時釋放車道保持功能，轉彎完成後自動恢復橫向控制。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "HTD Turn Angle Threshold"
+msgstr "HTD 轉角閾值"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Sets the steering angle threshold for Human Turn Detection. Lower values make it more sensitive."
+msgstr "設定人工轉彎偵測的方向盤轉角觸發閾值。數值越低越靈敏。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal."
 msgstr "啟用開關以允許模型自行決定何時使用 sunnypilot ACC 或 sunnypilot 端到端縱向控制。"
 

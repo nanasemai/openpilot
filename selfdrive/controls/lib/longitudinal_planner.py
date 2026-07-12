@@ -142,6 +142,28 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
       clipped_accel_coast_interp = np.interp(v_ego, [MIN_ALLOW_THROTTLE_SPEED, MIN_ALLOW_THROTTLE_SPEED*2], [accel_clip[1], clipped_accel_coast])
       accel_clip[1] = min(accel_clip[1], clipped_accel_coast_interp)
 
+    # ================================================================
+    # Coast Deadband: when v_ego is close to v_cruise, limit accel
+    # to prevent ping-pong acceleration/deceleration oscillations.
+    # ================================================================
+    COAST_DEADBAND = 0.5  # m/s
+    if v_cruise_initialized and abs(v_ego - v_cruise) < COAST_DEADBAND:
+      coast_drag = get_coast_accel(sm['carControl'].orientationNED[1]) if len(sm['carControl'].orientationNED) == 3 else -0.3
+      accel_clip[0] = max(accel_clip[0], coast_drag)   # limit braking to coast drag
+      accel_clip[1] = min(accel_clip[1], max(0.05, accel_clip[1] * 0.25))  # greatly limit acceleration
+
+    # ================================================================
+    # Early Coast Interception: when lead vehicle is approaching,
+    # cut throttle early to allow natural engine braking coast.
+    # ================================================================
+    if v_cruise_initialized and not reset_state:
+      lead = sm['radarState'].leadOne
+      if lead.status and lead.dRel > 10.0:
+        # Dynamic relative velocity threshold: higher at higher speeds
+        v_rel_thresh = float(np.interp(v_ego, [16.0, 22.0], [0.5, 1.0]))
+        if lead.vRel < -v_rel_thresh:
+          accel_clip[1] = min(accel_clip[1], -1e-3)  # cut throttle, allow engine braking
+
     # Get new v_cruise and a_desired from Smart Cruise Control and Speed Limit Assist
     v_cruise, self.a_desired = LongitudinalPlannerSP.update_targets(self, sm, self.v_desired_filter.x, self.a_desired, v_cruise)
 

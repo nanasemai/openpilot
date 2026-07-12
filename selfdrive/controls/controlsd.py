@@ -21,6 +21,7 @@ from openpilot.selfdrive.modeld.modeld import LAT_SMOOTH_SECONDS
 from openpilot.selfdrive.locationd.helpers import PoseCalibrator, Pose
 
 from openpilot.sunnypilot.selfdrive.controls.controlsd_ext import ControlsExt
+from openpilot.sunnypilot.selfdrive.controls.lib.human_turn_detection import HumanTurnDetection, HTDState
 
 State = log.SelfdriveState.OpenpilotState
 LaneChangeState = log.LaneChangeState
@@ -66,6 +67,10 @@ class Controls(ControlsExt):
 
     self.LaC = ControlsExt.initialize_lateral_control(self, self.LaC, self.CI, DT_CTRL)
 
+    # Human Turn Detection
+    self.htd = HumanTurnDetection()
+    self.htd_state = HTDState.INACTIVE
+
   def update(self):
     self.sm.update(15)
     if self.sm.updated["liveCalibration"]:
@@ -110,6 +115,18 @@ class Controls(ControlsExt):
 
     # Get which state to use for active lateral control
     _lat_active = self.get_lat_active(self.sm)
+
+    # Human Turn Detection - run every tick
+    htd_allowed, self.htd_state = self.htd.update(
+        _lat_active,
+        CS.cruiseState.enabled,
+        CS.steeringAngleDeg,
+        CS.steeringTorque,
+        CS.vEgo,
+        CS.steeringPressed
+    )
+    if self.htd.enabled:
+        _lat_active = _lat_active and htd_allowed
 
     CC.latActive = _lat_active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    (not standstill or self.CP.steerAtStandstill)

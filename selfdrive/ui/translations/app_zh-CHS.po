@@ -930,6 +930,22 @@ msgstr "自动激进模式"
 msgid "Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."
 msgstr "低速时自动切换到激进驾驶人格，保持更近的跟车距离防止被加塞。车速超过70km/h后自动恢复。"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Human Turn Detection (HTD)"
+msgstr "人工转弯检测 (HTD)"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "When enabled, HTD detects the driver taking over the steering wheel for big turns (e.g., at intersections) and temporarily releases lane keeping. Lateral control resumes automatically after the turn."
+msgstr "启用后，HTD会检测驾驶员在路口等场景大角度转动方向盘的操作，自动临时释放车道保持功能，转弯完成后自动恢复横向控制。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "HTD Turn Angle Threshold"
+msgstr "HTD 转角阈值"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
+msgid "Sets the steering angle threshold for Human Turn Detection. Lower values make it more sensitive."
+msgstr "设置人工转弯检测的方向盘转角触发阈值。数值越低越灵敏。"
+
 #: selfdrive/ui/layouts/settings/toggles.py
 msgid "Enable Lane Departure Warnings"
 msgstr "启用车道偏离警示"

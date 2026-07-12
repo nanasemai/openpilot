@@ -32,6 +32,9 @@ ONROAD_ONLY_DESCRIPTION = tr_noop("Start the vehicle to check vehicle compatibil
 
 ACCEL_PROFILE_DESC = tr_noop("Select an acceleration profile to adjust how aggressively your vehicle accelerates.")
 
+HTD_DESC = tr_noop("When enabled, HTD detects the driver taking over the steering wheel for big turns (e.g., at intersections) and temporarily releases lane keeping. Lateral control resumes automatically after the turn.")
+HTD_THRESHOLD_DESC = tr_noop("Sets the steering angle threshold for Human Turn Detection. Lower values make it more sensitive.")
+
 
 class CruiseLayout(Widget):
   def __init__(self):
@@ -78,17 +81,6 @@ class CruiseLayout(Widget):
       min_value=1, max_value=3, value_change_step=1,
       inline=True)
 
-    self.sla_settings_button = simple_button_item_sp(
-      button_text=lambda: tr("Speed Limit"),
-      button_width=800,
-      callback=lambda: self._set_current_panel(PanelType.SLA)
-    )
-
-    self.dec_toggle = toggle_item_sp(
-      title=lambda: tr("Enable Dynamic Experimental Control"),
-      description=lambda: tr("Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal."),
-      param="DynamicExperimentalControl")
-
     self.accel_profile_selector = multiple_button_item_sp(
       title=lambda: tr("Acceleration Profile"),
       description=lambda: tr(ACCEL_PROFILE_DESC),
@@ -101,16 +93,42 @@ class CruiseLayout(Widget):
       description=lambda: tr("Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."),
       param="SPAccelProfileModeEnabled")
 
+    self.sla_settings_button = simple_button_item_sp(
+      button_text=lambda: tr("Speed Limit"),
+      button_width=800,
+      callback=lambda: self._set_current_panel(PanelType.SLA)
+    )
+
+    self.dec_toggle = toggle_item_sp(
+      title=lambda: tr("Enable Dynamic Experimental Control"),
+      description=lambda: tr("Enable toggle to allow the model to determine when to use sunnypilot ACC or sunnypilot End to End Longitudinal."),
+      param="DynamicExperimentalControl")
+
+    self.htd_toggle = toggle_item_sp(
+      title=lambda: tr("Human Turn Detection (HTD)"),
+      description=lambda: tr(HTD_DESC),
+      param="dp_htd_enabled",
+      callback=self._on_htd_toggle)
+
+    self.htd_angle_threshold = option_item_sp(
+      title=lambda: tr("HTD Turn Angle Threshold"),
+      description=lambda: tr(HTD_THRESHOLD_DESC),
+      param="dp_htd_turn_angle_threshold",
+      min_value=30, max_value=120, value_change_step=5,
+      inline=True)
+
     items = [
       self.icbm_toggle,
       self.dec_toggle,
-      self.accel_profile_selector,
-      self.apm_toggle,
       self.scc_v_toggle,
       self.scc_m_toggle,
+      self.htd_toggle,
+      self.htd_angle_threshold,
       self.custom_acc_toggle,
       self.custom_acc_short_increment,
       self.custom_acc_long_increment,
+      self.accel_profile_selector,
+      self.apm_toggle,
       self.sla_settings_button,
     ]
     return items
@@ -165,6 +183,8 @@ class CruiseLayout(Widget):
         self.apm_toggle.action_item.set_enabled(has_long and ui_state.is_offroad())
         self.scc_v_toggle.action_item.set_enabled(True)
         self.scc_m_toggle.action_item.set_enabled(True)
+        self.htd_toggle.action_item.set_enabled(True)
+        self.htd_angle_threshold.action_item.set_enabled(True)
       else:
         ui_state.params.remove("CustomAccIncrementsEnabled")
         ui_state.params.remove("DynamicExperimentalControl")
@@ -176,6 +196,8 @@ class CruiseLayout(Widget):
         self.apm_toggle.action_item.set_enabled(False)
         self.scc_v_toggle.action_item.set_enabled(False)
         self.scc_m_toggle.action_item.set_enabled(False)
+        self.htd_toggle.action_item.set_enabled(False)
+        self.htd_angle_threshold.action_item.set_enabled(False)
 
     else:
       has_icbm = has_long = False
@@ -205,9 +227,14 @@ class CruiseLayout(Widget):
         self.custom_acc_toggle.show_description(True)
 
     self._on_custom_acc_toggle(self.custom_acc_toggle.action_item.get_state())
+    self._on_htd_toggle(self.htd_toggle.action_item.get_state())
 
   def _on_custom_acc_toggle(self, state):
     self.custom_acc_short_increment.set_visible(state)
     self.custom_acc_long_increment.set_visible(state)
     self.custom_acc_short_increment.action_item.set_enabled(self.custom_acc_toggle.action_item.enabled)
     self.custom_acc_long_increment.action_item.set_enabled(self.custom_acc_toggle.action_item.enabled)
+
+  def _on_htd_toggle(self, state):
+    self.htd_angle_threshold.set_visible(state)
+    self.htd_angle_threshold.action_item.set_enabled(self.htd_toggle.action_item.enabled)
