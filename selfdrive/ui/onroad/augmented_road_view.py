@@ -104,6 +104,10 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     # Draw colored border based on driving state
     self._draw_border(rect)
 
+    # Show debug mode indicator when force_onroad is active
+    if ui_state.force_onroad:
+      rl.draw_text("DEBUG MODE", int(rect.x + rect.width - 160), int(rect.y + 10), 20, rl.Color(0, 255, 100, 180))
+
   def _handle_mouse_press(self, _):
     if not self._hud_renderer.user_interacting() and self._click_callback is not None:
       self._click_callback()
