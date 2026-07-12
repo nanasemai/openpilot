@@ -2867,6 +2867,14 @@ msgstr "转向超出限制"
 msgid "UI Debug Mode"
 msgstr "界面调试模式"
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Force Onroad View"
+msgstr "强制行车画面"
+
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Show camera and UI as if driving, even when parked."
+msgstr "在停车时显示摄像头画面和行车界面，方便摄像头和 UI 调试。"
+
 #: selfdrive/ui/layouts/settings/software.py
 msgid "UNINSTALL"
 msgstr "卸载"

@@ -94,6 +94,13 @@ class DeveloperLayout(Widget):
     )
     self._on_enable_ui_debug(self._params.get_bool("ShowDebugInfo"))
 
+    self._force_onroad_toggle = toggle_item(
+      lambda: tr("Force Onroad View"),
+      description=lambda: tr("Show camera and UI as if driving, even when parked."),
+      initial_state=self._params.get_bool("ForceOnroad"),
+      callback=self._on_force_onroad,
+    )
+
     self._scroller = Scroller([
       self._adb_toggle,
       self._ssh_toggle,
@@ -103,6 +110,7 @@ class DeveloperLayout(Widget):
       self._lat_maneuver_toggle,
       self._alpha_long_toggle,
       self._ui_debug_toggle,
+      self._force_onroad_toggle,
     ], line_separator=True, spacing=0)
 
     # Toggles should be not available to change in onroad state
@@ -150,6 +158,7 @@ class DeveloperLayout(Widget):
       ("LateralManeuverMode", self._lat_maneuver_toggle),
       ("AlphaLongitudinalEnabled", self._alpha_long_toggle),
       ("ShowDebugInfo", self._ui_debug_toggle),
+      ("ForceOnroad", self._force_onroad_toggle),
     ):
       item.action_item.set_state(self._params.get_bool(key))
 
@@ -158,6 +167,9 @@ class DeveloperLayout(Widget):
     gui_app.set_show_touches(state)
     gui_app.set_show_fps(state)
     gui_app.set_show_mouse_coords(state)
+
+  def _on_force_onroad(self, state: bool):
+    self._params.put_bool("ForceOnroad", state, block=True)
 
   def _on_enable_adb(self, state: bool):
     self._params.put_bool("AdbEnabled", state, block=True)

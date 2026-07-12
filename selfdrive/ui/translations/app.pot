@@ -2367,6 +2367,14 @@ msgstr ""
 msgid "UI Debug Mode"
 msgstr ""
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Force Onroad View"
+msgstr ""
+
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Show camera and UI as if driving, even when parked."
+msgstr ""
+
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "next"
 msgstr ""

@@ -39,6 +39,7 @@ class UIState(UIStateSP):
   def _initialize(self):
     UIStateSP.__init__(self)
     self.params = Params()
+    self.force_onroad: bool = False
     self.sm = messaging.SubMaster(
       [
         "modelV2",
@@ -114,10 +115,10 @@ class UIState(UIStateSP):
     return self.started and (self.sm["selfdriveState"].enabled or self.sm["selfdriveStateSP"].mads.enabled)
 
   def is_onroad(self) -> bool:
-    return self.started
+    return self.started or self.force_onroad
 
   def is_offroad(self) -> bool:
-    return not self.started
+    return not self.started and not self.force_onroad
 
   def update(self) -> None:
     self.prime_state.start()  # start thread after manager forks ui
@@ -160,7 +161,8 @@ class UIState(UIStateSP):
       self.light_sensor = -1
 
     # Update started state
-    self.started = self.sm["deviceState"].started and self.ignition
+    # force_onroad allows parked debug mode to show full onroad UI
+    self.started = (self.sm["deviceState"].started and self.ignition) or self.force_onroad
 
     # Update body state
     if self.CP is not None and self.is_body != self.CP.notCar:
@@ -212,6 +214,7 @@ class UIState(UIStateSP):
     self.recording_audio = self.params.get_bool("RecordAudio") and self.started
     self.is_metric = self.params.get_bool("IsMetric")
     self.always_on_dm = self.params.get_bool("AlwaysOnDM")
+    self.force_onroad = self.params.get_bool("ForceOnroad")
     self.experimental_mode = self.params.get_bool("ExperimentalMode")
     self.usbgpu = self.params.get_bool("UsbGpuPresent")
     self.usbgpu_compiled = self.params.get_bool("UsbGpuCompiled")

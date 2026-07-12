@@ -59,7 +59,8 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
 
   def _render(self, rect):
     # Only render when system is started to avoid invalid data access
-    if not ui_state.started:
+    # force_onroad allows showing camera/UI in debug mode when parked
+    if not (ui_state.started or ui_state.force_onroad):
       return
 
     self._switch_stream_if_needed(ui_state.sm)

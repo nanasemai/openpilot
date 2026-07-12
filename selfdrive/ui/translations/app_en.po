@@ -2730,7 +2730,15 @@ msgstr "Turn Exceeds Steering Limit"
 msgid "UI Debug Mode"
 msgstr "UI Debug Mode"
 
-#: selfdrive/ui/layouts/settings/software.py
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Force Onroad View"
+msgstr "Force Onroad View"
+
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Show camera and UI as if driving, even when parked."
+msgstr "Show camera and UI as if driving, even when parked."
+
+#: selfdrive/ui/mici/layouts/onboarding.py
 msgid "UNINSTALL"
 msgstr "UNINSTALL"
 
