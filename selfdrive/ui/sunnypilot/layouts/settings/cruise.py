@@ -32,7 +32,7 @@ ONROAD_ONLY_DESCRIPTION = tr_noop("Start the vehicle to check vehicle compatibil
 
 ACCEL_PROFILE_DESC = tr_noop("Select an acceleration profile to adjust how aggressively your vehicle accelerates.")
 
-HTD_DESC = tr_noop("When enabled, HTD detects the driver taking over the steering wheel for big turns (e.g., at intersections) and temporarily releases lane keeping. Lateral control resumes automatically after the turn.")
+HTD_DESC = tr_noop("When enabled, HTD detects the driver actively steering into a sharp turn at low speed (≤35 km/h) and temporarily releases lane keeping to avoid LKAS resistance. Once the turn is complete, lateral control resumes automatically within 0.5~1 second.")
 HTD_THRESHOLD_DESC = tr_noop("Sets the steering angle threshold for Human Turn Detection. Lower values make it more sensitive.")
 
 

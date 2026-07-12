@@ -1029,8 +1029,8 @@ msgid "Human Turn Detection (HTD)"
 msgstr "人工轉彎偵測 (HTD)"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
-msgid "When enabled, HTD detects the driver taking over the steering wheel for big turns (e.g., at intersections) and temporarily releases lane keeping. Lateral control resumes automatically after the turn."
-msgstr "啟用後，HTD 會偵測駕駛員在路口等場景大角度轉動方向盤的操作，自動暫時釋放車道保持功能，轉彎完成後自動恢復橫向控制。"
+msgid "When enabled, HTD detects the driver actively steering into a sharp turn at low speed (≤35 km/h) and temporarily releases lane keeping to avoid LKAS resistance. Once the turn is complete, lateral control resumes automatically within 0.5~1 second."
+msgstr "啟用後，HTD 在低速（≤35 km/h）偵測到駕駛員主動大角度轉向時，暫時釋放車道保持避免 LKAS 較勁。轉彎完成後，橫向控制將在 0.5~1 秒內自動恢復。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "HTD Turn Angle Threshold"
