@@ -249,6 +249,28 @@ function launch {
   if [ ! -f $DIR/prebuilt ]; then
     ./build.py
   fi
+
+  # Regenerate font atlases if translations have changed (fixes Chinese characters showing as "?")
+  FONTS_DIR="$DIR/selfdrive/assets/fonts"
+  TRANSLATIONS_DIR="$DIR/selfdrive/ui/translations"
+  FONT_REF="$FONTS_DIR/OpFont-Regular-Labels.fnt"
+  if [ -f "$FONT_REF" ]; then
+    NEEDS_UPDATE=0
+    for dep in "$TRANSLATIONS_DIR"/*.po "$TRANSLATIONS_DIR"/languages.json; do
+      if [ "$dep" -nt "$FONT_REF" ]; then
+        NEEDS_UPDATE=1
+        break
+      fi
+    done
+    if [ "$NEEDS_UPDATE" -eq 1 ]; then
+      echo "Translations changed, regenerating font atlases..."
+      python3 "$DIR/selfdrive/assets/fonts/process.py"
+    fi
+  else
+    echo "Font atlases missing, generating..."
+    python3 "$DIR/selfdrive/assets/fonts/process.py"
+  fi
+
   ./manager.py
 
   # if broken, keep on screen error
