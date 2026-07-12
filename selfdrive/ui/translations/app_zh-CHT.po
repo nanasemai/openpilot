@@ -2269,6 +2269,10 @@ msgstr "選取分支"
 msgid "Select a language"
 msgstr "選取語言"
 
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "change language"
+msgstr "切換語言"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Select a vehicle"
 msgstr "選擇車輛"

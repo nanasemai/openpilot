@@ -2053,6 +2053,10 @@ msgstr "Bir dal seçin"
 msgid "Select a language"
 msgstr "Bir dil seçin"
 
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "change language"
+msgstr "Dili değiştir"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Select a vehicle"
 msgstr ""

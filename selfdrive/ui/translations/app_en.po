@@ -2269,6 +2269,10 @@ msgstr "Select a branch"
 msgid "Select a language"
 msgstr "Select a language"
 
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "change language"
+msgstr "change language"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Select a vehicle"
 msgstr "Select a vehicle"

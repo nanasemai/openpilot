@@ -2053,6 +2053,10 @@ msgstr "Виберіть гілку"
 msgid "Select a language"
 msgstr "Виберіть мову"
 
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "change language"
+msgstr "Змінити мову"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Select a vehicle"
 msgstr ""

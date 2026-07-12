@@ -2053,6 +2053,10 @@ msgstr "ブランチを選択"
 msgid "Select a language"
 msgstr "言語を選択"
 
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "change language"
+msgstr "言語を切り替え"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
 msgid "Select a vehicle"
 msgstr ""
