@@ -100,6 +100,8 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
 
     # Custom UI extension point - add custom overlays here
     # Use self._content_rect for positioning within camera bounds
+    if ui_state.force_onroad:
+      self._draw_focus_assist(self._content_rect)
 
     # End clipping region
     rl.end_scissor_mode()
@@ -110,6 +112,78 @@ class AugmentedRoadView(CameraView, AugmentedRoadViewSP):
     # Show debug mode indicator when force_onroad is active
     if ui_state.force_onroad:
       rl.draw_text("DEBUG MODE", int(rect.x + rect.width - 160), int(rect.y + 10), 20, rl.Color(0, 255, 100, 180))
+
+  def _draw_focus_assist(self, rect: rl.Rectangle):
+    """Draw focus calibration assist overlay: center crosshair + zone brackets."""
+    cx = int(rect.x + rect.width / 2)
+    cy = int(rect.y + rect.height / 2)
+    color = rl.Color(0, 255, 100, 200)
+
+    # ---- Crosshair ----
+    gap = 20  # gap at center so we can see the actual image pixels
+    arm_len = 40
+    # Horizontal lines (left and right of gap)
+    rl.draw_line(cx - arm_len, cy, cx - gap, cy, color)
+    rl.draw_line(cx + gap, cy, cx + arm_len, cy, color)
+    # Vertical lines (above and below gap)
+    rl.draw_line(cx, cy - arm_len, cx, cy - gap, color)
+    rl.draw_line(cx, cy + gap, cx, cy + arm_len, color)
+
+    # ---- Center dot ----
+    rl.draw_circle(cx, cy, 2, color)
+
+    # ---- Focus zone brackets ----
+    zone = 80  # half-size of focus zone
+    bracket = 20  # length of bracket arm
+    # Top-left bracket
+    rl.draw_line(cx - zone, cy - zone, cx - zone + bracket, cy - zone, color)
+    rl.draw_line(cx - zone, cy - zone, cx - zone, cy - zone + bracket, color)
+    # Top-right bracket
+    rl.draw_line(cx + zone, cy - zone, cx + zone - bracket, cy - zone, color)
+    rl.draw_line(cx + zone, cy - zone, cx + zone, cy - zone + bracket, color)
+    # Bottom-left bracket
+    rl.draw_line(cx - zone, cy + zone, cx - zone + bracket, cy + zone, color)
+    rl.draw_line(cx - zone, cy + zone, cx - zone, cy + zone - bracket, color)
+    # Bottom-right bracket
+    rl.draw_line(cx + zone, cy + zone, cx + zone - bracket, cy + zone, color)
+    rl.draw_line(cx + zone, cy + zone, cx + zone, cy + zone - bracket, color)
+
+    # ---- Zoom window (center area magnified 2x in bottom-right corner) ----
+    zoom_size = 160
+    zoom_margin = 10
+    zoom_x = int(rect.x + rect.width - zoom_size - zoom_margin)
+    zoom_y = int(rect.y + rect.height - zoom_size - zoom_margin)
+
+    # Background for zoom window
+    bg_color = rl.Color(0, 0, 0, 120)
+    rl.draw_rectangle(zoom_x, zoom_y, zoom_size, zoom_size, bg_color)
+
+    # Draw zoomed center area by reading framebuffer
+    try:
+      capture = rl.load_image_from_screen()
+      if capture.data:
+        # Crop center region (80x60 at center of screen)
+        center_region = rl.image_crop(capture, rl.Rectangle(
+          float(cx - zoom_size // 4), float(cy - zoom_size // 4),
+          float(zoom_size // 2), float(zoom_size // 2),
+        ))
+        if center_region.data:
+          # Scale up to zoom_size
+          rl.image_resize(center_region, zoom_size, zoom_size)
+          zoom_tex = rl.load_texture_from_image(center_region)
+          rl.draw_texture(zoom_tex, zoom_x, zoom_y, rl.WHITE)
+          rl.unload_texture(zoom_tex)
+        rl.unload_image(capture)
+    except Exception:
+      pass  # Silent fail if screen capture unavailable
+
+    # Zoom window border
+    rl.draw_rectangle_lines_ex(
+      rl.Rectangle(float(zoom_x), float(zoom_y), float(zoom_size), float(zoom_size)),
+      1, color
+    )
+    # "2x" label
+    rl.draw_text("2x", zoom_x + 4, zoom_y + 4, 14, color)
 
   def _handle_mouse_press(self, _):
     if not self._hud_renderer.user_interacting() and self._click_callback is not None:
