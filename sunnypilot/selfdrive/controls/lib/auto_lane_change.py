@@ -40,11 +40,11 @@ ONE_SECOND_DELAY = -1
 
 def _road_edge_distance(road_edges, direction):
   """Calculate lateral distance from car center to the road edge on the lane change side.
-  
+
   Args:
     road_edges: modelV2.roadEdges (list of 2 road edge polylines)
     direction: LaneChangeDirection (left or right)
-  
+
   Returns:
     float: lateral distance in meters, or None if data unavailable
   """
@@ -87,6 +87,7 @@ class AutoLaneChangeController:
     self.prev_brake_pressed = False
     self.auto_lane_change_allowed = False
     self.prev_lane_change = False
+    self.road_edge_blocked = False
 
     self.read_params()
 
@@ -97,6 +98,7 @@ class AutoLaneChangeController:
       self.lane_change_wait_timer = 0.0
       self.prev_brake_pressed = False
       self.prev_lane_change = False
+      self.road_edge_blocked = False
 
   def read_params(self) -> None:
     self.lane_change_bsm_delay = self.params.get_bool("AutoLaneChangeBsmDelay")
@@ -149,8 +151,8 @@ class AutoLaneChangeController:
       self.prev_brake_pressed = brake_pressed
 
     # Combine blindspot detection with road edge detection
-    road_edge_blocked = self._check_road_edge_blocked(road_edges, self.DH.lane_change_direction)
-    combined_blindspot = blindspot_detected or road_edge_blocked
+    self.road_edge_blocked = self._check_road_edge_blocked(road_edges, self.DH.lane_change_direction)
+    combined_blindspot = blindspot_detected or self.road_edge_blocked
 
     self.update_lane_change_timers(combined_blindspot)
 

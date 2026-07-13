@@ -96,7 +96,8 @@ class DesireHelper:
         if not one_blinker or below_lane_change_speed:
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
-        elif (torque_applied or self.alc.auto_lane_change_allowed) and not blindspot_detected:
+        elif (torque_applied or self.alc.auto_lane_change_allowed) and \
+             not blindspot_detected and not self.alc.road_edge_blocked:
           self.lane_change_state = LaneChangeState.laneChangeStarting
 
       # LaneChangeState.laneChangeStarting

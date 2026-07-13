@@ -2340,6 +2340,10 @@ msgid "Turning Right"
 msgstr "正在右转"
 
 #: sunnypilot/selfdrive/selfdrived/events.py
+msgid "Road Edge Detected"
+msgstr "检测到道路边缘"
+
+#: sunnypilot/selfdrive/selfdrived/events.py
 msgid "Auto adjusting to speed limit"
 msgstr "自动调整至限速"
 
