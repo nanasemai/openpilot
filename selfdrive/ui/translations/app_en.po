@@ -2738,6 +2738,14 @@ msgstr "Force Onroad View"
 msgid "Show camera and UI as if driving, even when parked."
 msgstr "Show camera and UI as if driving, even when parked."
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Enable Livestream"
+msgstr "Enable Livestream"
+
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Serve live camera + HUD + diagnostics on LAN port 8090. Open http://<device-ip>:8090/ in a phone browser."
+msgstr "Serve live camera + HUD + diagnostics on LAN port 8090. Open http://<device-ip>:8090/ in a phone browser."
+
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "UNINSTALL"
 msgstr "UNINSTALL"

@@ -63,6 +63,14 @@ def always_run(started: bool, params: Params, CP: car.CarParams) -> bool:
 def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started
 
+def encoderd_predicate(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # encoderd: 上路时编码推流；ForceOnroad 调试时也需要它才有画面
+  return started or params.get_bool("ForceOnroad")
+
+def livestream_enabled(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # livestream_ws 只受 UI 开关 EnableLivestream 控制；无画面时依然提供诊断面板
+  return params.get_bool("EnableLivestream")
+
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
 
@@ -116,9 +124,10 @@ procs = [
   DaemonProcess("manage_athenad", "system.athena.manage_athenad", "AthenadPid"),
 
   NativeProcess("loggerd", "system/loggerd", ["./loggerd"], logging),
-  NativeProcess("encoderd", "system/loggerd", ["./encoderd"], only_onroad),
+  NativeProcess("encoderd", "system/loggerd", ["./encoderd"], encoderd_predicate),
   NativeProcess("stream_encoderd", "system/loggerd", ["./encoderd", "--stream"], notcar),
   PythonProcess("logmessaged", "system.logmessaged", always_run),
+  PythonProcess("livestream_ws", "system.livestream_ws.livestream_ws", livestream_enabled),
 
   NativeProcess("camerad", "system/camerad", ["./camerad"], driverview, enabled=not WEBCAM),
   PythonProcess("webcamerad", "tools.webcam.camerad", driverview, enabled=WEBCAM),

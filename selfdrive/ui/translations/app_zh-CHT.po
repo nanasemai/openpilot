@@ -2830,6 +2830,14 @@ msgstr "強制行車畫面"
 msgid "Show camera and UI as if driving, even when parked."
 msgstr "在停車時顯示攝影機畫面和行車介面，方便攝影機和 UI 除錯。"
 
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Enable Livestream"
+msgstr "啟用投屏"
+
+#: selfdrive/ui/layouts/settings/developer.py
+msgid "Serve live camera + HUD + diagnostics on LAN port 8090. Open http://<device-ip>:8090/ in a phone browser."
+msgstr "在區域網路 8090 埠提供攝影機畫面、HUD 和診斷面板。手機瀏覽器打開 http://<車機IP>:8090/ 即可查看。"
+
 #: selfdrive/ui/layouts/settings/software.py
 msgid "UNINSTALL"
 msgstr "解除安裝"

@@ -101,6 +101,14 @@ class DeveloperLayout(Widget):
       callback=self._on_force_onroad,
     )
 
+    self._enable_livestream_toggle = toggle_item(
+      lambda: tr("Enable Livestream"),
+      description=lambda: tr("Serve live camera + HUD + diagnostics on LAN port 8090. "
+                             "Open http://<device-ip>:8090/ in a phone browser."),
+      initial_state=self._params.get_bool("EnableLivestream"),
+      callback=self._on_enable_livestream,
+    )
+
     self._scroller = Scroller([
       self._adb_toggle,
       self._ssh_toggle,
@@ -111,6 +119,7 @@ class DeveloperLayout(Widget):
       self._alpha_long_toggle,
       self._ui_debug_toggle,
       self._force_onroad_toggle,
+      self._enable_livestream_toggle,
     ], line_separator=True, spacing=0)
 
     # Toggles should be not available to change in onroad state
@@ -159,6 +168,7 @@ class DeveloperLayout(Widget):
       ("AlphaLongitudinalEnabled", self._alpha_long_toggle),
       ("ShowDebugInfo", self._ui_debug_toggle),
       ("ForceOnroad", self._force_onroad_toggle),
+      ("EnableLivestream", self._enable_livestream_toggle),
     ):
       item.action_item.set_state(self._params.get_bool(key))
 
@@ -170,6 +180,9 @@ class DeveloperLayout(Widget):
 
   def _on_force_onroad(self, state: bool):
     self._params.put_bool("ForceOnroad", state, block=True)
+
+  def _on_enable_livestream(self, state: bool):
+    self._params.put_bool("EnableLivestream", state, block=True)
 
   def _on_enable_adb(self, state: bool):
     self._params.put_bool("AdbEnabled", state, block=True)
