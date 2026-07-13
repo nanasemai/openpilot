@@ -59,7 +59,8 @@ allowed_system_libs = {
   "EGL", "GLESv2", "GL",
   "Qt5Charts", "Qt5Core", "Qt5Gui", "Qt5Widgets",
   "dl", "drm", "gbm", "m", "pthread",
-  # dragonpilot: comma3 multi-panda USB (selfdrive/pandad_tici) needs libusb.
+  # dragonpilot: comma3 multi-panda USB (selfdrive/pandad_tici) + cabana/jotpluggler need libusb.
+  # Upstream removed USB and dropped libusb from this whitelist; we keep aux-panda so re-allow it.
   "usb-1.0",
 }
 
@@ -116,14 +117,12 @@ env = Environment(
   CPPPATH=[
     "#",
     "#msgq",
-    "#third_party/libusb/include",
     acados_include_dirs,
     [x.INCLUDE_DIR for x in pkgs],
   ],
   LIBPATH=[
     "#common",
     "#msgq_repo",
-    "#third_party/libusb/lib",
     "#selfdrive/pandad_tici" if "TICI_DOS" in os.environ else "#selfdrive/pandad",
     "#rednose/helpers",
     [x.LIB_DIR for x in pkgs],
@@ -253,18 +252,13 @@ if arch == "larch64":
 # Build selfdrive
 SConscript([
   'selfdrive/pandad/SConscript',
+  'selfdrive/pandad_tici/SConscript',
   'selfdrive/controls/lib/lateral_mpc_lib/SConscript',
   'selfdrive/controls/lib/longitudinal_mpc_lib/SConscript',
   'selfdrive/locationd/SConscript',
   'selfdrive/modeld/SConscript',
   'selfdrive/ui/SConscript',
 ])
-
-# pandad_tici: 无条件编译。PC 交叉编译用 third_party/libusb 的 ARM64 .a；
-# C3/C3X/C4 原生编译也用同一套 ARM64 库。运行时由 launch 脚本区分是否启用。
-SConscript(['selfdrive/pandad_tici/SConscript'])
-
-SConscript(['sunnypilot/SConscript'])
 
 # Build desktop-only tools
 if GetOption('extras') and arch != "larch64":

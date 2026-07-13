@@ -4,10 +4,11 @@ import subprocess
 import hashlib
 
 # --- CAN packet layout tripwire ---------------------------------------------
-# panda_tici 固件使用自带的条件化 CANPacket_t 布局（panda_tici/opendbc/safety/can.h），
-# 通过 include 顺序 shadow 掉主线 opendbc 那份无条件 64U 的 can.h：F4(未定义 CANFD)=8U，
-# H7(定义 CANFD)=64U，完全复刻 DP v0.10.3 契约（CAN_PACKET_VERSION=4）。
-# 这里 pin 住这份自带 can.h 的哈希，一旦被误改就报错，防止 F4 静默变成错误的线格式布局。
+# panda_tici pins CAN_PACKET_VERSION (board/can.h + python/__init__.py) against the v0.10.3
+# CANPacket_t contract. We pin against the LOCAL panda_tici/opendbc/safety/can.h which has
+# conditional F4=8U/H7=64U layout, so opendbc bumps don't break F4 firmware compilation.
+# The include order (panda_root before opendbc.INCLUDE_PATH) ensures the local can.h
+# is used for firmware builds, while host-side code still uses the live opendbc/safety/can.h.
 EXPECTED_CAN_H_HASH = 0xF3FCA8F2
 _can_h = os.path.join(os.path.dirname(os.path.abspath(File('SConscript').srcnode().abspath)),
                       "opendbc", "safety", "can.h")
@@ -16,9 +17,9 @@ with open(_can_h, "rb") as _f:
 if _can_h_hash != EXPECTED_CAN_H_HASH:
   raise Exception(
     f"panda_tici/opendbc/safety/can.h changed (hash 0x{_can_h_hash:08X} != pinned 0x{EXPECTED_CAN_H_HASH:08X}).\n"
-    "这是 panda_tici 固件专用的条件化 CANPacket_t 布局（F4=8U/H7=64U）。若确需修改：\n"
-    "  - 仅注释/空白改动？更新本文件的 EXPECTED_CAN_H_HASH。\n"
-    "  - CANPacket_t 布局改动？需同步 board/can.h + python/__init__.py 的 CAN_PACKET_VERSION 并修复 CAN pack/unpack。"
+    "panda_tici pins CAN_PACKET_VERSION against the v0.10.3 CANPacket_t layout. Inspect the struct:\n"
+    "  - layout UNCHANGED (comment/whitespace only)? update EXPECTED_CAN_H_HASH in panda_tici/SConscript.\n"
+    "  - CANPacket_t CHANGED? re-pin CAN_PACKET_VERSION (board/can.h + python/__init__.py) and fix CAN pack/unpack."
   )
 # ----------------------------------------------------------------------------
 

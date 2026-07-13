@@ -24,14 +24,22 @@ from openpilot.system.hardware import PC
 
 from openpilot.sunnypilot.system.params_migration import run_migration
 
-# DP: 根据设备类型动态导入 panda 模块。仅在 C3 (TICI) 上执行，
-# C3X/C4 保持原始行为不变，不引入新的 import 路径。
-if TICI:
-  import importlib
-  target_mod = "panda_tici" if "TICI_DOS" in os.environ else "panda"
-  _mod = importlib.import_module(target_mod)
-  sys.modules["panda"] = _mod  # 使 panda_tici 内部的 "from panda import ..." 生效
-  globals().update({k: v for k, v in _mod.__dict__.items() if not k.startswith("_")})
+# rick - dynamically import panda
+import importlib
+
+# Pre-register panda_main as panda before loading it
+target_mod = "panda_tici" if "TICI_DOS" in os.environ else "panda"
+
+print(f"panda dir: {target_mod}")
+
+_mod = importlib.import_module(target_mod)
+
+# 👇 Insert alias so "from panda import ..." inside panda_main works
+sys.modules["panda"] = _mod
+
+# Re-export everything
+globals().update({k: v for k, v in _mod.__dict__.items() if not k.startswith("_")})
+import time
 
 
 def manager_init() -> None:

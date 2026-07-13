@@ -7,7 +7,6 @@ from openpilot.common.i2c import SMBus
 # https://datasheets.maximintegrated.com/en/ds/MAX98089.pdf
 
 AmpConfig = namedtuple('AmpConfig', ['name', 'value', 'register', 'offset', 'mask'])
-
 EQParams = namedtuple('EQParams', ['K', 'k1', 'k2', 'c1', 'c2'])
 
 def configs_from_eq_params(base, eq_params):

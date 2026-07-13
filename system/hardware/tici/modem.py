@@ -305,7 +305,6 @@ class QMISession:
         logging.warning(f"qmi route install failed ({' '.join(cmd[1:])}): {r.stderr.strip()}")
         self.cleanup_routes()
         return {}
-
     if dns:
       subprocess.run(["sudo", "resolvectl", "dns", QMI_IFACE, *dns], capture_output=True)
       subprocess.run(["sudo", "resolvectl", "default-route", QMI_IFACE, "yes"], capture_output=True)

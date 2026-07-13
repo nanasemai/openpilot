@@ -21,13 +21,6 @@ def get_expected_signature() -> bytes:
 
 def flash_panda(panda_serial: str):
   panda = Panda(panda_serial)
-
-  # skip flashing if the detected panda is not supported
-  if panda.get_type() not in Panda.SUPPORTED_DEVICES:
-    cloudlog.warning(f"Panda {panda_serial} is not supported (hw_type: {panda.get_type()}), skipping flash...")
-    panda.close()
-    return
-
   fw_signature = get_expected_signature()
   internal_panda = panda.is_internal()
 
