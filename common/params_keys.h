@@ -241,6 +241,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
 
     // sunnypilot model params
     {"CameraOffset", {PERSISTENT | BACKUP, FLOAT, "0.0"}},
+    {"LateralPositionOffset", {PERSISTENT | BACKUP, INT, "0"}},  // cm, positive moves left
     {"LagdToggle", {PERSISTENT | BACKUP, BOOL, "1"}},
     {"LagdToggleDelay", {PERSISTENT | BACKUP, FLOAT, "0.2"}},
     {"LagdValueCache", {PERSISTENT, FLOAT, "0.2"}},

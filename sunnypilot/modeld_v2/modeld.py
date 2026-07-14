@@ -92,6 +92,7 @@ class ModelState(ModelStateBase):
     self.LONG_SMOOTH_SECONDS = float(overrides.get('long', ".0"))
     self.MIN_LAT_CONTROL_SPEED = 0.3
     self.PLANPLUS_CONTROL: float = 1.0
+    self.LAT_POSITION_OFFSET_CM: int = 0
 
     pkl_path = _find_driving_pkl(model_bundle)
     assert pkl_path is not None, "No driving pkl found — all models must be compiled with compile_modeld.py"
@@ -253,6 +254,11 @@ class ModelState(ModelStateBase):
       else:
         desired_curvature = prev_action.desiredCurvature
 
+    # Apply lane position offset (driving style adjustment)
+    if self.LAT_POSITION_OFFSET_CM != 0:
+      lat_offset_m = self.LAT_POSITION_OFFSET_CM / 100.0
+      desired_curvature += 2.0 * lat_offset_m / 900.0
+
     return log.ModelDataV2.Action(desiredCurvature=float(desired_curvature),desiredAcceleration=float(desired_accel), shouldStop=bool(should_stop))
 
 
@@ -369,6 +375,7 @@ def main(demo=False):
       model.lat_delay = get_lat_delay(params, sm["liveDelay"].lateralDelay)
       model.PLANPLUS_CONTROL = params.get("PlanplusControl", return_default=True)
       camera_offset_helper.set_offset(params.get("CameraOffset", return_default=True))
+      model.LAT_POSITION_OFFSET_CM = params.get("LateralPositionOffset", return_default=True)
     lat_delay = model.lat_delay + model.LAT_SMOOTH_SECONDS
     if sm.updated["liveCalibration"] and sm.seen['roadCameraState'] and sm.seen['deviceState']:
       device_from_calib_euler = np.array(sm["liveCalibration"].rpyCalib, dtype=np.float32)

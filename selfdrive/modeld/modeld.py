@@ -38,7 +38,7 @@ MIN_LAT_CONTROL_SPEED = 0.3
 
 
 def get_action_from_model(model_output: dict[str, np.ndarray], prev_action: log.ModelDataV2.Action,
-                          lat_action_t: float, long_action_t: float, v_ego: float) -> log.ModelDataV2.Action:
+                          lat_action_t: float, long_action_t: float, v_ego: float, lat_position_offset_cm: int = 0) -> log.ModelDataV2.Action:
   if 'action' not in model_output:
     plan = model_output['plan'][0]
     desired_accel, should_stop = get_accel_from_plan(plan[:,Plan.VELOCITY][:,0],
@@ -59,6 +59,11 @@ def get_action_from_model(model_output: dict[str, np.ndarray], prev_action: log.
     desired_curvature = smooth_value(desired_curvature, prev_action.desiredCurvature, LAT_SMOOTH_SECONDS)
   else:
     desired_curvature = prev_action.desiredCurvature
+
+  # Apply lane position offset (driving style adjustment)
+  if lat_position_offset_cm != 0:
+    lat_offset_m = lat_position_offset_cm / 100.0
+    desired_curvature += 2.0 * lat_offset_m / 900.0
 
   return log.ModelDataV2.Action(desiredCurvature=float(desired_curvature),
                                 desiredAcceleration=float(desired_accel),
@@ -224,6 +229,7 @@ def main(demo=False):
 
   DH = DesireHelper()
   prev_road_edges = None
+  lat_position_offset_cm = params.get("LateralPositionOffset", return_default=True)
 
   while True:
     # Keep receiving frames until we are at least 1 frame ahead of previous extra frame
@@ -265,6 +271,7 @@ def main(demo=False):
     v_ego = max(sm["carState"].vEgo, 0.)
     if sm.frame % 60 == 0:
       model.lat_delay = get_lat_delay(params, sm["liveDelay"].lateralDelay)
+      lat_position_offset_cm = params.get("LateralPositionOffset", return_default=True)
     lat_delay = model.lat_delay + LAT_SMOOTH_SECONDS
     if sm.updated["liveCalibration"] and sm.seen['roadCameraState'] and sm.seen['deviceState']:
       device_from_calib_euler = np.array(sm["liveCalibration"].rpyCalib, dtype=np.float32)
@@ -316,7 +323,7 @@ def main(demo=False):
       posenet_send = messaging.new_message('cameraOdometry')
       mdv2sp_send = messaging.new_message('modelDataV2SP')
 
-      action = get_action_from_model(model_output, prev_action, lat_action_t, long_action_t, v_ego)
+      action = get_action_from_model(model_output, prev_action, lat_action_t, long_action_t, v_ego, lat_position_offset_cm)
       prev_action = action
       fill_model_msg(drivingdata_send, modelv2_send, model_output, action,
                      publish_state, meta_main.frame_id, meta_extra.frame_id, frame_id,

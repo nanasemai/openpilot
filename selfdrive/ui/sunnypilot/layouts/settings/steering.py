@@ -96,6 +96,16 @@ class SteeringLayout(Widget):
       title=lambda: tr("Neural Network Lateral Control (NNLC)"),
       description=""
     )
+    self._lat_position_offset = option_item_sp(
+      param="LateralPositionOffset",
+      title=lambda: tr("Lane Position Offset"),
+      description=lambda: tr("Fine-tune where the car drives within the lane. "
+                             "Positive values move the car left, negative values move right."),
+      min_value=-15,
+      max_value=15,
+      value_change_step=1,
+      label_callback=lambda offset: f'{offset} {"cm"}',
+    )
 
     items = [
       self._mads_toggle,
@@ -111,6 +121,8 @@ class SteeringLayout(Widget):
       self._torque_customization_button,
       LineSeparatorSP(40),
       self._nnlc_toggle,
+      LineSeparatorSP(40),
+      self._lat_position_offset,
     ]
     return items
 
