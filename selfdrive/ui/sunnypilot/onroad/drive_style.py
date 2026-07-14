@@ -12,9 +12,6 @@ from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
 
-# Driving Personality (LongitudinalPersonality): 0 aggressive, 1 standard, 2 relaxed
-PERSONALITY_LABELS = ["激进", "标准", "舒缓"]
-
 # Acceleration Profile (SPAccelProfile): 0 standard, 1 eco, 2 sport, 3 comfort
 ACCEL_PROFILE_LABELS = ["标准", "节能", "运动", "舒适"]
 
@@ -84,19 +81,17 @@ class _Chip(Widget):
 
 
 class DriveStyleRenderer(Widget):
-  """Bottom-left stacked chips: Driving Personality and Acceleration Profile.
+  """Bottom-left Acceleration Profile chip.
 
-  Both are clickable to cycle their values, effective immediately (backend polls
-  the params). Positioned above the bottom developer UI bar to avoid overlap.
+  Clickable to cycle its value, effective immediately (backend polls the param).
+  Positioned above the bottom developer UI bar to avoid overlap.
   """
 
   MARGIN = 30
-  CHIP_GAP = 16
   BOTTOM_BAR_HEIGHT = 61
 
   def __init__(self):
     super().__init__()
-    self._personality_chip = self._child(_Chip("风格", PERSONALITY_LABELS, "LongitudinalPersonality"))
     self._accel_chip = self._child(_Chip("加速", ACCEL_PROFILE_LABELS, "SPAccelProfile"))
 
   def _render(self, rect: rl.Rectangle) -> None:
@@ -104,7 +99,6 @@ class DriveStyleRenderer(Widget):
       return
 
     accel_size = self._accel_chip.measure()
-    personality_size = self._personality_chip.measure()
 
     x = rect.x + self.MARGIN
     # Bottom anchored, above the developer UI bottom bar
@@ -113,8 +107,5 @@ class DriveStyleRenderer(Widget):
     accel_rect = rl.Rectangle(x, bottom - accel_size.y, accel_size.x, accel_size.y)
     self._accel_chip.render(accel_rect)
 
-    personality_rect = rl.Rectangle(x, accel_rect.y - self.CHIP_GAP - personality_size.y, personality_size.x, personality_size.y)
-    self._personality_chip.render(personality_rect)
-
   def user_interacting(self) -> bool:
-    return self._personality_chip.is_pressed or self._accel_chip.is_pressed
+    return self._accel_chip.is_pressed

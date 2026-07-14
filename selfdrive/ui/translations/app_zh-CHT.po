@@ -1535,6 +1535,22 @@ msgid "Low Communication Rate Between Processes"
 msgstr "进程间通信速率低"
 
 #: selfdrive/selfdrived/events.py
+msgid "Communication Issue Between Processes"
+msgstr "进程间通信异常"
+
+#: selfdrive/selfdrived/events.py
+msgid "Process Not Running"
+msgstr "进程未运行"
+
+#: selfdrive/selfdrived/events.py
+msgid "Posenet Speed Invalid"
+msgstr "Posenet 速度无效"
+
+#: selfdrive/selfdrived/events.py
+msgid "Reverse\nGear"
+msgstr "倒档"
+
+#: selfdrive/selfdrived/events.py
 msgid "Low Memory"
 msgstr "内存不足"
 
@@ -2220,7 +2236,7 @@ msgstr "碰撞风险"
 
 #: sunnypilot/selfdrive/selfdrived/events.py
 msgid "Road Edge Detected"
-msgstr ""
+msgstr "檢測到道路邊緣"
 
 #: selfdrive/ui/sunnypilot/onroad/smart_cruise_control.py
 msgid "SCC-M"
