@@ -10,11 +10,10 @@ from openpilot.common.params import Params
 
 AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 
-ALERTS_ALWAYS_PLAY = {
-  AudibleAlert.warningSoft,
-  AudibleAlert.warningImmediate,
-  AudibleAlert.promptDistracted,
-  AudibleAlert.promptRepeat,
+# Alerts muted in "Warnings Only" mode (aligned with dragonpilot: only engage/disengage are silenced)
+QUIET_MODE_MUTED = {
+  AudibleAlert.engage,
+  AudibleAlert.disengage,
 }
 
 # Audible Alert Mode (adapted from dragonpilot)
@@ -54,14 +53,17 @@ class QuietMode:
     and the current alert.
 
     0 = Standard — play all sounds
-    1 = Warnings Only — only play warnings (suppress engage/disengage)
+    1 = Warnings Only — play all sounds except engage/disengage
     2 = Muted — no sounds at all
     """
+    if current_alert == AudibleAlert.none:
+      return False
+
     if self._audible_alert_mode == 2:
       return False
 
     if self._audible_alert_mode == 1:
-      return current_alert in ALERTS_ALWAYS_PLAY
+      return current_alert not in QUIET_MODE_MUTED
 
     # Mode 0: standard
-    return bool(current_alert != AudibleAlert.none)
+    return True
