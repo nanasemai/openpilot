@@ -8,6 +8,7 @@ from enum import IntEnum
 import pyray as rl
 
 from openpilot.system.hardware import PC
+from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.lib.application import gui_app, FontWeight, FONT_SCALE
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
@@ -35,9 +36,9 @@ class Reset(Widget):
     self._mode = mode
     self._previous_reset_state = None
     self._reset_state = ResetState.NONE
-    self._cancel_button = Button("Cancel", gui_app.request_close)
-    self._confirm_button = Button("Confirm", self._confirm, button_style=ButtonStyle.PRIMARY)
-    self._reboot_button = Button("Reboot", lambda: os.system("sudo reboot"))
+    self._cancel_button = Button(tr("Cancel"), gui_app.request_close)
+    self._confirm_button = Button(tr("Confirm"), self._confirm, button_style=ButtonStyle.PRIMARY)
+    self._reboot_button = Button(tr("Reboot"), lambda: os.system("sudo reboot"))
 
   def _do_erase(self):
     if PC:
@@ -68,7 +69,7 @@ class Reset(Widget):
     content_rect = rl.Rectangle(45, 200, self._rect.width - 90, self._rect.height - 245)
 
     label_rect = rl.Rectangle(content_rect.x + 140, content_rect.y, content_rect.width - 280, 100 * FONT_SCALE)
-    gui_label(label_rect, "System Reset", 100, font_weight=FontWeight.BOLD)
+    gui_label(label_rect, tr("System Reset"), 100, font_weight=FontWeight.BOLD)
 
     text_rect = rl.Rectangle(content_rect.x + 140, content_rect.y + 140, content_rect.width - 280, content_rect.height - 90 - 100 * FONT_SCALE)
     gui_text_box(text_rect, self._get_body_text(), 90)
@@ -97,14 +98,14 @@ class Reset(Widget):
 
   def _get_body_text(self):
     if self._reset_state == ResetState.CONFIRM:
-      return "Are you sure you want to reset your device?"
+      return tr("Are you sure you want to reset your device?")
     if self._reset_state == ResetState.RESETTING:
-      return "Resetting device...\nThis may take up to a minute."
+      return tr("Resetting device...\nThis may take up to a minute.")
     if self._reset_state == ResetState.FAILED:
-      return "Reset failed. Reboot to try again."
+      return tr("Reset failed. Reboot to try again.")
     if self._mode == ResetMode.RECOVER:
-      return "Unable to mount data partition. Partition may be corrupted. Press confirm to erase and reset your device."
-    return "System reset triggered. Press confirm to erase all content and settings. Press cancel to resume boot."
+      return tr("Unable to mount data partition. Partition may be corrupted. Press confirm to erase and reset your device.")
+    return tr("System reset triggered. Press confirm to erase all content and settings. Press cancel to resume boot.")
 
 
 def main():

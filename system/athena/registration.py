@@ -43,6 +43,12 @@ def register(show_spinner=False) -> str | None:
     with open(Paths.persist_root()+"/comma/dongle_id") as f:
       dongle_id = f.read().strip()
 
+  # Skip registration if Comma Connect is disabled (dp_dev_disable_connect)
+  if params.get_bool("dp_dev_disable_connect"):
+    dongle_id = UNREGISTERED_DONGLE_ID
+    params.put("DongleId", UNREGISTERED_DONGLE_ID, block=True)
+    return UNREGISTERED_DONGLE_ID
+
   # Create registration token, in the future, this key will make JWTs directly
   jwt_algo, private_key, public_key = get_key_pair()
 
@@ -104,6 +110,8 @@ def register(show_spinner=False) -> str | None:
 
       if time.monotonic() - start_time > 60 and show_spinner:
         spinner.update(f"registering device - serial: {serial}, IMEI: ({imei1}, {imei2})")
+        params.put("DongleId", UNREGISTERED_DONGLE_ID, block=True)
+        return UNREGISTERED_DONGLE_ID  # hotfix to prevent an infinite wait for registration
 
     if show_spinner:
       spinner.close()

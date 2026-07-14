@@ -39,23 +39,23 @@ import sys
 from pathlib import Path
 
 try:
-  from dragonpilot.system.ui.lib.multilang import tr  # noqa: F401  (re-export for feature files)
+  from dragonpilot.system.ui.lib.multilang import tr, tr_noop  # noqa: F401
 except ImportError:
-  from openpilot.system.ui.lib.multilang import tr  # noqa: F401
+  from openpilot.system.ui.lib.multilang import tr, tr_noop  # noqa: F401
 
 SECTION_ORDER = [
-  "Toyota / Lexus",
-  "Honda",
-  "HKG",
-  "VAG",
-  "Mazda",
-  "Lateral",
-  "Longitudinal",
-  "UI",
-  "Device",
+  tr_noop("Toyota / Lexus"),
+  tr_noop("Honda"),
+  tr_noop("HKG"),
+  tr_noop("VAG"),
+  tr_noop("Mazda"),
+  tr_noop("Lateral"),
+  tr_noop("Longitudinal"),
+  tr_noop("UI"),
+  tr_noop("Device"),
   # Upstream openpilot toggle mirrors (dashy-only, gated by `condition: "DASHY"`).
-  "Openpilot",
-  "Developer",
+  tr_noop("Openpilot"),
+  tr_noop("Developer"),
 ]
 
 # Brand-gated sections: the whole header + its items are hidden when the
