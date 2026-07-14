@@ -433,6 +433,22 @@ msgid "Calibration in Progress"
 msgstr "校准进行中"
 
 #: selfdrive/selfdrived/events.py
+msgid "Recalibrating"
+msgstr "重新校准中"
+
+#: selfdrive/selfdrived/events.py
+msgid "Drive Above"
+msgstr "需行驶至"
+
+#: selfdrive/selfdrived/events.py
+msgid "Calibration Incomplete"
+msgstr "校准未完成"
+
+#: selfdrive/selfdrived/events.py
+msgid "Device Remount Detected: Recalibrating"
+msgstr "检测到设备重新安装：正在重新校准"
+
+#: selfdrive/selfdrived/events.py
 msgid "Camera Frame Rate Low"
 msgstr "摄像头帧率过低"
 
