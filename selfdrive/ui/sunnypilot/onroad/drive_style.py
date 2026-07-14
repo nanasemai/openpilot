@@ -22,11 +22,11 @@ UPDATE_INTERVAL = 30  # frames (~1.5s at 20fps)
 class _Chip(Widget):
   """A single clickable label chip that cycles through the values of an int param."""
 
-  LABEL_SIZE = 30
-  VALUE_SIZE = 40
-  PADDING_X = 24
-  PADDING_Y = 14
-  GAP = 8
+  LABEL_SIZE = 60
+  VALUE_SIZE = 80
+  PADDING_X = 48
+  PADDING_Y = 28
+  GAP = 16
 
   def __init__(self, title: str, labels: list[str], param: str):
     super().__init__()
