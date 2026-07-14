@@ -1035,7 +1035,11 @@ void SpectraCamera::camera_map_bufs() {
 
 bool SpectraCamera::openSensor() {
   sensor_fd = open_v4l_by_name_and_index("cam-sensor-driver", cc.camera_num);
-  assert(sensor_fd >= 0);
+  if (sensor_fd < 0) {
+    LOGE("** sensor %d FAILED to open V4L device, disabling", cc.camera_num);
+    enabled = false;
+    return false;
+  }
   LOGD("opened sensor for %d", cc.camera_num);
 
   LOGD("-- Probing sensor %d", cc.camera_num);

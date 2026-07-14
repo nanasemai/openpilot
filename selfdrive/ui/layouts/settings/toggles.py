@@ -31,6 +31,11 @@ DESCRIPTIONS = {
     "without a turn signal activated while driving over 31 mph (50 km/h)."
   ),
   "AlwaysOnDM": tr_noop("Enable driver monitoring even when openpilot is not engaged."),
+  "DisableDriverMonitoringCamera": tr_noop(
+    "Disable the driver monitoring camera when the camera hardware is faulty. " +
+    "This stops the camera and driver monitoring processes to prevent errors caused by the broken hardware. " +
+    "Warning: driver monitoring will not function while this is enabled."
+  ),
   'RecordFront': tr_noop("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
   "IsMetric": tr_noop("Display speed in km/h instead of mph."),
   "RecordAudio": tr_noop("Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect."),
@@ -76,6 +81,12 @@ class TogglesLayout(Widget):
         DESCRIPTIONS["AlwaysOnDM"],
         "monitoring.png",
         False,
+      ),
+      "DisableDriverMonitoringCamera": (
+        lambda: tr("Disable Driver Monitoring Camera"),
+        DESCRIPTIONS["DisableDriverMonitoringCamera"],
+        "monitoring.png",
+        True,
       ),
       "RecordFront": (
         lambda: tr("Record and Upload Driver Camera"),

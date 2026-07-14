@@ -1745,6 +1745,14 @@ msgid "Use Metric System"
 msgstr ""
 
 #: selfdrive/ui/layouts/settings/toggles.py
+msgid "Disable Driver Monitoring Camera"
+msgstr ""
+
+#: selfdrive/ui/layouts/settings/toggles.py
+msgid "Disable the driver monitoring camera when the camera hardware is faulty. This stops the camera and driver monitoring processes to prevent errors caused by the broken hardware. Warning: driver monitoring will not function while this is enabled."
+msgstr ""
+
+#: selfdrive/ui/layouts/settings/toggles.py
 msgid "Disable Logging"
 msgstr ""
 
