@@ -188,6 +188,20 @@ def write_po(path: str | Path, header: POEntry | None, entries: list[POEntry]) -
 
 # ──── String extraction (replaces xgettext) ────
 
+def _resolve_str(node: ast.AST) -> str | None:
+  """Resolve a node to a constant string, handling implicit and explicit
+  ('+') string literal concatenation. Returns None if not a pure string
+  literal expression (e.g. contains variables or f-string fields)."""
+  if isinstance(node, ast.Constant):
+    return node.value if isinstance(node.value, str) else None
+  if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+    left = _resolve_str(node.left)
+    right = _resolve_str(node.right)
+    if left is not None and right is not None:
+      return left + right
+  return None
+
+
 def extract_strings(files: list[str], basedir: str) -> list[POEntry]:
   """Extract tr/trn/tr_noop calls from Python source files."""
   seen: dict[str, POEntry] = {}
@@ -220,9 +234,9 @@ def extract_strings(files: list[str], basedir: str) -> list[POEntry]:
       is_flagged = name in ('tr', 'trn')
 
       if name in ('tr', 'tr_noop'):
-        if not node.args or not isinstance(node.args[0], ast.Constant) or not isinstance(node.args[0].value, str):
+        msgid = _resolve_str(node.args[0]) if node.args else None
+        if msgid is None:
           continue
-        msgid = node.args[0].value
         if msgid in seen:
           if ref not in seen[msgid].source_refs:
             seen[msgid].source_refs.append(ref)
@@ -233,12 +247,10 @@ def extract_strings(files: list[str], basedir: str) -> list[POEntry]:
       elif name == 'trn':
         if len(node.args) < 2:
           continue
-        a1, a2 = node.args[0], node.args[1]
-        if not (isinstance(a1, ast.Constant) and isinstance(a1.value, str)):
+        msgid = _resolve_str(node.args[0])
+        msgid_plural = _resolve_str(node.args[1])
+        if msgid is None or msgid_plural is None:
           continue
-        if not (isinstance(a2, ast.Constant) and isinstance(a2.value, str)):
-          continue
-        msgid, msgid_plural = a1.value, a2.value
         if msgid in seen:
           if ref not in seen[msgid].source_refs:
             seen[msgid].source_refs.append(ref)

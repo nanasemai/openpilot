@@ -73,7 +73,7 @@ class DragonpilotLayout(Widget):
         continue
 
       title_key = f"title_{i}"
-      self._toggles[title_key] = simple_item(title=f"### {section['title']} ###")
+      self._toggles[title_key] = simple_item(title=f"### {tr(section['title'])} ###")
       count_after_title = len(self._toggles)
 
       for setting in section.get("settings", []):

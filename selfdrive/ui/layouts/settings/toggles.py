@@ -34,8 +34,8 @@ DESCRIPTIONS = {
   'RecordFront': tr_noop("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
   "IsMetric": tr_noop("Display speed in km/h instead of mph."),
   "RecordAudio": tr_noop("Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect."),
-  "DisableLogging": tr("Disable logging service"),
-  "DisableUpdates": tr("Disable update service"),
+  "DisableLogging": tr_noop("Disable logging service"),
+  "DisableUpdates": tr_noop("Disable update service"),
 }
 
 
