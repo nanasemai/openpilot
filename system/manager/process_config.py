@@ -109,6 +109,9 @@ def mapd_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
   return bool(os.path.exists(Paths.mapd_root()))
 
 def uploader_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
+  if params.get_bool("dp_dev_disable_connect"):
+    return False
+
   if not params.get_bool("OnroadUploads"):
     return only_offroad(started, params, CP)
 

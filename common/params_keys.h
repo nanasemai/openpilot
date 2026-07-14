@@ -294,4 +294,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     // Human Turn Detection params
     {"dp_htd_turn_angle_threshold", {PERSISTENT, INT, "60"}},
     {"dp_htd_enabled", {PERSISTENT | BACKUP, BOOL, "0"}},
+
+    // Device
+    {"dp_dev_disable_connect", {PERSISTENT | BACKUP, BOOL, "0"}},
 };

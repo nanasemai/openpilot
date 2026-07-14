@@ -13,7 +13,7 @@ from openpilot.system.hardware import HARDWARE
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.sunnypilot.widgets.list_view import option_item_sp, multiple_button_item_sp, button_item_sp, \
-  dual_button_item_sp, Spacer
+  dual_button_item_sp, toggle_item_sp, Spacer
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.system.ui.widgets.button import ButtonStyle
 from openpilot.system.ui.widgets.confirm_dialog import alert_dialog, ConfirmDialog
@@ -109,6 +109,13 @@ class DeviceLayoutSP(DeviceLayout):
       right_callback=self._reset_settings
     )
 
+    self._disable_connect_toggle = toggle_item_sp(
+      title=lambda: tr("Disable Comma Connect"),
+      description=lambda: tr("Disable Comma connect service if you do not wish to upload / being tracked by the service."),
+      param="dp_dev_disable_connect",
+      callback=self._on_disable_connect_changed,
+    )
+
     self._power_buttons = dual_button_item_sp(
       left_text=lambda: tr("Reboot"),
       right_text=lambda: tr("Power Off"),
@@ -136,6 +143,8 @@ class DeviceLayoutSP(DeviceLayout):
       ] + ([self._driver_cam_btn, LineSeparator(height=10)] if not os.getenv("DISABLE_DRIVER") else [Spacer(0)]) + [
       self._reg_and_training,
       self._onroad_uploads_and_reset_settings,
+      LineSeparator(height=10),
+      self._disable_connect_toggle,
       Spacer(10),
       LineSeparator(height=10),
       self._power_buttons,
@@ -196,6 +205,12 @@ class DeviceLayoutSP(DeviceLayout):
     label += tr(" (Default)") if value == 1800 else ""
     return label
 
+  @staticmethod
+  def _on_disable_connect_changed(state: bool):
+    # Disabling Comma Connect must also force Onroad Uploads off
+    if state:
+      ui_state.params.put_bool("OnroadUploads", False)
+
   def _update_state(self):
     super()._update_state()
 
@@ -217,9 +232,12 @@ class DeviceLayoutSP(DeviceLayout):
       self._scroller._items.insert(0, self._always_offroad_btn)
 
     # Onroad Uploads
+    disable_connect = ui_state.params.get_bool("dp_dev_disable_connect")
     self._onroad_uploads_and_reset_settings.action_item.left_button.set_button_style(
       ButtonStyle.PRIMARY if ui_state.params.get_bool("OnroadUploads") else ButtonStyle.NORMAL
     )
+    # Onroad Uploads cannot be enabled while Comma Connect is disabled
+    self._onroad_uploads_and_reset_settings.action_item.left_button.set_enabled(not disable_connect)
 
     # Offroad only buttons
     self._driver_cam_btn.action_item.set_enabled(ui_state.is_offroad())
