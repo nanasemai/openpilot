@@ -4,822 +4,2538 @@ msgstr ""
 "Language: zh-CHT\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid " Steering torque response calibration is complete."
 msgstr " 轉向扭矩回應校正完成。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid " Steering torque response calibration is {}% complete."
 msgstr " 轉向扭矩回應校正已完成 {}%。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid " Your device is pointed {:.1f}° {} and {:.1f}° {}."
 msgstr " 您的裝置朝向 {:.1f}° {} 與 {:.1f}° {}。"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
 msgid "--"
 msgstr "--"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
+msgid ". Click to update. Read the release notes at blog.comma.ai."
+msgstr "。点击更新。在blog.comma.ai查看发布说明。"
+
+
+msgid "2x"
+msgstr "2倍"
+
+
 msgid "1 year of drive storage"
 msgstr "1 年行駛資料儲存"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
+msgid "2. You must pay attention at all times."
+msgstr "2. 您必须时刻保持注意力。"
+
+
 msgid "24/7 LTE connectivity"
 msgstr "全年無休 LTE 連線"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
 msgid "2G"
 msgstr "2G"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
+msgid "3. You must be ready to take over at any time."
+msgstr "3. 您必须随时准备接管车辆。"
+
+
 msgid "3G"
 msgstr "3G"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
+msgid "4. You are fully responsible for driving the car."
+msgstr "4. 您对驾驶车辆负全部责任。"
+
+
 msgid "5G"
 msgstr "5G"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid "<b>Unsupported branch detected</b> - The current version of <b><u>%1</u></b> branch is no longer supported on the comma three. Please go to <b>[Device > Software]</b> and install a supported branch with <b><u>-tici</u></b> in the branch name for the comma three."
+msgstr "<b>检测到不支持的分支</b> - 当前版本的 <b><u>%1</u></b> 分支在 comma three 上不再支持。请前往 <b>[设备 > 软件]</b> 并安装分支名称中包含 <b><u>-tici</u></b> 的支持分支。"
+
+
 msgid "<br><br>Steering lag calibration is complete."
 msgstr "<br><br>轉向延遲校正完成。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "<br><br>Steering lag calibration is {}% complete."
 msgstr "<br><br>轉向延遲校正已完成 {}%。"
 
-#: openpilot/selfdrive/ui/widgets/ssh_key.py
+
+msgid "ACTIVE"
+msgstr "已啟用"
+
+
+msgid "ADB (Android Debug Bridge) allows connecting to your device over USB or over the network. See https://docs.comma.ai/how-to/connect-to-comma for more info."
+msgstr "ADB（Android 偵錯橋）允許透過 USB 或網路連接到您的裝置。更多資訊請參閱 https://docs.comma.ai/how-to/connect-to-comma 。"
+
+
 msgid "ADD"
 msgstr "新增"
 
-#: system/ui/widgets/network.py
+
+msgid "AEB: Risk of Collision"
+msgstr "AEB: 碰撞风险"
+
+
 msgid "APN Setting"
 msgstr "APN 設定"
 
-#: openpilot/selfdrive/ui/widgets/offroad_alerts.py
+
 msgid "Acknowledge Excessive Actuation"
 msgstr "確認過度作動"
 
-#: system/ui/widgets/network.py
+
+msgid "Adaptive Cruise Disabled"
+msgstr "自适应巡航已禁用"
+
+
 msgid "Advanced"
 msgstr "進階"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Aggressive"
 msgstr "積極"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
+
 msgid "Agree"
 msgstr "同意"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Always-On Driver Monitoring"
 msgstr "持續啟用駕駛監控"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid "An update to your device's operating system is downloading in the background. You will be prompted to update when it's ready to install."
+msgstr "设备操作系统更新正在后台下载。准备好安装时会提示您更新。"
+
+
+msgid "Any fast phone or laptop charger should be fine."
+msgstr "任何快速的手機或筆記型電腦充電器都可以。"
+
+
 msgid "Are you sure you want to power off?"
 msgstr "確定要關機嗎？"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Are you sure you want to reboot?"
 msgstr "確定要重新啟動嗎？"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Are you sure you want to reset calibration?"
 msgstr "確定要重設校正嗎？"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "Are you sure you want to uninstall?"
 msgstr "確定要解除安裝嗎？"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
-#: system/ui/widgets/network.py
+
+msgid "Awareness"
+msgstr "駕駛員注意力"
+
+
+msgid "BRAKE!"
+msgstr "刹车！"
+
+
 msgid "Back"
 msgstr "返回"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
+msgid "Be ready to take over at any time"
+msgstr "随时准备接管"
+
+
 msgid "Become a comma prime member at connect.comma.ai"
 msgstr "前往 connect.comma.ai 成為 comma prime 會員"
 
-#: openpilot/selfdrive/ui/widgets/pairing_dialog.py
+
+msgid "Bookmark Saved"
+msgstr "书签已保存"
+
+
 msgid "Bookmark connect.comma.ai to your home screen to use it like an app"
 msgstr "將 connect.comma.ai 加到主畫面，像 App 一樣使用"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "CHANGE"
-msgstr "變更"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
-msgid "CHECK"
-msgstr "檢查"
+msgid "CAN Bus Disconnected"
+msgstr "CAN 总线断开"
 
-#: openpilot/selfdrive/ui/widgets/exp_mode_button.py
+
+msgid "CAN Bus Disconnected: Check Connections"
+msgstr "CAN 总线断开：检查连接"
+
+
+msgid "CAN Bus Disconnected: Likely Faulty Cable"
+msgstr "CAN 总线断开：可能是线缆故障"
+
+
 msgid "CHILL MODE ON"
 msgstr "安穩模式已開啟"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
-#: system/ui/widgets/network.py
+
 msgid "CONNECT"
 msgstr "連線"
 
-#: system/ui/widgets/network.py
+
 msgid "CONNECTING..."
 msgstr "連線中..."
 
-#: system/ui/widgets/confirm_dialog.py
-#: system/ui/widgets/keyboard.py
-#: system/ui/widgets/network.py
-#: system/ui/widgets/option_dialog.py
+
+msgid "CPU"
+msgstr "CPU"
+
+
+msgid "Calibrating"
+msgstr "正在校准"
+
+
+msgid "Calibration Invalid"
+msgstr "校准无效"
+
+
+msgid "Calibration Invalid: Remount Device & Recalibrate"
+msgstr "校准无效：重新安装设备并重校准"
+
+
+msgid "Calibration in Progress"
+msgstr "校准进行中"
+
+
+msgid "Recalibrating"
+msgstr "重新校准中"
+
+
+msgid "Drive Above"
+msgstr "需行驶至"
+
+
+msgid "Calibration Incomplete"
+msgstr "校准未完成"
+
+
+msgid "Device Remount Detected: Recalibrating"
+msgstr "检测到设备重新安装：正在重新校准"
+
+
+msgid "Camera Frame Rate Low"
+msgstr "摄像头帧率过低"
+
+
+msgid "Camera Frame Rate Low: Reboot Your Device"
+msgstr "摄像头帧率过低：重启设备"
+
+
+msgid "Camera Malfunction"
+msgstr "摄像头故障"
+
+
+msgid "Camera Malfunction: Reboot Your Device"
+msgstr "摄像头故障：重启设备"
+
+
 msgid "Cancel"
 msgstr "取消"
 
-#: system/ui/widgets/network.py
+
+msgid "Cancel Pressed"
+msgstr "已按下取消"
+
+
+msgid "Car Detected in Blindspot"
+msgstr "检测到盲区有车辆"
+
+
+msgid "Car Unrecognized"
+msgstr "车辆未识别"
+
+
+msgid "Car in Blindspot"
+msgstr "盲区有车辆"
+
+
 msgid "Cellular Metered"
 msgstr "行動網路計量"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Change Language"
-msgstr "變更語言"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+msgid "Changing Lanes"
+msgstr "正在变道"
+
+
 msgid "Changing this setting will restart openpilot if the car is powered on."
-msgstr "若車輛通電，變更此設定將重新啟動 openpilot。"
+msgstr "如果车辆已通电，更改此设置将重启openpilot。"
 
-#: openpilot/selfdrive/ui/widgets/pairing_dialog.py
+
+msgid "Check Hardware"
+msgstr "检查硬件"
+
+
 msgid "Click \"add new device\" and scan the QR code on the right"
 msgstr "點選「新增裝置」，掃描右側 QR 碼"
 
-#: openpilot/selfdrive/ui/widgets/offroad_alerts.py
+
 msgid "Close"
 msgstr "關閉"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "Confirm Lane Change"
+msgstr "确认变道"
+
+
+msgid "Connect to internet to check for updates. openpilot won't automatically start until it connects to internet to check for updates."
+msgstr "連接網際網路以檢查更新。openpilot 將不會自動啟動，直到連接網際網路檢查更新。"
+
+
+msgid "Controls Mismatch"
+msgstr "控制不匹配"
+
+
+msgid "Cruise Fault: Restart the Car"
+msgstr "巡航故障：重启车辆"
+
+
+msgid "Cruise Fault: Restart the car to engage"
+msgstr "巡航故障：重启车辆以启用"
+
+
+msgid "Cruise Is Off"
+msgstr "巡航已关闭"
+
+
 msgid "Current Version"
 msgstr "目前版本"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "DISENGAGE IMMEDIATELY"
+msgstr "立即退出"
+
+
+msgid "DISK"
+msgstr "磁碟"
+
+
 msgid "DOWNLOAD"
 msgstr "下載"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
+
+msgid "Dashcam Mode"
+msgstr "行车记录仪模式"
+
+
+msgid "Dashcam mode"
+msgstr "行车记录仪模式"
+
+
+msgid "Dashcam mode for unsupported car"
+msgstr "不支持车辆的行车记录仪模式"
+
+
 msgid "Decline"
 msgstr "拒絕"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
-msgid "Decline, uninstall openpilot"
-msgstr "拒絕並解除安裝 openpilot"
 
-#: openpilot/selfdrive/ui/layouts/settings/settings.py
-msgid "Developer"
-msgstr "開發人員"
+msgid "Device Fell Off Mount"
+msgstr "设备从支架脱落"
 
-#: openpilot/selfdrive/ui/layouts/settings/settings.py
-msgid "Device"
-msgstr "裝置"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+msgid "Device must be registered with the comma.ai backend to pair."
+msgstr "裝置必須已在 comma.ai 後端註冊才能配對。"
+
+
+msgid "Device temperature too high. System cooling down before starting. Current internal component temperature: %1"
+msgstr "设备温度过高。系统正在降温后启动。当前内部组件温度：%1"
+
+
+msgid "Disable Driver Monitoring Camera"
+msgstr "停用駕駛監控攝影機"
+
+
+msgid "Disable the driver monitoring camera when the camera hardware is faulty. This stops the camera and driver monitoring processes to prevent errors caused by the broken hardware. Warning: driver monitoring will not function while this is enabled."
+msgstr "當駕駛監控攝影機硬體損壞時停用該攝影機。此項會停止攝影機及駕駛監控程序，以避免因硬體損壞導致的報錯。警告：啟用此項後駕駛監控將無法運作。"
+
+
+msgid "Disable Logging"
+msgstr "停用日誌記錄"
+
+
+msgid "Disable Updates"
+msgstr "停用更新"
+
+
 msgid "Disengage on Accelerator Pedal"
 msgstr "踩下加速踏板時脫離"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Disengage to Power Off"
 msgstr "脫離以關機"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Disengage to Reboot"
 msgstr "脫離以重新啟動"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Disengage to Reset Calibration"
 msgstr "脫離以重設校正"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Display speed in km/h instead of mph."
 msgstr "以 km/h 顯示速度（非 mph）。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Dongle ID"
-msgstr "裝置 ID"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+msgid "Distraction Level Too High"
+msgstr "分心程度过高"
+
+
+msgid "Do all of my segments get pulled in Firehose Mode?"
+msgstr "在 Firehose 模式下，我的所有行駛片段都會被上傳嗎？"
+
+
+msgid "Does it matter how or where I drive?"
+msgstr "我如何駕駛或在何處駕駛有影響嗎？"
+
+
+msgid "Does it matter which software I run?"
+msgstr "我執行哪種軟體有影響嗎？"
+
+
 msgid "Download"
 msgstr "下載"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid "Drive to Calibrate"
+msgstr "驾驶以校准"
+
+
 msgid "Driver Camera"
 msgstr "車內鏡頭"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
+msgid "Driver Distracted"
+msgstr "驾驶员分心"
+
+
+msgid "Driver Unresponsive"
+msgstr "驾驶员无响应"
+
+
+msgid "Driving Model Lagging"
+msgstr "驾驶模型卡顿"
+
+
 msgid "Driving Personality"
 msgstr "駕駛風格"
 
-#: system/ui/widgets/network.py
+
 msgid "EDIT"
 msgstr "編輯"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
-msgid "ERROR"
-msgstr "錯誤"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
 msgid "ETH"
 msgstr "ETH"
 
-#: openpilot/selfdrive/ui/widgets/exp_mode_button.py
+
 msgid "EXPERIMENTAL MODE ON"
 msgstr "實驗模式已開啟"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "Enable"
-msgstr "啟用"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
+msgid "Electronic Stability Control Active"
+msgstr "电子稳定控制系统激活"
+
+
+msgid "Electronic Stability Control Disabled"
+msgstr "电子稳定控制系统已禁用"
+
+
+msgid "Emergency Braking: Risk of Collision"
+msgstr "紧急制动：碰撞风险"
+
+
 msgid "Enable ADB"
 msgstr "啟用 ADB"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Enable Lane Departure Warnings"
 msgstr "啟用偏離車道警示"
 
-#: system/ui/widgets/network.py
+
+msgid "Enable Livestream"
+msgstr "啟用投屏"
+
+
 msgid "Enable Roaming"
 msgstr "啟用漫遊"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
+
 msgid "Enable SSH"
 msgstr "啟用 SSH"
 
-#: system/ui/widgets/network.py
+
 msgid "Enable Tethering"
 msgstr "啟用網路共享"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "Enable driver monitoring even when openpilot is not engaged."
-msgstr "即使未啟動 openpilot 亦啟用駕駛監控。"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "Enable openpilot"
-msgstr "啟用 openpilot"
+msgid "Enabling this will switch to openpilot longitudinal control."
+msgstr "启用此项将切换到openpilot纵向控制。"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "Enable the openpilot longitudinal control (alpha) toggle to allow Experimental mode."
-msgstr "啟用 openpilot 縱向控制（alpha）切換，以使用實驗模式。"
 
-#: system/ui/widgets/network.py
+msgid "Ensure road ahead is clear"
+msgstr "确保前方道路畅通"
+
+
 msgid "Enter APN"
 msgstr "輸入 APN"
 
-#: system/ui/widgets/network.py
+
 msgid "Enter SSID"
 msgstr "輸入 SSID"
 
-#: system/ui/widgets/network.py
+
 msgid "Enter new tethering password"
 msgstr "輸入新的網路共享密碼"
 
-#: system/ui/widgets/network.py
+
 msgid "Enter password"
 msgstr "輸入密碼"
 
-#: openpilot/selfdrive/ui/widgets/ssh_key.py
+
 msgid "Enter your GitHub username"
 msgstr "輸入您的 GitHub 使用者名稱"
 
-#: system/ui/widgets/list_view.py
+
 msgid "Error"
 msgstr "錯誤"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
+msgid "Ethernet"
+msgstr "以太网"
+
+
+msgid "Excessive %1 actuation detected on your last drive. Please contact support at https://comma.ai/support and share your device's Dongle ID for troubleshooting."
+msgstr "上次驾驶检测到过度%1执行。请联系支持 https://comma.ai/support 并分享您设备的 Dongle ID 进行故障排除。"
+
+
+msgid "Excessive Actuation"
+msgstr "过度执行"
+
+
 msgid "Experimental Mode"
 msgstr "實驗模式"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Experimental mode is currently unavailable on this car since the car's stock ACC is used for longitudinal control."
 msgstr "此車款目前無法使用實驗模式，因為縱向控制使用的是原廠 ACC。"
 
-#: system/ui/widgets/network.py
+
 msgid "FORGETTING..."
 msgstr "正在遺忘..."
 
-#: openpilot/selfdrive/ui/widgets/setup.py
+
+msgid "Failed to register with comma.ai backend. It will not connect or upload to comma.ai servers, and receives no support from comma.ai. If this is a device purchased at comma.ai/shop, open a ticket at https://comma.ai/support."
+msgstr "无法注册 comma.ai 后端。将无法连接或上传到 comma.ai 服务器，且不接受 comma.ai 的支持。如果这是在 comma.ai/shop 购买的设备，请在 https://comma.ai/support 开单。"
+
+
+msgid "Fan Malfunction"
+msgstr "风扇故障"
+
+
 msgid "Finish Setup"
 msgstr "完成設定"
 
-#: openpilot/selfdrive/ui/layouts/settings/settings.py
-msgid "Firehose"
-msgstr "資料洪流"
 
-#: openpilot/selfdrive/ui/layouts/settings/firehose.py
 msgid "Firehose Mode"
 msgstr "Firehose 模式"
 
-#: system/ui/widgets/network.py
+msgid ""
+"For a deeper reset, go to\n"
+"https://flash.comma.ai"
+msgstr ""
+"如需更徹底的重設，請前往\n"
+"https://flash.comma.ai"
+
+
+msgid ""
+"For maximum effectiveness, bring your device inside and connect to a good USB-C adapter and Wi-Fi weekly.\n"
+"\n"
+"Firehose Mode can also work while you're driving if connected to a hotspot or unlimited SIM card."
+msgstr ""
+"為獲得最佳效果，請每週將裝置拿到室內，連接到優質的 USB-C 轉接器和 Wi-Fi。\n"
+"\n"
+"如果連接到熱點或不限流量的 SIM 卡，Firehose 模式在您駕駛時也能運作。"
+
+
+msgid ""
+"For maximum effectiveness, bring your device inside and connect to a good USB-C adapter and Wi-Fi weekly.\n"
+"\n"
+"Firehose Mode can also work while you're driving if connected to a hotspot or unlimited SIM card.\n"
+"\n"
+"\n"
+"Frequently Asked Questions\n"
+"\n"
+"Does it matter how or where I drive? Nope, just drive as you normally would.\n"
+"\n"
+"Do all of my segments get pulled in Firehose Mode? No, we selectively pull a subset of your segments.\n"
+"\n"
+"What's a good USB-C adapter? Any fast phone or laptop charger should be fine.\n"
+"\n"
+"Does it matter which software I run? Yes, only upstream openpilot (and particular forks) are able to be used for training."
+msgstr ""
+"為獲得最佳效果，請每週將裝置拿到室內，連接到優質的 USB-C 轉接器和 Wi-Fi。\n"
+"\n"
+"如果連接到熱點或不限流量的 SIM 卡，Firehose 模式在您駕駛時也能運作。\n"
+"\n"
+"\n"
+"常見問題\n"
+"\n"
+"我如何駕駛或在何處駕駛有影響嗎？沒有，像平常一樣駕駛即可。\n"
+"\n"
+"在 Firehose 模式下我的所有行駛片段都會被上傳嗎？不會，我們只會有選擇地上傳一部分片段。\n"
+"\n"
+"什麼樣的 USB-C 轉接器比較好？任何快速的手機或筆記型電腦充電器都可以。\n"
+"\n"
+"我執行哪種軟體有影響嗎？有影響，只有上游 openpilot（以及特定分支）可用於訓練。"
+
+
+msgid "Force Onroad View"
+msgstr "強制行車畫面"
+
+
 msgid "Forget"
 msgstr "忘記"
 
-#: system/ui/widgets/network.py
+
 msgid "Forget Wi-Fi Network \"{}\"?"
 msgstr "要忘記 Wi‑Fi 網路「{}」嗎？"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
+msgid "Frequently Asked Questions"
+msgstr "常見問題"
+
+
 msgid "GOOD"
 msgstr "良好"
 
-#: openpilot/selfdrive/ui/widgets/pairing_dialog.py
+
+msgid "GPS"
+msgstr "GPS"
+
+
 msgid "Go to https://connect.comma.ai on your phone"
 msgstr "在手機上前往 https://connect.comma.ai"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
-msgid "HIGH"
-msgstr "高"
 
-#: system/ui/widgets/network.py
+msgid "Harness Relay Malfunction"
+msgstr "线束继电器故障"
+
+
 msgid "Hidden Network"
 msgstr "隱藏網路"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "High CPU Usage"
+msgstr "CPU使用率过高"
+
+
+msgid "INACTIVE: connect to an unmetered network"
+msgstr "未啟用：請連接到不限流量的網路"
+
+
+msgid "INACTIVE: Comma Connect is disabled"
+msgstr "未啟用：遠端連線已停用"
+
+
 msgid "INSTALL"
 msgstr "安裝"
 
-#: system/ui/widgets/network.py
+
 msgid "IP Address"
 msgstr "IP 位址"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "If it does not have a clear view of the driver, unplug and remount before continuing."
+msgstr "如果无法清晰看到驾驶员，请先拔下并重新安装后再继续。"
+
+
+msgid "Immediately connect to the internet to check for updates. If you do not connect to the internet, openpilot won't engage in %1"
+msgstr "立即連接網際網路檢查更新。如果不連接網際網路，openpilot將在%1後無法啟用。"
+
+
 msgid "Install Update"
 msgstr "安裝更新"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
+
+msgid "Invalid LKAS setting"
+msgstr "LKAS设置无效"
+
+
 msgid "Joystick Debug Mode"
 msgstr "搖桿除錯模式"
 
-#: openpilot/selfdrive/ui/widgets/ssh_key.py
+
+msgid "Joystick Mode"
+msgstr "摇杆模式"
+
+
+msgid "LKAS Fault: Restart the Car"
+msgstr "LKAS故障：重启车辆"
+
+
+msgid "LKAS Fault: Restart the car to engage"
+msgstr "LKAS故障：重启车辆以启用"
+
+
 msgid "LOADING"
 msgstr "載入中"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
 msgid "LTE"
 msgstr "LTE"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
+
+msgid "Lane Departure Detected"
+msgstr "检测到车道偏离"
+
+
+msgid "Lateral Maneuver Mode"
+msgstr "橫向操作模式"
+
+
+msgid "Likely Hardware Issue"
+msgstr "可能是硬件问题"
+
+
 msgid "Longitudinal Maneuver Mode"
 msgstr "縱向操作模式"
 
-#: openpilot/selfdrive/ui/onroad/hud_renderer.py
-msgid "MAX"
-msgstr "最大"
 
-#: openpilot/selfdrive/ui/widgets/setup.py
+msgid "Low Battery"
+msgstr "电量低"
+
+
+msgid "Low Communication Rate Between Processes"
+msgstr "进程间通信速率低"
+
+
+msgid "Communication Issue Between Processes"
+msgstr "进程间通信异常"
+
+
+msgid "Process Not Running"
+msgstr "进程未运行"
+
+
+msgid "Posenet Speed Invalid"
+msgstr "Posenet 速度无效"
+
+
+msgid "Reverse\nGear"
+msgstr "倒档"
+
+
+msgid "Low Memory"
+msgstr "内存不足"
+
+
+msgid "Low Memory: Reboot Your Device"
+msgstr "内存不足：重启设备"
+
+
+msgid "MEM"
+msgstr "記憶體"
+
+
 msgid "Maximize your training data uploads to improve openpilot's driving models."
 msgstr "最大化上傳訓練資料，以改進 openpilot 的駕駛模型。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "N/A"
-msgstr "無"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+msgid "Model uncertain at this speed"
+msgstr "此速度下模型不确定"
+
+
 msgid "NO"
 msgstr "否"
 
-#: openpilot/selfdrive/ui/layouts/settings/settings.py
-msgid "Network"
-msgstr "網路"
 
-#: openpilot/selfdrive/ui/widgets/ssh_key.py
+msgid "Next, we'll check if comma four can detect the driver properly."
+msgstr "接下来，我们将检查 comma four 是否能正确检测驾驶员。"
+
+
 msgid "No SSH keys found for user '{}'"
 msgstr "找不到使用者 '{}' 的 SSH 金鑰"
 
-#: openpilot/selfdrive/ui/widgets/offroad_alerts.py
+
 msgid "No release notes available."
 msgstr "無可用發行說明。"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
-msgid "OFFLINE"
-msgstr "離線"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
-#: system/ui/widgets/confirm_dialog.py
-#: system/ui/widgets/html_render.py
+msgid "No, we selectively pull a subset of your segments."
+msgstr "不會，我們只會有選擇地上傳您的一部分行駛片段。"
+
+
+msgid "Nope, just drive as you normally would."
+msgstr "不需要，像平常一樣駕駛即可。"
+
+
+msgid "Not set"
+msgstr "未设置"
+
+
 msgid "OK"
 msgstr "確定"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
-msgid "ONLINE"
-msgstr "線上"
 
-#: openpilot/selfdrive/ui/widgets/setup.py
+msgid "Offline"
+msgstr "离线"
+
+
+msgid "On this car, openpilot defaults to the stock system's built-in ACC."
+msgstr "在此车辆上，openpilot默认使用原厂系统的内置ACC。"
+
+
 msgid "Open"
 msgstr "開啟"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid ""
+"OpenStreetMap database is out of date. New maps must be downloaded if you wish to continue using OpenStreetMap data for Enhanced Speed Control and road name display.\n"
+"\n"
+"%1"
+msgstr ""
+"OpenStreetMap数据库已过期。如果您希望继续使用OpenStreetMap数据进行增强速度控制和道路名称显示，必须下载新地图。\n"
+"\n"
+"%1"
+
+
+msgid "Out of Storage"
+msgstr "存储空间不足"
+
+
 msgid "PAIR"
 msgstr "配對"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
 msgid "PANDA"
 msgstr "PANDA"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "PREVIEW"
 msgstr "預覽"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
 msgid "PRIME FEATURES:"
 msgstr "PRIME 功能："
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Pair Device"
 msgstr "配對裝置"
 
-#: openpilot/selfdrive/ui/widgets/setup.py
+
 msgid "Pair device"
 msgstr "配對裝置"
 
-#: openpilot/selfdrive/ui/widgets/pairing_dialog.py
+
 msgid "Pair your device to your comma account"
 msgstr "將裝置配對至您的 comma 帳號"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-#: openpilot/selfdrive/ui/widgets/setup.py
+
 msgid "Pair your device with comma connect (connect.comma.ai) and claim your comma prime offer."
 msgstr "將裝置與 comma connect（connect.comma.ai）配對，領取您的 comma prime 優惠。"
 
-#: openpilot/selfdrive/ui/widgets/setup.py
+
+msgid "Pay Attention"
+msgstr "请注意"
+
+
 msgid "Please connect to Wi-Fi to complete initial pairing"
 msgstr "請連線至 Wi‑Fi 以完成初始化配對"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Power Off"
-msgstr "關機"
 
-#: system/ui/widgets/network.py
+msgid "Please connect to Wi-Fi to complete initial pairing."
+msgstr "請連接 Wi-Fi 以完成初始配對。"
+
+
+msgid "Please connect to Wi-Fi to fetch your key."
+msgstr "请连接 Wi-Fi 以获取您的密钥。"
+
+
+msgid "Please connect to Wi-Fi to update."
+msgstr "請連接 Wi-Fi 以進行更新。"
+
+
+msgid "Poor visibility detected for driver monitoring. Ensure the device has a clear view of the driver. This can be checked in the device settings. Extreme lighting conditions and/or unconventional mounting positions may also trigger this alert."
+msgstr "检测到驾驶员监控可见性差。确保设备能清晰看到驾驶员。可在设备设置中检查。极端光照条件和/或非常规安装位置也可能触发此警报。"
+
+
+msgid "Possible Hardware Issue"
+msgstr "可能是硬件问题"
+
+
+msgid "Press Resume"
+msgstr "按恢复"
+
+
+msgid "Press Resume to Exit Brake Hold"
+msgstr "按恢复退出刹车保持"
+
+
+msgid "Press Resume to Exit Standstill"
+msgstr "按恢复退出静止状态"
+
+
+msgid "Press Set to Engage"
+msgstr "按设置启用"
+
+
 msgid "Prevent large data uploads when on a metered Wi-Fi connection"
 msgstr "在計量制 Wi‑Fi 連線時避免大量上傳"
 
-#: system/ui/widgets/network.py
+
 msgid "Prevent large data uploads when on a metered cellular connection"
 msgstr "在計量制行動網路時避免大量上傳"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "Preview the driver facing camera to ensure that driver monitoring has good visibility. (vehicle must be off)"
 msgstr "預覽車內鏡頭以確保駕駛監控視野良好。（車輛須熄火）"
 
-#: openpilot/selfdrive/ui/widgets/pairing_dialog.py
+
 msgid "QR Code Error"
 msgstr "QR 碼錯誤"
 
-#: openpilot/selfdrive/ui/widgets/ssh_key.py
+
 msgid "REMOVE"
 msgstr "移除"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "RESET"
 msgstr "重設"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "REVIEW"
 msgstr "檢視"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Reboot"
-msgstr "重新啟動"
 
-#: openpilot/selfdrive/ui/onroad/alert_renderer.py
+msgid "Radar Error: Restart the Car"
+msgstr "雷达错误：重启车辆"
+
+
+msgid "Radar Temporarily Unavailable"
+msgstr "雷达暂时不可用"
+
+
 msgid "Reboot Device"
 msgstr "重新啟動裝置"
 
-#: openpilot/selfdrive/ui/widgets/offroad_alerts.py
+
 msgid "Reboot and Update"
 msgstr "重新啟動並更新"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
+msgid "Reboot your Device"
+msgstr "重启设备"
+
+
+msgid "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h)."
+msgstr "在以超過 31 mph（50 km/h）的速度行駛時，若您的車輛在未打轉向燈的情況下駛過偵測到的車道線，將收到提醒以引導車輛駛回車道。"
+
+
 msgid "Record and Upload Driver Camera"
 msgstr "錄製並上傳車內鏡頭"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Record and Upload Microphone Audio"
 msgstr "錄製並上傳麥克風音訊"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect."
 msgstr "行車時錄製並儲存麥克風音訊。音訊將包含在 comma connect 的行車紀錄影片中。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Regulatory"
-msgstr "法規"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+msgid "Recording Audio Feedback"
+msgstr "正在录制音频反馈"
+
+
 msgid "Relaxed"
 msgstr "從容"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
+msgid "Release Brake to Engage"
+msgstr "释放刹车以启用"
+
+
 msgid "Remote access"
 msgstr "遠端存取"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
 msgid "Remote snapshots"
 msgstr "遠端擷圖"
 
-#: openpilot/selfdrive/ui/widgets/ssh_key.py
+
+msgid "Remount Detected: Recalibrating"
+msgstr "检测到重新安装：正在重新校准"
+
+
+msgid "Remount if your face is blocked, or driver monitoring has difficulty tracking your face."
+msgstr "如果您的面部被遮挡，或驾驶员监控难以追踪您的面部，请重新安装。"
+
+
 msgid "Request timed out"
 msgstr "要求逾時"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Reset"
-msgstr "重設"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Reset Calibration"
-msgstr "重設校正"
+msgid "Resetting erases all user content & data."
+msgstr "重置將清除所有用戶內容和數據。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid "Resume Driving Manually"
+msgstr "手动恢复驾驶"
+
+
+msgid "Reverse"
+msgstr "倒车"
+
+
 msgid "Review Training Guide"
 msgstr "檢視訓練指南"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Review the rules, features, and limitations of openpilot"
-msgstr "檢視 openpilot 的規則、功能與限制"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
-msgid "SELECT"
-msgstr "選取"
+msgid "Risk of Collision"
+msgstr "碰撞风险"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
+
+msgid "SEARCH"
+msgstr "搜尋中"
+
+
 msgid "SSH Keys"
 msgstr "SSH 金鑰"
 
-#: system/ui/widgets/network.py
+
+msgid "SSH keys"
+msgstr "SSH密钥"
+
+
 msgid "Scanning Wi-Fi networks..."
 msgstr "正在掃描 Wi‑Fi 網路…"
 
-#: system/ui/widgets/option_dialog.py
+
+msgid "Security Key Not Available"
+msgstr "安全密钥不可用"
+
+
 msgid "Select"
 msgstr "選取"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
-msgid "Select a branch"
-msgstr "選取分支"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
 msgid "Select a language"
 msgstr "選取語言"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "Serial"
-msgstr "序號"
 
-#: openpilot/selfdrive/ui/widgets/offroad_alerts.py
+msgid "Selfdrive Process Lagging: Reboot Your Device"
+msgstr "自驾驶进程卡顿：重启设备"
+
+
+msgid "Sensor Data Invalid"
+msgstr "传感器数据无效"
+
+
+msgid "Serve live camera + HUD + diagnostics on LAN port 8090. Open http://<device-ip>:8090/ in a phone browser."
+msgstr "在區域網路 8090 埠提供攝影機畫面、HUD 和診斷面板。手機瀏覽器打開 http://<車機IP>:8090/ 即可查看。"
+
+
+msgid "Show camera and UI as if driving, even when parked."
+msgstr "在停車時顯示攝影機畫面和行車介面，方便攝影機和 UI 除錯。"
+
+
+msgid "Slow down to engage"
+msgstr "减速以启用"
+
+
 msgid "Snooze Update"
 msgstr "延後更新"
 
-#: openpilot/selfdrive/ui/layouts/settings/settings.py
-msgid "Software"
-msgstr "軟體"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "Standard"
-msgstr "標準"
+msgid "Speed Too High"
+msgstr "速度过高"
 
-#: openpilot/selfdrive/ui/onroad/alert_renderer.py
+
+msgid "Speed too low"
+msgstr "速度过低"
+
+
+msgid "Steer Left"
+msgstr "向左转向"
+
+
+msgid "Steer Left to Start Lane Change Once Safe"
+msgstr "安全后向左转向开始变道"
+
+
+msgid "Steer Right"
+msgstr "向右转向"
+
+
+msgid "Steer Right to Start Lane Change Once Safe"
+msgstr "安全后向右转向开始变道"
+
+
+msgid "Steering Assist Temporarily Unavailable"
+msgstr "转向辅助暂时不可用"
+
+
+msgid "Steering Pressed"
+msgstr "方向盘已被操纵"
+
+
+msgid "Steering Temporarily Unavailable"
+msgstr "转向暂时不可用"
+
+
+msgid "Stock AEB: Risk of Collision"
+msgstr "原厂AEB：碰撞风险"
+
+
+msgid "Stock LKAS: Lane Departure Detected"
+msgstr "原厂LKAS：检测到车道偏离"
+
+
+msgid "System Initializing"
+msgstr "系统初始化中"
+
+
+msgid "System Overheated"
+msgstr "系统过热"
+
+
 msgid "System Unresponsive"
 msgstr "系統無回應"
 
-#: openpilot/selfdrive/ui/onroad/alert_renderer.py
+
+msgid "TAKE CONTROL"
+msgstr "接管控制"
+
+
 msgid "TAKE CONTROL IMMEDIATELY"
 msgstr "請立刻接手控制"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
 msgid "TEMP"
 msgstr "溫度"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "Take Control"
+msgstr "接管控制"
+
+
+msgid "Taking camera snapshots. System won't start until finished."
+msgstr "正在拍摄摄像头快照。系统完成前不会启动。"
+
+
 msgid "Target Branch"
 msgstr "目標分支"
 
-#: system/ui/widgets/network.py
+
 msgid "Tethering Password"
 msgstr "網路共享密碼"
 
-#: openpilot/selfdrive/ui/layouts/settings/settings.py
-msgid "Toggles"
-msgstr "切換"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
+msgid "Touch Steering Wheel"
+msgstr "触摸方向盘"
+
+
+msgid "Touch Steering Wheel: No Face Detected"
+msgstr "触摸方向盘：未检测到人脸"
+
+
+msgid "Touch Wheel"
+msgstr "触摸方向盘"
+
+
+msgid "Turn Exceeds Steering Limit"
+msgstr "转向超出限制"
+
+
 msgid "UI Debug Mode"
 msgstr "介面除錯模式"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "UNINSTALL"
 msgstr "解除安裝"
 
-#: openpilot/selfdrive/ui/layouts/home.py
+
 msgid "UPDATE"
 msgstr "更新"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "USB Error: Reboot Your Device"
+msgstr "USB错误：重启设备"
+
+
+msgid ""
+"Unable to download updates\n"
+"%1"
+msgstr ""
+"无法下载更新\n"
+"%1"
+
+
 msgid "Uninstall"
 msgstr "解除安裝"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
 msgid "Unknown"
 msgstr "未知"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "Unknown Vehicle Variant"
+msgstr "未知车辆型号"
+
+
+msgid "Update available"
+msgstr "有可用更新"
+
+
 msgid "Updates are only downloaded while the car is off."
 msgstr "僅在車輛熄火時下載更新。"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
 msgid "Upgrade Now"
 msgstr "立即升級"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Upload data from the driver facing camera and help improve the driver monitoring algorithm."
 msgstr "上傳車內鏡頭資料，協助改善駕駛監控演算法。"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
+
 msgid "Use Metric System"
 msgstr "使用公制"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
+msgid "Using Experimental mode is recommended with openpilot longitudinal control alpha."
+msgstr "建议在使用openpilot纵向控制alpha时启用实验模式。"
+
+
 msgid "VEHICLE"
 msgstr "車輛"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "VIEW"
-msgstr "檢視"
 
-#: openpilot/selfdrive/ui/onroad/alert_renderer.py
+msgid "Vehicle Sensors Calibrating"
+msgstr "车辆传感器校准中"
+
+
+msgid "Vehicle Sensors Invalid"
+msgstr "车辆传感器无效"
+
+
+msgid "Vehicle Steering Time Limit"
+msgstr "车辆转向时间限制"
+
+
+msgid "WARNING: This branch is not tested"
+msgstr "警告：此分支未经测试"
+
+
+msgid "WARNING: alpha longitudinal control may disable Automatic Emergency Braking (AEB)"
+msgstr "警告：alpha纵向控制可能会禁用自动紧急制动（AEB）"
+
+
 msgid "Waiting to start"
 msgstr "等待開始"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
-msgid "Welcome to openpilot"
-msgstr "歡迎使用 openpilot"
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "When enabled, pressing the accelerator pedal will disengage openpilot."
-msgstr "啟用後，踩下加速踏板將會脫離 openpilot。"
+msgid "Warning: This grants SSH access to all public keys in your GitHub settings. Never enter a GitHub username other than your own. A comma employee will NEVER ask you to add their GitHub username."
+msgstr "警告：此項將向您 GitHub 設定中的所有公鑰授予 SSH 存取權限。切勿輸入非您本人的 GitHub 使用者名稱。comma 員工絕不會要求您新增他們的 GitHub 使用者名稱。"
 
-#: openpilot/selfdrive/ui/layouts/sidebar.py
+
+msgid "What's a good USB-C adapter?"
+msgstr "什麼樣的 USB-C 轉接器比較好？"
+
+
 msgid "Wi-Fi"
 msgstr "Wi‑Fi"
 
-#: system/ui/widgets/network.py
+
 msgid "Wi-Fi Network Metered"
 msgstr "Wi‑Fi 計量網路"
 
-#: system/ui/widgets/network.py
+
+msgid "WiFi"
+msgstr "Wi-Fi"
+
+
 msgid "Wrong password"
 msgstr "密碼錯誤"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
-msgid "You must accept the Terms and Conditions in order to use openpilot."
-msgstr "您必須接受條款與細則才能使用 openpilot。"
 
-#: openpilot/selfdrive/ui/layouts/onboarding.py
-msgid "You must accept the Terms and Conditions to use openpilot. Read the latest terms at https://comma.ai/terms before continuing."
-msgstr "您必須接受條款與細則才能使用 openpilot。繼續前請閱讀 https://comma.ai/terms 上的最新條款。"
+msgid "Yes, only upstream openpilot (and particular forks) are able to be used for training."
+msgstr "是的，只有上游 openpilot（以及特定的分支）可用於訓練。"
 
-#: openpilot/selfdrive/ui/onroad/driver_camera_dialog.py
+
+msgid ""
+"accept\n"
+"terms"
+msgstr ""
+"接受\n"
+"条款"
+
+
+msgid "aggressive"
+msgstr "激进"
+
+
+msgid "allow data uploading"
+msgstr "允许数据上传"
+
+
+msgid "alpha longitudinal"
+msgstr "alpha纵向控制"
+
+
+msgid "always-on driver monitor"
+msgstr "始终开启驾驶员监控"
+
+
+msgid "apn settings"
+msgstr "APN设置"
+
+
+msgid "back"
+msgstr "返回"
+
+
 msgid "camera starting"
 msgstr "相機啟動中"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "cancel"
+msgstr "取消"
+
+msgid ""
+"caution: installing\n"
+"3rd party software"
+msgstr ""
+"注意：正在安裝\n"
+"第三方軟體"
+
+
+msgid "cellular metered"
+msgstr "蜂窝网络计量"
+
+
+msgid "change language"
+msgstr "切換語言"
+
+
 msgid "checking..."
 msgstr "檢查中..."
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
+msgid "choose software"
+msgstr "選擇軟體"
+
+
 msgid "comma prime"
 msgstr "comma prime"
 
-#: system/ui/widgets/network.py
+
+msgid "connect"
+msgstr "连接"
+
+msgid ""
+"connect to\n"
+"continue"
+msgstr ""
+"連接以\n"
+"繼續"
+
+msgid ""
+"connect to\n"
+"internet"
+msgstr ""
+"連接到\n"
+"網路"
+
+
+msgid "connect.comma.ai"
+msgstr "connect.comma.ai"
+
+
+msgid "connected"
+msgstr "已连接"
+
+
+msgid "connecting..."
+msgstr "正在连接..."
+
+
+msgid "custom software URL..."
+msgstr "自定義軟體 URL..."
+
+
+msgid ""
+"decline &\n"
+"uninstall"
+msgstr ""
+"拒绝 &\n"
+"卸载"
+
+
 msgid "default"
 msgstr "預設"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid "developer"
+msgstr "开发者"
+
+
+msgid "device"
+msgstr "设备"
+
+
+msgid "do you want to share video data for training?"
+msgstr "您想分享视频数据用于训练吗？"
+
+
 msgid "down"
 msgstr "下"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+msgid ""
+"download\n"
+"& install"
+msgstr ""
+"下載\n"
+"並安裝"
+
+
+msgid "download update"
+msgstr "下载更新"
+
+
+msgid "downloading"
+msgstr "下載中"
+
+
 msgid "downloading..."
 msgstr "下載中..."
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid ""
+"driver\n"
+"camera preview"
+msgstr ""
+"驾驶员\n"
+"摄像头预览"
+
+
+msgid "driver camera data"
+msgstr "驾驶员摄像头数据"
+
+
+msgid ""
+"driver monitoring\n"
+"check"
+msgstr ""
+"驾驶员监控\n"
+"检查"
+
+
+msgid "driving personality"
+msgstr "驾驶风格"
+
+
+msgid "edit"
+msgstr "编辑"
+
+
+msgid ""
+"enable alpha\n"
+"longitudinal"
+msgstr ""
+"启用alpha\n"
+"纵向控制"
+
+
+msgid "enable livestream"
+msgstr "啟用直播"
+
+
+msgid "enable roaming"
+msgstr "启用漫游"
+
+
+msgid "enable tethering"
+msgstr "启用热点"
+
+
+msgid "enabling alpha longitudinal"
+msgstr "启用alpha纵向控制"
+
+
+msgid "enter APN..."
+msgstr "輸入 APN..."
+
+
+msgid "enter GitHub username..."
+msgstr "输入GitHub用户名..."
+
+
+msgid "enter password..."
+msgstr "输入密码..."
+
+
+msgid "experimental mode"
+msgstr "实验模式"
+
+
+msgid "factory reset"
+msgstr "恢復出廠設定"
+
+
 msgid "failed to check for update"
 msgstr "檢查更新失敗"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "failed to update"
+msgstr "更新失败"
+
+
 msgid "finalizing update..."
 msgstr "正在完成更新..."
 
-#: system/ui/widgets/network.py
+
+msgid "firehose"
+msgstr "Firehose"
+
+
 msgid "for \"{}\""
 msgstr "適用於「{}」"
 
-#: openpilot/selfdrive/ui/onroad/hud_renderer.py
-msgid "km/h"
-msgstr "km/h"
 
-#: system/ui/widgets/network.py
+msgid "forgetting..."
+msgstr "正在忘记..."
+
+msgid ""
+"how to restore to a\n"
+"factory state later"
+msgstr ""
+"之後如何還原到\n"
+"出廠狀態"
+
+
+msgid "install openpilot"
+msgstr "安裝 openpilot"
+
+
+msgid "joystick debug mode"
+msgstr "操纵杆调试模式"
+
+
+msgid "lane departure warnings"
+msgstr "车道偏离警告"
+
+
+msgid "lateral maneuver mode"
+msgstr "横向机动模式"
+
+
 msgid "leave blank for automatic configuration"
 msgstr "留空以自動設定"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
 msgid "left"
 msgstr "左"
 
-#: system/ui/widgets/network.py
+
+msgid "loading"
+msgstr "載入中"
+
+
+msgid "locationd Permanent Error"
+msgstr "locationd永久性错误"
+
+
+msgid "locationd Temporary Error"
+msgstr "locationd暂时性错误"
+
+
+msgid "longitudinal maneuver mode"
+msgstr "纵向机动模式"
+
+
+msgid "looking for driver"
+msgstr "寻找驾驶员"
+
+
+msgid ""
+"make sure comma\n"
+"four can see your face"
+msgstr ""
+"确保 comma\n"
+"four 可以看到您的脸"
+
+
 msgid "metered"
 msgstr "計量"
 
-#: openpilot/selfdrive/ui/onroad/hud_renderer.py
-msgid "mph"
-msgstr "mph"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+msgid "network"
+msgstr "网络"
+
+
+msgid "network usage"
+msgstr "网络使用"
+
+
 msgid "never"
 msgstr "從不"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "next"
+msgstr "下一步"
+
+
+msgid "no alerts"
+msgstr "無警報"
+
+
+msgid "no, don't upload"
+msgstr "不，不上传"
+
+
+msgid "not connected"
+msgstr "未連線"
+
+
+msgid "not in range"
+msgstr "不在范围内"
+
+
 msgid "now"
 msgstr "現在"
 
-#: openpilot/selfdrive/ui/layouts/settings/developer.py
-msgid "openpilot Longitudinal Control (Alpha)"
-msgstr "openpilot 縱向控制（Alpha）"
 
-#: openpilot/selfdrive/ui/onroad/alert_renderer.py
-msgid "openpilot Unavailable"
-msgstr "openpilot 無法使用"
+msgid "obtaining IP..."
+msgstr "取得 IP 中..."
 
-#: openpilot/selfdrive/ui/layouts/settings/toggles.py
-msgid "openpilot longitudinal control may come in a future update."
-msgstr "openpilot 縱向控制可能於未來更新提供。"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
-msgid "openpilot requires the device to be mounted within 4° left or right and within 5° up or 9° down."
-msgstr "openpilot 要求裝置安裝在左右 4°、上 5° 或下 9° 以內。"
+msgid "openpilot Canceled"
+msgstr "openpilot已取消"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+msgid ""
+"openpilot can't start\n"
+"check alerts"
+msgstr ""
+"openpilot 無法啟動\n"
+"請檢查警報"
+
+
+msgid "pair with comma connect"
+msgstr "与comma connect配对"
+
+
+msgid "paramsd Permanent Error"
+msgstr "paramsd永久性错误"
+
+
+msgid "paramsd Temporary Error"
+msgstr "paramsd暂时性错误"
+
+
+msgid "power off"
+msgstr "关机"
+
+
+msgid "release"
+msgstr "發布版"
+
+
+msgid "reboot"
+msgstr "重启"
+
+msgid ""
+"reboot\n"
+"device"
+msgstr ""
+"重新啟動\n"
+"裝置"
+
+
+msgid "reboot to try again"
+msgstr "重新啟動以重試"
+
+
+msgid "record & upload driver camera"
+msgstr "录制并上传驾驶员摄像头"
+
+
+msgid "record & upload mic audio"
+msgstr "录制并上传麦克风音频"
+
+
+msgid "regulatory info"
+msgstr "法规信息"
+
+
+msgid "relaxed"
+msgstr "轻松"
+
+
+msgid "reset"
+msgstr "重置"
+
+msgid ""
+"reset &\n"
+"erase"
+msgstr ""
+"重設並\n"
+"清除"
+
+
+msgid "reset calibration"
+msgstr "重置校准"
+
+
+msgid "reset failed"
+msgstr "重置失敗"
+
+msgid ""
+"reset triggered by\n"
+"tapping the screen"
+msgstr ""
+"透過點按螢幕\n"
+"觸發重設"
+
+
+msgid "resetting device"
+msgstr "正在重置裝置"
+
+msgid ""
+"resetting erases\n"
+"all user content & data"
+msgstr ""
+"重設會清除\n"
+"所有使用者內容與資料"
+
+
+msgid ""
+"review\n"
+"training guide"
+msgstr ""
+"查看\n"
+"训练指南"
+
+
 msgid "right"
 msgstr "右"
 
-#: system/ui/widgets/network.py
+
+msgid "searching for networks"
+msgstr "正在搜索网络"
+
+
+msgid "serial"
+msgstr "序列号"
+
+
+msgid "slide to forget"
+msgstr "滑动以忘记"
+
+
+msgid "standard"
+msgstr "标准"
+
+
+msgid "start"
+msgstr "開始"
+
+
+msgid "starting"
+msgstr "啟動中"
+
+
+msgid "starting..."
+msgstr "正在启动..."
+
+
+msgid "subscribed"
+msgstr "已订阅"
+
+
+msgid "openpilot detected a change in the device's mounting position. Ensure the device is fully seated in the mount and the mount is firmly secured to the windshield."
+msgstr "openpilot偵測到裝置安裝位置發生變化。確保裝置完全安裝在支架中，且支架牢固固定在擋風玻璃上。"
+
+
+msgid "openpilot was unable to identify your car. Your car is either unsupported or its ECUs are not recognized. Please submit a pull request to add the firmware versions to the proper vehicle. Need help? Join discord.comma.ai."
+msgstr "openpilot無法識別您的車輛。您的車輛要麼不支援，要麼其ECU未被識別。請提交pull request將韌體版本新增到正確的車輛。需要幫助？加入discord.comma.ai。"
+
+
+msgid "swipe down to go back"
+msgstr "向下滑動返回"
+
+
+msgid "swipe for QR code"
+msgstr "滑动查看二维码"
+
+
+msgid "system booting"
+msgstr "系統啟動中"
+
+
+msgid "take control"
+msgstr "接管控制"
+
+
+msgid ""
+"terms &\n"
+"conditions"
+msgstr ""
+"条款 &\n"
+"条件"
+
+
+msgid ""
+"terms of\n"
+"service"
+msgstr ""
+"服务\n"
+"条款"
+
+
+msgid "tethering"
+msgstr "热点中"
+
+
+msgid "tethering password"
+msgstr "热点密码"
+
+msgid ""
+"the download size\n"
+"is approximately 1 GB"
+msgstr ""
+"下載大小\n"
+"約為 1 GB"
+
+
+msgid ""
+"this may take up to\n"
+"a minute"
+msgstr ""
+
+msgid ""
+"this may take up to\n"
+"a minute..."
+msgstr ""
+"這可能需要\n"
+"最多一分鐘..."
+
+
+msgid "toggles"
+msgstr "开关"
+
+
+msgid "turn exceeds limit"
+msgstr "转向超出限制"
+
+
+msgid "turn on ignition to use"
+msgstr "请启动车辆以使用"
+
+
+msgid "ui debug mode"
+msgstr "UI调试模式"
+
+
+msgid "uninstall"
+msgstr "卸载"
+
+
 msgid "unmetered"
 msgstr "不限流量"
 
-#: openpilot/selfdrive/ui/layouts/settings/device.py
+
+msgid "unsupported"
+msgstr "不支持"
+
+
 msgid "up"
 msgstr "上"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
+msgid "up to date"
+msgstr "已是最新"
+
+
 msgid "up to date, last checked never"
 msgstr "已為最新，最後檢查：從未"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "up to date, last checked {}"
 msgstr "已為最新，最後檢查：{}"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "update available"
 msgstr "有可用更新"
 
-#: openpilot/selfdrive/ui/layouts/home.py
+
+msgid "update failed"
+msgstr "更新失敗"
+
+
+msgid "update now"
+msgstr "立即更新"
+
+
+msgid "update required"
+msgstr "需要更新"
+
+
+msgid ""
+"updater failed\n"
+"to respond"
+msgstr ""
+"更新器失败\n"
+"响应"
+
+
+msgid "upgrade to prime"
+msgstr "升级到 prime"
+
+
+msgid "use metric units"
+msgstr "使用公制单位"
+
+msgid ""
+"user data partition\n"
+"could not be mounted"
+msgstr ""
+"使用者資料分割區\n"
+"無法掛載"
+
+msgid ""
+"waiting for\n"
+"internet..."
+msgstr ""
+"正在等待\n"
+"網路..."
+
+
+msgid "wi-fi"
+msgstr "Wi-Fi"
+
+
+msgid "wrong password"
+msgstr "密码错误"
+
+
 msgid "{} ALERT"
 msgid_plural "{} ALERTS"
 msgstr[0] "{} 則警示"
 msgstr[1] "{} 則警示"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "{} day ago"
 msgid_plural "{} days ago"
 msgstr[0] "{} 天前"
 msgstr[1] "{} 天前"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "{} hour ago"
 msgid_plural "{} hours ago"
 msgstr[0] "{} 小時前"
 msgstr[1] "{} 小時前"
 
-#: openpilot/selfdrive/ui/layouts/settings/software.py
+
 msgid "{} minute ago"
 msgid_plural "{} minutes ago"
 msgstr[0] "{} 分鐘前"
 msgstr[1] "{} 分鐘前"
 
-#: openpilot/selfdrive/ui/layouts/settings/firehose.py
+
 msgid "{} segment of your driving is in the training dataset so far."
 msgid_plural "{} segments of your driving is in the training dataset so far."
 msgstr[0] "目前已有 {} 個您的駕駛片段納入訓練資料集。"
 msgstr[1] "目前已有 {} 個您的駕駛片段納入訓練資料集。"
 
-#: openpilot/selfdrive/ui/widgets/prime.py
+
+msgid "• It has not been tested by comma."
+msgstr "• 未經 comma 公司測試"
+
+
+msgid "• It may damage your device and/or vehicle."
+msgstr "• 可能損壞您的裝置和/或車輛"
+
+
+msgid "• It may not comply with safety standards."
+msgstr "• 可能不符合安全標準"
+
+
 msgid "✓ SUBSCRIBED"
 msgstr "✓ 已訂閱"
 
-#: openpilot/selfdrive/ui/widgets/setup.py
+
 msgid "🔥 Firehose Mode 🔥"
 msgstr "🔥 Firehose 模式 🔥"
+#: selfdrive/ui/layouts/sidebar.py
+
+#: selfdrive/ui/layouts/sidebar.py
+
+msgid "ONLINE"
+msgstr "在線"
+#: selfdrive/ui/layouts/sidebar.py
+
+#: selfdrive/ui/layouts/sidebar.py
+
+msgid "OFFLINE"
+msgstr "離線"
+#: selfdrive/ui/layouts/sidebar.py
+
+#: selfdrive/ui/layouts/sidebar.py
+
+msgid "HIGH"
+msgstr "高"
+#: selfdrive/ui/layouts/sidebar.py
+
+#: selfdrive/ui/layouts/sidebar.py
+
+msgid "Language"
+msgstr "語言"
+#: selfdrive/ui/layouts/sidebar.py
+
+#: selfdrive/ui/layouts/sidebar.py
+
+msgid "Software"
+msgstr "軟體"
+#: selfdrive/ui/onroad/alert_renderer.py
+
+#: selfdrive/ui/onroad/alert_renderer.py
+
+msgid "WARNING"
+msgstr "警告"
+
+msgid "1. openpilot is a driver assistance system."
+msgstr "1. openpilot 是一套駕駛輔助系統。"
+
+msgid "An alpha version of openpilot longitudinal control can be tested, along with Experimental mode, on non-release branches."
+msgstr "可在非發行分支上測試 openpilot 縱向控制的 alpha 版本以及實驗模式。"
+
+msgid "An operating system update is required. Connect your device to Wi-Fi for the fastest update experience. The download size is approximately 1GB."
+msgstr "需要進行作業系統更新。請將裝置連接到 Wi-Fi 以獲得最快的更新體驗。下載大小約為 1GB。"
+
+msgid "Are you sure you want to reset your device?"
+msgstr "確定要重設裝置嗎？"
+
+msgid "Are you sure you want to switch?"
+msgstr "確定要切換嗎？"
+
+msgid "Awareness: {}%"
+msgstr "注意力：{}%"
+
+msgid "Before we get on the road, let's finish installation and cover some details."
+msgstr "在上路之前，我們先完成安裝並了解一些細節。"
+
+msgid "CHANGE"
+msgstr "變更"
+
+msgid "CHECK"
+msgstr "檢查"
+
+msgid "CONFIRM"
+msgstr "確認"
+
+msgid "Choose Software to Use"
+msgstr "選擇要使用的軟體"
+
+msgid "Confirm"
+msgstr "確認"
+
+msgid "Connect to Wi-Fi"
+msgstr "連接到 Wi-Fi"
+
+msgid "Continue"
+msgstr "繼續"
+
+msgid "Continue without Wi-Fi"
+msgstr "不使用 Wi-Fi 繼續"
+
+msgid "Custom Software"
+msgstr "自訂軟體"
+
+msgid "Decline, uninstall openpilot"
+msgstr "拒絕並解除安裝 openpilot"
+
+msgid "Disable logging service"
+msgstr "停用日誌記錄服務"
+
+msgid "Disable update service"
+msgstr "停用更新服務"
+
+msgid "Disengage to {}"
+msgstr "脫離以{}"
+
+msgid "Dongle ID"
+msgstr "裝置 ID"
+
+msgid "Download Failed"
+msgstr "下載失敗"
+
+msgid "Downloading..."
+msgstr "正在下載..."
+
+msgid "ERROR"
+msgstr "錯誤"
+
+msgid "Enable"
+msgstr "啟用"
+
+msgid "Enable driver monitoring even when openpilot is not engaged."
+msgstr "即使未啟動 openpilot 亦啟用駕駛監控。"
+
+msgid "Enable the openpilot longitudinal control (alpha) toggle to allow Experimental mode."
+msgstr "啟用 openpilot 縱向控制（alpha）切換，以使用實驗模式。"
+
+msgid "Ensure the entered URL is valid, and the device's internet connection is good."
+msgstr "請確保輸入的 URL 有效，且裝置的網路連線正常。"
+
+msgid "Enter URL"
+msgstr "輸入 URL"
+
+msgid "Exit"
+msgstr "離開"
+
+msgid "Firehose"
+msgstr "資料洪流"
+
+msgid "Force openpilot to go into onroad/offroad state.<br>(e.g. for update purpose)"
+msgstr "強制 openpilot 進入行車/駐車狀態。<br>（例如用於更新）"
+
+msgid "Getting Started"
+msgstr "開始使用"
+
+msgid "Go Offroad"
+msgstr "進入駐車"
+
+msgid "Go Onroad"
+msgstr "進入行車"
+
+msgid "ID:"
+msgstr "ID："
+
+msgid "Incompatible openpilot version."
+msgstr "openpilot 版本不相容。"
+
+msgid "Install"
+msgstr "安裝"
+
+msgid "Invalid URL: {}"
+msgstr "無效的 URL：{}"
+
+msgid "Loading..."
+msgstr "加载中..."
+
+msgid "MAX"
+msgstr "最大"
+
+msgid "N/A"
+msgstr "無"
+
+msgid "Network"
+msgstr "網路"
+
+msgid "Device"
+msgstr "設備"
+
+msgid "Developer"
+msgstr "開發者"
+
+msgid "No custom software found at this URL."
+msgstr "在此 URL 未找到自訂軟體。"
+
+msgid "No custom software found at this URL: {}"
+msgstr "在此 URL 未找到自訂軟體：{}"
+
+msgid "On/Off Road"
+msgstr "行車/駐車"
+
+msgid "Power Off"
+msgstr "關機"
+
+msgid "Power your device in a car with a harness or proceed at your own risk."
+msgstr "請透過線束在車內為裝置供電，否則風險自負。"
+
+msgid "Reboot"
+msgstr "重新啟動"
+
+msgid "Reboot device"
+msgstr "重新啟動裝置"
+
+msgid "Regulatory"
+msgstr "法規"
+
+msgid "Reset Calibration"
+msgstr "重設校正"
+
+msgid "Reset failed. Reboot to try again."
+msgstr "重設失敗。請重新啟動後重試。"
+
+msgid ""
+"Resetting device...\n"
+"This may take up to a minute."
+msgstr ""
+"正在重設裝置...\n"
+"這可能需要一分鐘。"
+
+msgid "Review the rules, features, and limitations of openpilot"
+msgstr "檢視 openpilot 的規則、功能與限制"
+
+msgid "SELECT"
+msgstr "選取"
+
+msgid "Scroll to continue"
+msgstr "捲動以繼續"
+
+msgid "Select a Make"
+msgstr "選擇品牌"
+
+msgid "Select a Model"
+msgstr "選擇模型"
+
+msgid "Select a branch"
+msgstr "選取分支"
+
+msgid "Serial"
+msgstr "序號"
+
+msgid "Sharing your data with comma helps improve openpilot for everyone."
+msgstr "與 comma 分享您的資料有助於為所有人改進 openpilot。"
+
+msgid "Show"
+msgstr "顯示"
+
+msgid "Show Last Errors"
+msgstr "顯示最近錯誤"
+
+msgid "Start over"
+msgstr "重新開始"
+
+msgid "System Reset"
+msgstr "系統重設"
+
+msgid "System reset triggered. Press confirm to erase all content and settings. Press cancel to resume boot."
+msgstr "已觸發系統重設。按「確認」將清除所有內容和設定。按「取消」將繼續啟動。"
+
+msgid "Toggles"
+msgstr "切換"
+
+msgid "Unable to mount data partition. Partition may be corrupted. Press confirm to erase and reset your device."
+msgstr "無法掛載資料分割區。分割區可能已損毀。按「確認」將清除並重設您的裝置。"
+
+msgid "Update Required"
+msgstr "需要更新"
+
+msgid "Update available {}. Click to update. Read the release notes at blog.comma.ai."
+msgstr "有可用更新 {}。點擊進行更新。請在 blog.comma.ai 閱讀發行說明。"
+
+msgid "Update failed"
+msgstr "更新失敗"
+
+msgid "Use the openpilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature."
+msgstr "使用 openpilot 系統實現自適應巡航控制和車道維持駕駛輔助。使用此功能時您需要始終保持注意力。"
+
+msgid "VIEW"
+msgstr "檢視"
+
+msgid "Vehicle Model"
+msgstr "車輛型號"
+
+msgid "Vehicle Model list is not a valid format."
+msgstr "車輛型號清單格式無效。"
+
+msgid "Vehicle Model list not found."
+msgstr "找不到車輛型號清單。"
+
+msgid "WARNING: Custom Software"
+msgstr "警告：自訂軟體"
+
+msgid "WARNING: Low Voltage"
+msgstr "警告：電壓過低"
+
+msgid "Waiting for internet"
+msgstr "正在等待網路連線"
+
+msgid "Welcome to openpilot"
+msgstr "歡迎使用 openpilot"
+
+msgid "When enabled, pressing the accelerator pedal will disengage openpilot."
+msgstr "啟用後，踩下加速踏板將會脫離 openpilot。"
+
+msgid "You must accept the Terms & Conditions to use openpilot."
+msgstr "您必須接受條款與條件才能使用 openpilot。"
+
+msgid "You must accept the Terms and Conditions in order to use openpilot."
+msgstr "您必須接受條款與細則才能使用 openpilot。"
+
+msgid "You must accept the Terms and Conditions to use openpilot. Read the latest terms at https://comma.ai/terms before continuing."
+msgstr "您必須接受條款與細則才能使用 openpilot。繼續前請閱讀 https://comma.ai/terms 上的最新條款。"
+
+msgid "[AUTO DETECT]"
+msgstr "[自動偵測]"
+
+msgid "d:"
+msgstr "d："
+
+msgid "dV:"
+msgstr "dV："
+
+msgid "device ID"
+msgstr "裝置 ID"
+
+msgid "download failed"
+msgstr "下載失敗"
+
+msgid "dp"
+msgstr "DP"
+
+msgid "dragonpilot"
+msgstr "dragonpilot"
+
+msgid "enable openpilot"
+msgstr "啟用 openpilot"
+
+msgid "for Custom Software"
+msgstr "用於自訂軟體"
+
+msgid "ft"
+msgstr "英尺"
+
+msgid "kph"
+msgstr "公里/時"
+
+msgid "km/h"
+msgstr "公里/時"
+
+msgid "mph"
+msgstr "英里/時"
+
+msgid "level"
+msgstr "等級"
+
+msgid "m"
+msgstr "米"
+
+msgid "m/s"
+msgstr "米/秒"
+
+msgid "openpilot Unavailable"
+msgstr "openpilot 無法使用"
+
+msgid "openpilot is continuously calibrating, resetting is rarely required. Resetting calibration will restart openpilot if the car is powered on."
+msgstr "openpilot 會持續校準，通常無需重置。若車輛已通電，重置校準將重新啟動 openpilot。"
+
+msgid "openpilot longitudinal control may come in a future update."
+msgstr "openpilot 縱向控制可能於未來更新提供。"
+
+msgid "openpilot requires the device to be mounted within 4° left or right and within 5° up or 9° down."
+msgstr "openpilot 要求裝置安裝在左右 4°、上 5° 或下 9° 以內。"
+
+msgid "openpilot uses the cabin camera to check if the driver is distracted."
+msgstr "openpilot 使用車內攝影機檢測駕駛是否分心。"
+
+msgid "or go to https://comma.ai/terms"
+msgstr "或前往 https://comma.ai/terms"
+
+msgid "pair"
+msgstr "配對"
+
+msgid "paired"
+msgstr "已配對"
+
+msgid "s"
+msgstr "秒"
+
+msgid "scroll to continue"
+msgstr "捲動繼續"
+
+msgid ""
+"slide to\n"
+"{}"
+msgstr ""
+"滑動以\n"
+"{}"
+
+msgid ""
+"slide to install\n"
+"custom software"
+msgstr ""
+"滑動以安裝\n"
+"自訂軟體"
+
+msgid ""
+"slide to install\n"
+"openpilot"
+msgstr ""
+"滑動以安裝\n"
+"openpilot"
+
+msgid ""
+"start the car to\n"
+"use openpilot"
+msgstr ""
+"啟動車輛以\n"
+"使用 openpilot"
+
+msgid ""
+"swipe down to go\n"
+"back and try again"
+msgstr ""
+"向下滑動\n"
+"返回並重試"
+
+msgid ""
+"terms and\n"
+"conditions"
+msgstr ""
+"條款與\n"
+"條件"
+
+msgid ""
+"this may take up to\n"
+"a minute{}"
+msgstr ""
+"這可能需要\n"
+"最多一分鐘{}"
+
+msgid "uninstall openpilot"
+msgstr "解除安裝 openpilot"
+
+msgid "update openpilot"
+msgstr "更新 openpilot"
+
+msgid "what is openpilot?"
+msgstr "什麼是 openpilot？"
+
+msgid "y:"
+msgstr "y："
+
+msgid "{} ALERTS"
+msgstr "{} 條警報"
+
+msgid "{} days ago"
+msgstr "{} 天前"
+
+msgid "{} hours ago"
+msgstr "{} 小時前"
+
+msgid "{} minutes ago"
+msgstr "{} 分鐘前"
+
+msgid "{} segments of your driving is in the training dataset so far."
+msgstr "到目前為止，您有 {} 個駕駛片段被納入訓練數據集。"
+
+msgid "Change Language"
+msgstr "變更語言"
+
+msgid "<b>WARNING: openpilot longitudinal control is in alpha for this car and may disable Automatic Emergency Braking (AEB).</b><br><br>On this car, openpilot defaults to the car's built-in ACC instead of openpilot's longitudinal control. Enable this to switch to openpilot longitudinal control. Enabling Experimental mode is recommended when enabling openpilot longitudinal control alpha. Changing this setting will restart openpilot if the car is powered on."
+msgstr "<b>警告：此車型的 openpilot 縱向控制處於 alpha 階段，可能會停用自動緊急制動 (AEB)。</b><br><br>在此車型上，openpilot 預設使用車輛內建 ACC，而非 openpilot 的縱向控制。啟用此項可切換為 openpilot 縱向控制。啟用 openpilot 縱向控制 alpha 時，建議同時開啟實驗模式。若車輛已通電，變更此設定將重新啟動 openpilot。"
+
+msgid "Standard is recommended. In aggressive mode, openpilot will follow lead cars closer and be more aggressive with the gas and brake. In relaxed mode openpilot will stay further away from lead cars. On supported cars, you can cycle through these personalities with your steering wheel distance button."
+msgstr "推薦使用標準模式。在積極模式下，openpilot 會更近地跟隨前車，並在油門和煞車上更為積極。在從容模式下，openpilot 會與前車保持更遠的距離。在支援的車型上，可透過方向盤上的跟車距離按鍵循環切換這些風格。"
+
+msgid ""
+"Use caution when installing third-party software.\n"
+"\n"
+"⚠️ It has not been tested by comma.\n"
+"\n"
+"⚠️ It may not comply with relevant safety standards.\n"
+"\n"
+"⚠️ It may cause damage to your device and/or vehicle.\n"
+"\n"
+"If you'd like to proceed, use https://flash.comma.ai to restore your device to a factory state later.\n"
+msgstr ""
+"安裝第三方軟體時請謹慎。\n"
+"\n"
+"⚠️ 它未經 comma 測試。\n"
+"\n"
+"⚠️ 它可能不符合相關安全標準。\n"
+"\n"
+"⚠️ 它可能損壞您的裝置和/或車輛。\n"
+"\n"
+"如果您希望繼續，之後可使用 https://flash.comma.ai 將裝置還原到出廠狀態。\n"
+
+msgid "openpilot defaults to driving in chill mode. Experimental mode enables alpha-level features that aren't ready for chill mode. Experimental features are listed below:<br><h4>End-to-End Longitudinal Control</h4><br>Let the driving model control the gas and brakes. openpilot will drive as it thinks a human would, including stopping for red lights and stop signs. Since the driving model decides the speed to drive, the set speed will only act as an upper bound. This is an alpha quality feature; mistakes should be expected.<br><h4>New Driving Visualization</h4><br>The driving visualization will transition to the road-facing wide-angle camera at low speeds to better show some turns. The Experimental mode logo will also be shown in the top right corner."
+msgstr "openpilot 預設以輕鬆模式駕駛。實驗模式會啟用尚未準備好用於輕鬆模式的 alpha 級功能。實驗性功能如下：<br><h4>端到端縱向控制</h4><br>讓駕駛模型控制油門和煞車。openpilot 會像人類那樣駕駛，包括在紅燈和停車標誌前停車。由於行駛速度由駕駛模型決定，設定速度僅作為上限。這是 alpha 品質的功能，可能會出現失誤。<br><h4>全新駕駛視覺化</h4><br>駕駛視覺化會在低速時切換到面向道路的廣角攝影機，以更好地顯示某些彎道。實驗模式標誌也會顯示在右上角。"
+
+msgid ""
+"openpilot learns to drive by watching humans, like you, drive.\n"
+"\n"
+"Firehose Mode allows you to maximize your training data uploads to improve openpilot's driving models. More data means bigger models, which means better Experimental Mode."
+msgstr ""
+"openpilot 透過觀察人類（例如您）駕駛來學習開車。\n"
+"\n"
+"Firehose 模式讓您最大化上傳訓練資料，以改進 openpilot 的駕駛模型。資料越多，模型越大，實驗模式也就越好。"
+
+msgid "openpilot will disengage"
+msgstr "openpilot 將脫離"
+
+msgid "Always keep hands on wheel and eyes on road"
+msgstr "始終保持雙手握住方向盤，視線關注路況"
+
+msgid "Disable your car's stock LKAS to engage"
+msgstr "請關閉原車 LKAS 以啟用"
+
+msgid "Door Open"
+msgstr "車門未關"
+
+msgid "Drive above"
+msgstr "需行駛至"
+
+msgid "Enable Adaptive Cruise to Engage"
+msgstr "請啟用自適應巡航以啟用"
+
+msgid "Enable Main Switch to Engage"
+msgstr "請開啟主開關以啟用"
+
+msgid "Enable your car's LKAS to engage"
+msgstr "請開啟原車 LKAS 以啟用"
+
+msgid "Gear not D"
+msgstr "檔位未在 D 檔"
+
+msgid "Parking Brake Engaged"
+msgstr "手煞車已拉起"
+
+msgid "Pedal Pressed"
+msgstr "踏板被踩下"
+
+msgid "Remount Device"
+msgstr "重新安裝設備"
+
+msgid "Reverse Gear"
+msgstr "倒車檔"
+
+msgid "Seatbelt Unlatched"
+msgstr "安全帶未繫"
+
+msgid "Steer Assist Unavailable Below"
+msgstr "轉向輔助在低於"
+
+msgid "Switch to Traffic-Aware Cruise Control to engage"
+msgstr "請切換到交通感知巡航控制以啟用"
+
+msgid "System Lagging"
+msgstr "系統延遲"
+
+msgid "Toggle stock LKAS on or off to engage"
+msgstr "請切換原車 LKAS 狀態以啟用"
+
+msgid "to engage"
+msgstr "以啟用"
 

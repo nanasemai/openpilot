@@ -122,11 +122,11 @@ class BaseDriverCameraDialog(Widget):
     is_vision = dm_state.activePolicy == log.DriverMonitoringState.MonitoringPolicy.vision
     awareness_pct = dm_state.visionPolicyState.awarenessPercent if is_vision else dm_state.wheeltouchPolicyState.awarenessPercent
     gui_label(rl.Rectangle(rect.x + 2, rect.y + 2, rect.width, rect.height),
-              f"Awareness: {awareness_pct:.0f}%", font_size=44, font_weight=FontWeight.MEDIUM,
+              tr("Awareness: {}%").format(f"{awareness_pct:.0f}"), font_size=44, font_weight=FontWeight.MEDIUM,
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT,
               alignment_vertical=rl.GuiTextAlignmentVertical.TEXT_ALIGN_TOP,
               color=rl.Color(0, 0, 0, 180))
-    gui_label(rect, f"Awareness: {awareness_pct:.0f}%", font_size=44, font_weight=FontWeight.MEDIUM,
+    gui_label(rect, tr("Awareness: {}%").format(f"{awareness_pct:.0f}"), font_size=44, font_weight=FontWeight.MEDIUM,
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT,
               alignment_vertical=rl.GuiTextAlignmentVertical.TEXT_ALIGN_TOP,
               color=rl.Color(255, 255, 255, int(255 * 0.9)))
@@ -135,7 +135,7 @@ class BaseDriverCameraDialog(Widget):
       return
 
     # Show alert level
-    alert_level_str = f"{'Pay Attention' if is_vision else 'Touch Wheel'} - level {dm_state.alertLevel}"
+    alert_level_str = f"{tr('Pay Attention') if is_vision else tr('Touch Wheel')} - {tr('level')} {dm_state.alertLevel}"
     alignment = rl.GuiTextAlignment.TEXT_ALIGN_RIGHT if self.driver_state_renderer.is_rhd else rl.GuiTextAlignment.TEXT_ALIGN_LEFT
 
     shadow_rect = rl.Rectangle(rect.x + 2, rect.y + 2, rect.width, rect.height)

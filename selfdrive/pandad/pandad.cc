@@ -325,6 +325,7 @@ void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control, 
   static bool driver_view = false;
   static bool not_car = false;
   static bool not_car_checked = false;
+  const bool disable_driver = getenv("DISABLE_DRIVER");
 
   // TODO: can we merge these?
   static FirstOrderFilter integ_lines_filter(0, 30.0, 0.05);
@@ -341,7 +342,7 @@ void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control, 
       }
     }
 
-    if (sm.updated("driverCameraState")) {
+    if (!disable_driver && sm.updated("driverCameraState")) {
       auto event = sm["driverCameraState"];
       int cur_integ_lines = event.getDriverCameraState().getIntegLines();
 
@@ -366,7 +367,7 @@ void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control, 
     }
 
     // Disable IR on input timeout
-    if (nanos_since_boot() - last_driver_camera_t > 1e9) {
+    if (!disable_driver && nanos_since_boot() - last_driver_camera_t > 1e9) {
       ir_pwr = 0;
     }
 

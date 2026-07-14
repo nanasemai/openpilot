@@ -8,6 +8,7 @@ from openpilot.selfdrive.ui.widgets.exp_mode_button import ExperimentalModeButto
 from openpilot.selfdrive.ui.widgets.prime import PrimeWidget
 from openpilot.selfdrive.ui.widgets.setup import SetupWidget
 from openpilot.system.ui.lib.text_measure import measure_text_cached
+from openpilot.system.ui.lib.multilang import tr_noop
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
 from openpilot.system.ui.lib.multilang import tr, trn
 from openpilot.system.ui.widgets.label import gui_label
@@ -231,7 +232,7 @@ class HomeLayout(Widget):
     self._prev_alerts_present = alerts_present
 
   def _get_version_text(self) -> str:
-    brand = "dragonpilot"
+    brand = tr_noop("dragonpilot")
     if LITE:
       if "TICI_TRES" in os.environ:
         device_type = " - XLite"

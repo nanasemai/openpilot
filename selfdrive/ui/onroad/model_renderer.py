@@ -10,6 +10,7 @@ from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app, FontWeight
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.lib.shader_polygon import draw_polygon, Gradient
+from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.widgets import Widget
 
 CLIP_MARGIN = 500
@@ -350,16 +351,16 @@ class ModelRenderer(Widget):
         car_state = ui_state.sm['carState']
         # v
         v = lead.v_rel + car_state.vEgo
-        v_str = f"{v * 3.6:.0f} kph" if ui_state.is_metric else f"{v * 2.237:.0f} mph"
+        v_str = f"{v * 3.6:.0f} {tr('kph')}" if ui_state.is_metric else f"{v * 2.237:.0f} {tr('mph')}"
         # d_rel
-        dist_str = f"{lead.d_rel:.1f} m" if ui_state.is_metric else f"{lead.d_rel * 3.28084:.1f} ft"
+        dist_str = f"{lead.d_rel:.1f} {tr('m')}" if ui_state.is_metric else f"{lead.d_rel * 3.28084:.1f} {tr('ft')}"
 
         self._dp_paint_centered_lead_text(f"{v_str} | {dist_str}", 40, lead.x, start_y + lead.sz)
 
         # ttc
         ttc = (lead.d_rel / car_state.vEgo) if car_state.vEgo > 0 else float("NaN")
         if ttc < 5.:
-          ttc_str = f"{ttc:.1f}s"
+          ttc_str = f"{ttc:.1f}{tr('s')}"
           self._dp_paint_centered_lead_text(ttc_str, 80, lead.x, start_y + lead.sz + 40)
 
   @staticmethod
@@ -572,21 +573,21 @@ class ModelRenderer(Widget):
         rl.draw_circle(sx, sy, 10, rl.Color(255, 0, 0, 200))
 
         if ui_state.is_metric:
-          dist_unit, speed_unit = "m", "m/s"
+          dist_unit, speed_unit = tr('m'), tr('m/s')
           d_rel_str = f"{d_rel:.2f}"
           y_rel_str = f"{y_rel:.2f}"
           v_rel_str = f"{v_rel:.2f}"
         else:
-          dist_unit, speed_unit = "ft", "mph"
+          dist_unit, speed_unit = tr('ft'), tr('mph')
           d_rel_str = f"{d_rel * 3.28084:.2f}"
           y_rel_str = f"{y_rel * 3.28084:.2f}"
           v_rel_str = f"{v_rel * 2.23694:.2f}"
 
         info_text = (
-          f"ID: {point.trackId}\n"
-          f"d: {d_rel_str} {dist_unit}\n"
-          f"y: {y_rel_str} {dist_unit}\n"
-          f"dV: {v_rel_str} {speed_unit}"
+          f"{tr('ID:')} {point.trackId}\n"
+          f"{tr('d:')} {d_rel_str} {dist_unit}\n"
+          f"{tr('y:')} {y_rel_str} {dist_unit}\n"
+          f"{tr('dV:')} {v_rel_str} {speed_unit}"
         )
         lines = info_text.split('\n')
         text_x = sx + 15

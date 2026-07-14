@@ -97,6 +97,10 @@ def manager_init() -> None:
   if not build_metadata.openpilot.is_dirty:
     os.environ['CLEAN'] = '1'
 
+  # disable driver monitoring camera if hardware is faulty
+  if params.get_bool("DisableDriverMonitoringCamera"):
+    os.environ['DISABLE_DRIVER'] = '1'
+
   # init logging
   sentry.init(sentry.SentryProject.SELFDRIVE)
   cloudlog.bind_global(dongle_id=dongle_id,

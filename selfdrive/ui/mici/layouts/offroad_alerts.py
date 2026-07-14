@@ -271,7 +271,7 @@ class MiciOffroadAlerts(Scroller):
             version, date = parts[0], parts[3]
             version_string = f"\nopenpilot {version}, {date}\n"
 
-        update_alert_data.text = f"Update available {version_string}. Click to update. Read the release notes at blog.comma.ai."
+        update_alert_data.text = tr("Update available {}. Click to update. Read the release notes at blog.comma.ai.").format(version_string)
         update_alert_data.visible = True
         active_count += 1
       else:
@@ -287,7 +287,7 @@ class MiciOffroadAlerts(Scroller):
       alert_json = self._pending_params[alert_data.key]
 
       if alert_json:
-        text = alert_json.get("text", "").replace("%1", alert_json.get("extra", ""))
+        text = tr(alert_json.get("text", "")).replace("%1", alert_json.get("extra", ""))
 
       if text and not alert_data.visible:
         # Bump newly visible alerts to the top, severity sort keeps it at the top of its category

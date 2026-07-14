@@ -9,6 +9,7 @@ from openpilot.system.ui.widgets.layouts import HBoxLayout
 from openpilot.system.ui.widgets.icon_widget import IconWidget
 from openpilot.system.ui.widgets.label import UnifiedLabel, gui_label
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
+from openpilot.system.ui.lib.multilang import tr
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.version import RELEASE_BRANCHES
 
@@ -19,13 +20,13 @@ ALERTS_ZONE_WIDTH = 180
 NetworkType = log.DeviceState.NetworkType
 
 NETWORK_TYPES = {
-  NetworkType.none: "Offline",
-  NetworkType.wifi: "WiFi",
-  NetworkType.cell2G: "2G",
-  NetworkType.cell3G: "3G",
-  NetworkType.cell4G: "LTE",
-  NetworkType.cell5G: "5G",
-  NetworkType.ethernet: "Ethernet",
+  NetworkType.none: tr("Offline"),
+  NetworkType.wifi: tr("WiFi"),
+  NetworkType.cell2G: tr("2G"),
+  NetworkType.cell3G: tr("3G"),
+  NetworkType.cell4G: tr("LTE"),
+  NetworkType.cell5G: tr("5G"),
+  NetworkType.ethernet: tr("Ethernet"),
 }
 
 
@@ -156,7 +157,7 @@ class MiciHomeLayout(Widget):
       self._mic_icon,
     ], spacing=18)
 
-    self._openpilot_label = UnifiedLabel("dragonpilot", font_size=96, font_weight=FontWeight.DISPLAY, max_width=480, wrap_text=False)
+    self._openpilot_label = UnifiedLabel(tr("dragonpilot"), font_size=96, font_weight=FontWeight.DISPLAY, max_width=480, wrap_text=False)
     self._version_label = UnifiedLabel("", font_size=36, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._large_version_label = UnifiedLabel("", font_size=64, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._date_label = UnifiedLabel("", font_size=36, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
@@ -236,7 +237,7 @@ class MiciHomeLayout(Widget):
       self._date_label.render()
 
       self._branch_label.set_max_width(gui_app.width - self._version_label.text_width - self._date_label.text_width - 32)
-      self._branch_label.set_text(" " + ("release" if release_branch else self._version_text[1]))
+      self._branch_label.set_text(" " + (tr("release") if release_branch else self._version_text[1]))
       self._branch_label.set_position(version_pos.x + self._version_label.text_width + self._date_label.text_width + 20, version_pos.y)
       self._branch_label.render()
 

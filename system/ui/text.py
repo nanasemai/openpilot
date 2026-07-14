@@ -4,6 +4,7 @@ import sys
 import pyray as rl
 from openpilot.system.hardware import HARDWARE, PC
 from openpilot.system.ui.lib.application import BIG_UI, gui_app
+from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.lib.scroll_panel import GuiScrollPanel
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
@@ -63,7 +64,7 @@ class TextWindow(Widget):
     self._scroll_panel = GuiScrollPanel()
     self._scroll_panel._offset_filter_y.x = -max(self._content_rect.height - self._textarea_rect.height, 0)
 
-    button_text = "Exit" if PC else "Reboot"
+    button_text = tr("Exit") if PC else tr("Reboot")
     self._button = Button(button_text, click_callback=self._on_button_clicked, button_style=ButtonStyle.TRANSPARENT_WHITE_BORDER, font_size=FONT_SIZE)
 
   @staticmethod

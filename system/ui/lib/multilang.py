@@ -2,6 +2,7 @@ from importlib.resources import files
 import json
 import os
 import re
+from pathlib import Path
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.swaglog import cloudlog
 
@@ -11,8 +12,12 @@ except ImportError:
   Params = None
 
 SYSTEM_UI_DIR = os.path.join(BASEDIR, "system", "ui")
-UI_DIR = files("openpilot.selfdrive.ui")
-TRANSLATIONS_DIR = UI_DIR.joinpath("translations")
+
+try:
+  UI_DIR = files("openpilot.selfdrive.ui")
+  TRANSLATIONS_DIR = UI_DIR.joinpath("translations")
+except Exception:
+  TRANSLATIONS_DIR = Path(BASEDIR) / "selfdrive" / "ui" / "translations"
 LANGUAGES_FILE = TRANSLATIONS_DIR.joinpath("languages.json")
 
 UNIFONT_LANGUAGES = [
@@ -93,7 +98,8 @@ def load_translations(path) -> tuple[dict[str, str], dict[str, list[str]]]:
         max_idx = max(msgstr_plurals.keys()) if msgstr_plurals else 0
         plurals[msgid] = [msgstr_plurals.get(i, '') for i in range(max_idx + 1)]
       else:
-        translations[msgid] = msgstr
+        if msgstr:
+          translations[msgid] = msgstr
     msgid = msgid_plural = msgstr = ""
     msgstr_plurals = {}
     field = None

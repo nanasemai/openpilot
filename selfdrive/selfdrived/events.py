@@ -14,6 +14,7 @@ from openpilot.selfdrive.locationd.calibrationd import MIN_SPEED_FILTER
 from openpilot.system.micd import SAMPLE_RATE, SAMPLE_BUFFER
 from openpilot.selfdrive.ui.feedback.feedbackd import FEEDBACK_MAX_DURATION
 from openpilot.system.hardware import HARDWARE
+from openpilot.system.ui.lib.multilang import tr
 
 AlertSize = log.SelfdriveState.AlertSize
 AlertStatus = log.SelfdriveState.AlertStatus
@@ -121,8 +122,8 @@ class Alert:
                duration: float,
                creation_delay: float = 0.):
 
-    self.alert_text_1 = alert_text_1
-    self.alert_text_2 = alert_text_2
+    self.alert_text_1 = tr(alert_text_1)
+    self.alert_text_2 = tr(alert_text_2)
     self.alert_status = alert_status
     self.alert_size = alert_size
     self.priority = priority
@@ -170,7 +171,7 @@ class SoftDisableAlert(Alert):
 class UserSoftDisableAlert(SoftDisableAlert):
   def __init__(self, alert_text_2: str):
     super().__init__(alert_text_2),
-    self.alert_text_1 = "openpilot will disengage"
+    self.alert_text_1 = tr("openpilot will disengage")
 
 
 class ImmediateDisableAlert(Alert):
@@ -243,22 +244,22 @@ def startup_master_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubM
   return StartupAlert("WARNING: This branch is not tested", branch, alert_status=AlertStatus.userPrompt)
 
 def below_engage_speed_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
-  return NoEntryAlert(f"Drive above {get_display_speed(CP.minEnableSpeed, metric)} to engage")
+  return NoEntryAlert(f"{tr('Drive above')} {get_display_speed(CP.minEnableSpeed, metric)} {tr('to engage')}")
 
 
 def below_steer_speed_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
   return Alert(
-    f"Steer Assist Unavailable Below {get_display_speed(CP.minSteerSpeed, metric)}",
+    f"{tr('Steer Assist Unavailable Below')} {get_display_speed(CP.minSteerSpeed, metric)}",
     "",
     AlertStatus.userPrompt, AlertSize.small,
     Priority.LOW, VisualAlert.none, AudibleAlert.prompt, 0.4)
 
 
 def calibration_incomplete_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
-  first_word = 'Recalibrating' if sm['liveCalibration'].calStatus == log.LiveCalibrationData.Status.recalibrating else 'Calibrating'
+  first_word = tr('Recalibrating') if sm['liveCalibration'].calStatus == log.LiveCalibrationData.Status.recalibrating else tr('Calibrating')
   return Alert(
     f"{first_word}: {sm['liveCalibration'].calPerc:.0f}%",
-    f"Drive Above {get_display_speed(MIN_SPEED_FILTER, metric)}",
+    f"{tr('Drive Above')} {get_display_speed(MIN_SPEED_FILTER, metric)}",
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2)
 
@@ -307,7 +308,7 @@ def calibration_invalid_alert(CP: car.CarParams, CS: car.CarState, sm: messaging
   rpy = sm['liveCalibration'].rpyCalib
   yaw = math.degrees(rpy[2] if len(rpy) == 3 else math.nan)
   pitch = math.degrees(rpy[1] if len(rpy) == 3 else math.nan)
-  angles = f"Remount Device (Pitch: {pitch:.1f}°, Yaw: {yaw:.1f}°)"
+  angles = f"{tr('Remount Device')} (Pitch: {pitch:.1f}°, Yaw: {yaw:.1f}°)"
   return NormalPermanentAlert("Calibration Invalid", angles)
 
 
