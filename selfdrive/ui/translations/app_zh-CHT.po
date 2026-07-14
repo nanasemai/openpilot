@@ -48,6 +48,10 @@ msgstr "0 = 所有聲音; 1 = 僅警告; 2 = 靜音"
 msgid "0 MB"
 msgstr "0 MB"
 
+#: selfdrive/ui/onroad/augmented_road_view.py
+msgid "2x"
+msgstr "2倍"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "0% - Downloading Maps"
 msgstr "0% - 正在下载地图"
@@ -318,6 +322,10 @@ msgstr "當車速超過 20 km/h 且在 D 檔時自動鎖門，掛入 P 檔時自
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."
 msgstr ""
+
+#: selfdrive/ui/mici/onroad/driver_camera_dialog.py
+msgid "Awareness"
+msgstr "駕駛員注意力"
 
 #: selfdrive/selfdrived/events.py
 msgid "BRAKE!"
@@ -1872,6 +1880,10 @@ msgstr "PANDA"
 msgid "PAST WEEK"
 msgstr "過去一週"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Perform a search"
+msgstr "執行搜索"
+
 #: selfdrive/ui/layouts/settings/device.py
 msgid "PREVIEW"
 msgstr "預覽"
@@ -2855,6 +2867,10 @@ msgstr "未知车辆型号"
 msgid "Unrecognized Vehicle"
 msgstr "未辨識的車輛"
 
+#: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
+msgid "UnregisteredDevice"
+msgstr "未註冊設備"
+
 #: selfdrive/ui/mici/layouts/offroad_alerts.py
 msgid "Update available"
 msgstr "有可用更新"
@@ -3585,6 +3601,10 @@ msgstr "請重新啟動後重試"
 msgid "power off"
 msgstr "关机"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "pending"
+msgstr "待處理"
+
 #: selfdrive/ui/sunnypilot/mici/layouts/models.py
 msgid "progress"
 msgstr "進度"
@@ -3592,6 +3612,10 @@ msgstr "進度"
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "ready"
 msgstr "就緒"
+
+#: selfdrive/ui/mici/layouts/home.py
+msgid "release"
+msgstr "發布版"
 
 #: selfdrive/ui/mici/layouts/settings/device.py
 msgid "reboot"
