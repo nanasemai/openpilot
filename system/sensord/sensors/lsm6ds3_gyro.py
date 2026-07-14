@@ -3,7 +3,7 @@ import math
 import time
 
 from cereal import log
-from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+from openpilot.system.sensord.sensors.i2c_sensor import Sensor, to_device_frame
 
 class LSM6DS3_Gyro(Sensor):
   LSM6DS3_GYRO_I2C_REG_DRDY_CFG  = 0x0B
@@ -65,11 +65,11 @@ class LSM6DS3_Gyro(Sensor):
       raise self.DataNotReady
 
     b = self.read(self.LSM6DS3_GYRO_I2C_REG_OUTX_L_G, 6)
-    x = self.parse_16bit(b[0], b[1])
-    y = self.parse_16bit(b[2], b[3])
-    z = self.parse_16bit(b[4], b[5])
     scale = (8.75 / 1000.0) * (math.pi / 180.0)
-    xyz = [y * scale, -x * scale, z * scale]
+    x = self.parse_16bit(b[0], b[1]) * scale
+    y = self.parse_16bit(b[2], b[3]) * scale
+    z = self.parse_16bit(b[4], b[5]) * scale
+    xyz = to_device_frame(x, y, z)
 
     event = log.SensorEventData.new_message()
     event.timestamp = ts

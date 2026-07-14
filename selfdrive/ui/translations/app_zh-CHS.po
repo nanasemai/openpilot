@@ -3900,6 +3900,10 @@ msgstr "sunnypilot检测到设备安装位置发生变化。确保设备完全�
 msgid "sunnypilot is continuously calibrating, resetting is rarely required. Resetting calibration will restart sunnypilot if the car is powered on."
 msgstr "sunnypilot 会持续进行校准，很少需要重置。若车辆已通电，重置校准将重启 sunnypilot。"
 
+#: selfdrive/ui/layouts/settings/device.py
+msgid " IMU orientation mismatch: configured {}, detected {}."
+msgstr " IMU 朝向不匹配，配置为 {}，检测到 {}。"
+
 #: selfdrive/ui/layouts/settings/firehose.py
 #: selfdrive/ui/mici/layouts/settings/firehose.py
 msgid ""
