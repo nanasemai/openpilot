@@ -38,7 +38,7 @@ class SunnylinkInfo(Widget):
 
     self.sponsor_header = UnifiedLabel(tr("sponsor tier"), 48, max_width=max_width, text_color=header_color,
                                        font_weight=FontWeight.DISPLAY, shimmer=True)
-    self.sponsor_text = UnifiedLabel("N/A", 32, max_width=max_width, text_color=subheader_color, font_weight=FontWeight.ROMAN)
+    self.sponsor_text = UnifiedLabel(tr("N/A"), 32, max_width=max_width, text_color=subheader_color, font_weight=FontWeight.ROMAN)
 
   def _render(self, _):
     self.device_id_header.set_position(self._rect.x + 20, self._rect.y - 10)
@@ -97,7 +97,7 @@ class SunnylinkLayoutMici(NavScroller):
     self.handle_backup_restore_progress()
 
     self._sunnylink_info.device_id_text.set_text(ui_state.params.get("SunnylinkDongleId") or UNREGISTERED_SUNNYLINK_DONGLE_ID)
-    self._sunnylink_info.sponsor_text.set_text(ui_state.sunnylink_state.get_sponsor_tier().name.lower() or "N/A")
+    self._sunnylink_info.sponsor_text.set_text(ui_state.sunnylink_state.get_sponsor_tier().name.lower() or tr("N/A"))
     self._sunnylink_info.set_visible(self._sunnylink_enabled)
 
     if ui_state.sunnylink_state.is_sponsor():

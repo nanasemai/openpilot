@@ -4117,3 +4117,191 @@ msgstr "未找到Sunnylink Dongle ID。"
 msgid "turn on ignition to use"
 msgstr "请启动车辆以使用"
 
+#: selfdrive/ui/mici/onroad/augmented_road_view.py
+msgid "system booting"
+msgstr "系统启动中"
+
+#: selfdrive/ui/mici/onroad/augmented_road_view.py
+msgid "openpilot can't start\ncheck alerts"
+msgstr "openpilot 无法启动\n请检查警报"
+
+#: selfdrive/ui/mici/onroad/augmented_road_view.py
+msgid "start the car to\nuse sunnypilot"
+msgstr "启动车辆以使用 sunnypilot"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "wi-fi"
+msgstr "Wi-Fi"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "not connected"
+msgstr "未连接"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "starting"
+msgstr "启动中"
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "connecting..."
+msgstr "连接中..."
+
+#: selfdrive/ui/mici/layouts/settings/network/__init__.py
+msgid "obtaining IP..."
+msgstr "获取 IP 中..."
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "enable livestream"
+msgstr "启用投屏"
+
+#: system/ui/mici_setup.py
+msgid "next"
+msgstr "下一步"
+
+#: system/ui/mici_setup.py
+msgid "caution: installing\n3rd party software"
+msgstr "警告：正在安装\n第三方软件"
+
+#: system/ui/mici_setup.py
+msgid "swipe down to go back"
+msgstr "向下滑动返回"
+
+#: system/ui/mici_setup.py
+msgid "• It has not been tested by comma."
+msgstr "• 未经 comma 公司测试"
+
+#: system/ui/mici_setup.py
+msgid "• It may not comply with safety standards."
+msgstr "• 可能不符合安全标准"
+
+#: system/ui/mici_setup.py
+msgid "• It may damage your device and/or vehicle."
+msgstr "• 可能损坏您的设备和/或车辆"
+
+#: system/ui/mici_setup.py
+msgid "how to restore to a\nfactory state later"
+msgstr "如何恢复出厂状态"
+
+#: system/ui/mici_setup.py
+msgid "downloading..."
+msgstr "下载中..."
+
+#: system/ui/mici_setup.py
+msgid "connect to\ninternet"
+msgstr "连接到\n互联网"
+
+#: system/ui/mici_setup.py
+msgid "connect to\ncontinue"
+msgstr "连接以\n继续"
+
+#: system/ui/mici_setup.py
+msgid "install openpilot"
+msgstr "安装 openpilot"
+
+#: system/ui/mici_setup.py
+msgid "waiting for\ninternet..."
+msgstr "等待\n网络..."
+
+#: system/ui/mici_setup.py
+msgid "choose software"
+msgstr "选择软件"
+
+#: system/ui/mici_updater.py
+msgid "download\n& install"
+msgstr "下载\n并安装"
+
+#: system/ui/mici_updater.py
+msgid "loading"
+msgstr "加载中"
+
+#: system/ui/mici_updater.py
+msgid "update failed"
+msgstr "更新失败"
+
+#: system/ui/mici_updater.py
+msgid "update required"
+msgstr "需要更新"
+
+#: system/ui/mici_updater.py
+msgid "the download size\nis approximately 1 GB"
+msgstr "下载大小约 1 GB"
+
+#: system/ui/mici_reset.py
+msgid "reset failed"
+msgstr "重置失败"
+
+#: system/ui/mici_reset.py
+msgid "reboot to try again"
+msgstr "重启以重试"
+
+#: system/ui/mici_reset.py
+msgid "resetting device"
+msgstr "正在重置设备"
+
+#: system/ui/mici_reset.py
+msgid "this may take up to\na minute..."
+msgstr "可能需要\n一分钟..."
+
+#: system/ui/mici_reset.py
+msgid "this may take up to\na minute"
+msgstr "可能需要\n一分钟"
+
+#: system/ui/mici_reset.py
+msgid "reset &\nerase"
+msgstr "重置并\n抹除"
+
+#: system/ui/mici_reset.py
+msgid "cancel"
+msgstr "取消"
+
+#: system/ui/mici_reset.py
+msgid "reboot\ndevice"
+msgstr "重启\n设备"
+
+#: system/ui/mici_reset.py
+msgid "factory reset"
+msgstr "恢复出厂设置"
+
+#: system/ui/mici_reset.py
+msgid "resetting erases\nall user content & data"
+msgstr "重置将清除\n所有用户内容和数据"
+
+#: system/ui/mici_reset.py
+msgid "Resetting erases all user content & data."
+msgstr "重置将清除所有用户内容和数据。"
+
+#: system/ui/mici_reset.py
+msgid "user data partition\ncould not be mounted"
+msgstr "用户数据分区\n无法挂载"
+
+#: system/ui/mici_reset.py
+msgid "reset triggered by\ntapping the screen"
+msgstr "通过点击屏幕\n触发了重置"
+
+#: system/ui/mici_reset.py
+msgid "For a deeper reset, go to\nhttps://flash.comma.ai"
+msgstr "如需深度重置，请访问\nhttps://flash.comma.ai"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "tethering password"
+msgstr "热点密码"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "enter APN..."
+msgstr "输入 APN..."
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "Loading..."
+msgstr "加载中..."
+
+#: system/ui/mici_setup.py
+msgid "start"
+msgstr "开始"
+
+#: system/ui/mici_setup.py
+msgid "custom software URL..."
+msgstr "自定义软件 URL..."
+
+#: selfdrive/ui/sunnypilot/mici/layouts/sunnylink.py
+msgid "N/A"
+msgstr "无"
+
