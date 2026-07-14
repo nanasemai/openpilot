@@ -1437,6 +1437,14 @@ msgstr "LTE"
 msgid "Lane Departure Detected"
 msgstr "检测到车道偏离"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Lane Position Offset"
+msgstr "車道內位置偏移"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Fine-tune where the car drives within the lane. Positive values move the car left, negative values move right."
+msgstr "微調車輛在車道內的行駛位置。正值使車輛向左偏移，負值向右偏移。"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "Last checked {}"
 msgstr "上次檢查：{}"
