@@ -2,7 +2,7 @@ import os
 import time
 
 from cereal import log
-from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+from openpilot.system.sensord.sensors.i2c_sensor import Sensor, to_device_frame
 
 class LSM6DS3_Accel(Sensor):
   LSM6DS3_ACCEL_I2C_REG_DRDY_CFG  = 0x0B
@@ -79,7 +79,7 @@ class LSM6DS3_Accel(Sensor):
     event.timestamp = ts
     event.source = self.source
     a = event.init('acceleration')
-    a.v = [y, -x, z]
+    a.v = to_device_frame(x, y, z)
     return event
 
   def shutdown(self) -> None:
