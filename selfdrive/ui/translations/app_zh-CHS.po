@@ -1368,6 +1368,10 @@ msgstr "人工转弯检测 (HTD)"
 msgid "INACTIVE: connect to an unmetered network"
 msgstr "未激活：请连接到不限流量的网络"
 
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "INACTIVE: Comma Connect is disabled"
+msgstr "未激活：远程连接已禁用"
+
 #: selfdrive/ui/layouts/settings/software.py
 msgid "INSTALL"
 msgstr "安装"
@@ -1799,6 +1803,14 @@ msgstr "行车亮度延迟"
 #: selfdrive/ui/sunnypilot/layouts/settings/device.py
 msgid "Onroad Uploads"
 msgstr "行车中上传"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Disable Comma Connect"
+msgstr "禁用远程连接"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/device.py
+msgid "Disable Comma connect service if you do not wish to upload / being tracked by the service."
+msgstr "如果您不希望上传数据或被服务追踪，可禁用 Comma 远程连接服务。"
 
 #: selfdrive/ui/widgets/setup.py
 msgid "Open"
