@@ -40,24 +40,24 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
 #dash { display:flex; flex-direction:column; height:100%; padding:12px; gap:10px; overflow-y:auto; }
 
 /* 顶栏 */
-#topbar { display:flex; justify-content:space-between; align-items:center; padding:10px 0; }
-#brand { font-size:1.3rem; font-weight:800; color:var(--accent); }
-#brand small { font-weight:500; color:var(--dim); font-size:1rem; }
-#opState { font-size:1.2rem; font-weight:700; padding:6px 16px; border-radius:20px;
+#topbar, .topbar { display:flex; justify-content:space-between; align-items:center; padding:10px 0; }
+#brand, .brand { font-size:1.3rem; font-weight:800; color:var(--accent); }
+#brand small, .brand small { font-weight:500; color:var(--dim); font-size:1rem; }
+#opState, .opState { font-size:1.2rem; font-weight:700; padding:6px 16px; border-radius:20px;
   background:var(--card); border:var(--bw); color:var(--dim); }
-#opState.active { background:var(--green); color:#fff; border-color:var(--green); }
+#opState.active, .opState.active { background:var(--green); color:#fff; border-color:var(--green); }
 
 /* 提醒 */
-#alert { background:var(--card); border:var(--bw); border-radius:var(--br); padding:14px 18px; }
-#alert.idle { border-left:4px solid var(--dim); }
-#alert.warn { border-left:4px solid var(--warn); }
-#alert.severe { border-left:4px solid var(--danger); }
+#alert, .alertCard { background:var(--card); border:var(--bw); border-radius:var(--br); padding:14px 18px; }
+#alert.idle, .alertCard.idle { border-left:4px solid var(--dim); }
+#alert.warn, .alertCard.warn { border-left:4px solid var(--warn); }
+#alert.severe, .alertCard.severe { border-left:4px solid var(--danger); }
 .ah { font-size:1.1rem; color:var(--dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
 .a1 { font-size:1.7rem; font-weight:800; color:var(--txt); }
 .a2 { font-size:1.25rem; color:var(--dim); margin-top:3px; font-weight:500; }
 
 /* 速度卡 */
-#speedCard { background:var(--card); border:var(--bw); border-radius:var(--br);
+#speedCard, .speedCard { background:var(--card); border:var(--bw); border-radius:var(--br);
   padding:18px 28px; text-align:center; position:relative; }
 .sigs { display:flex; justify-content:space-between; position:absolute; left:20px; right:20px; top:12px; }
 .sig { font-size:1.3rem; color:var(--dim); transition:color .2s; font-weight:700; }
@@ -113,70 +113,27 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
 #camBtn.open { background:var(--accent); color:#fff; }
 #diagBtn.open { background:var(--accent); color:#fff; }
 
-/* ── 摄像头全屏（仪表台卡片式风格） ── */
-#camView { display:none; position:fixed; inset:0; z-index:20; background:var(--bg);
-  flex-direction:column; }
-#camView.open { display:flex; }
-/* 关闭按钮 */
+/* ── 摄像头页（完全仿仪表台样式） ── */
+#camView { display:none; position:fixed; inset:0; z-index:20; background:var(--bg); }
+#camView.open { display:flex; flex-direction:column; height:100%; padding:12px; gap:10px; overflow-y:auto; }
 #camClose { position:fixed; top:10px; right:10px; z-index:30; width:36px; height:36px; border-radius:50%;
   border:none; background:rgba(0,0,0,.5); color:#fff; font-size:1.1rem; cursor:pointer; display:flex;
   align-items:center; justify-content:center; }
-/* 顶栏 */
-#camTopBar { padding:6px 12px; background:rgba(10,10,20,.92); display:flex; justify-content:space-between;
-  align-items:center; flex-shrink:0; }
-#camTopLeft { display:flex; align-items:center; gap:8px; }
-#camDot { width:8px; height:8px; border-radius:50%; display:inline-block; }
-#camDot.green { background:#22c55e; box-shadow:0 0 8px #22c55e; }
-#camDot.gray { background:#64748b; }
-#camStateText { font-size:.8rem; font-weight:700; color:#e2e8f0; }
-#camGear { font-size:.8rem; font-weight:800; color:#94a3b8; margin-left:2px; }
-#camSigs { display:flex; gap:6px; font-size:.9rem; font-weight:700; }
-#camSigs .sig { color:#64748b; }
-#camSigs .sig.active { color:#fbbf24; }
-/* 滚动内容区（卡片们） */
-#camContent { flex:1; overflow-y:auto; padding:10px 14px 16px; }
-/* 提醒卡片 */
-#camAlertCard { background:var(--card); border-radius:var(--r); box-shadow:var(--shadow);
-  padding:8px 14px; margin-bottom:10px; display:none; }
-#camAlertCard.visible { display:block; }
-#camAlertText { font-size:.85rem; font-weight:600; color:#94a3b8; }
-#camAlertText.warn { color:#d97706; }
-#camAlertText.severe { color:#dc2626; }
-/* 摄像头画面卡片 */
-#camVideoCard { background:var(--card); border-radius:var(--r); box-shadow:var(--shadow);
-  padding:8px; margin-bottom:10px; }
-#camVideoWrap { position:relative; background:#000; border-radius:calc(var(--r) - 4px);
+/* 摄像头画面卡片（仪表台卡片样式） */
+#camVideoCard { background:var(--card); border:var(--bw); border-radius:var(--br); padding:8px; }
+#camVideoWrap { position:relative; background:#000; border-radius:calc(var(--br) - 4px);
   overflow:hidden; aspect-ratio:16/9; }
 #camVideoWrap canvas, #camVideoWrap video { position:absolute; inset:0; width:100%; height:100%;
   object-fit:contain; }
-/* 连接状态（居中） */
 #camStatus { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:5;
-  padding:6px 16px; border-radius:20px; background:rgba(0,0,0,.7); color:#94a3b8; font-size:.85rem;
+  padding:6px 16px; border-radius:20px; background:rgba(0,0,0,.7); color:#94a3b8; font-size:.9rem;
   display:none; white-space:nowrap; }
 #camStatus.visible { display:block; }
-/* 告警闪烁（画面中央） */
 #camAlert { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:6;
   display:none; pointer-events:none; }
 #camAlert.visible { display:block; }
 #camAlert .alarm { font-size:clamp(2.5rem,12vw,5rem); filter:drop-shadow(0 0 20px rgba(255,0,0,.6));
   animation: pulse 1s ease-in-out infinite; }
-/* 速度卡片 */
-#camSpeedCard { background:var(--card); border-radius:var(--r); box-shadow:var(--shadow);
-  padding:12px 20px; text-align:center; }
-#camSpeedMain { display:flex; align-items:baseline; justify-content:center; gap:6px; }
-#camSpd { font-size:clamp(2.8rem,12vw,4.5rem); font-weight:800; color:var(--txt); line-height:1; }
-#camUnit { font-size:1.1rem; color:var(--dim); font-weight:600; }
-#camCruise { font-size:.9rem; font-weight:600; color:var(--dim); margin-top:4px; }
-#camCruise .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; }
-#camCruise .dot.green { background:var(--green); box-shadow:0 0 6px var(--green); }
-#camCruise .dot.gray { background:var(--dim); }
-#camCruise .setv { color:var(--txt); font-weight:700; }
-/* 校准 */
-#camCal { font-size:.75rem; color:var(--dim); text-align:center; margin-top:10px; font-weight:500; }
-#camCal b { color:var(--txt); }
-#camCalBar { display:inline-block; width:50px; height:3px; background:rgba(0,0,0,.08);
-  border-radius:2px; vertical-align:middle; margin-left:4px; overflow:hidden; }
-#camCalFill { display:block; height:100%; background:linear-gradient(90deg,#22c55e,#22d3ee); border-radius:2px; }
 @keyframes pulse {
   0%,100% { opacity:1; transform:scale(1); }
   50% { opacity:.4; transform:scale(1.15); }
@@ -270,36 +227,42 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
   </div>
 </div>
 
-<!-- ═══ 摄像头全屏（仪表台卡片式风格） ═══ -->
+<!-- ═══ 摄像头页（仿仪表台样式） ═══ -->
 <div id="camView">
   <button id="camClose">✕</button>
-  <div id="camTopBar">
-    <div id="camTopLeft">
-      <span id="camDot" class="gray"></span>
-      <span id="camStateText">等待</span><span id="camGear">--</span>
-    </div>
-    <div id="camSigs"><span id="camBlL" class="sig">◀</span><span id="camBlR" class="sig">▶</span></div>
+
+  <div class="topbar">
+    <div class="brand">C3 <small>摄像头</small></div>
+    <div class="opState" id="camOpState">未连接</div>
   </div>
-  <div id="camContent">
-    <div id="camAlertCard">
-      <div id="camAlertText"></div>
+
+  <div class="alertCard idle" id="camAlertCard" style="display:none;">
+    <div class="ah">系统提醒</div>
+    <div class="a1" id="camAlertText"></div>
+  </div>
+
+  <div id="camVideoCard">
+    <div id="camVideoWrap">
+      <canvas id="v"></canvas>
+      <video id="vMse" muted playsinline></video>
+      <div id="camAlert"><span class="alarm">⚠</span></div>
+      <div id="camStatus">连接中…</div>
     </div>
-    <div id="camVideoCard">
-      <div id="camVideoWrap">
-        <canvas id="v"></canvas>
-        <video id="vMse" muted playsinline></video>
-        <div id="camAlert"><span class="alarm">⚠</span></div>
-        <div id="camStatus">连接中…</div>
-      </div>
+  </div>
+
+  <div class="speedCard">
+    <div class="sigs">
+      <span><span id="camBlL" class="sig">◀</span></span>
+      <span><span id="camBlR" class="sig">▶</span></span>
     </div>
-    <div id="camSpeedCard">
-      <div id="camSpeedMain">
-        <span id="camSpd">--</span>
-        <span id="camUnit">km/h</span>
-      </div>
-      <div id="camCruise"><span class="dot gray" id="camCruiseDot"></span>CRUISE <span class="setv" id="camCruiseSet">--</span> <span id="camCruiseU">km/h</span></div>
+    <div class="gear" id="camGear">--</div>
+    <div class="spd" id="camSpd">--</div>
+    <div class="unit" id="camUnit">km/h</div>
+    <div class="cruise">
+      <span class="dot" id="camCruiseDot"></span>
+      CRUISE <span class="setv" id="camCruiseSet">--</span>
+      <span class="setv" id="camCruiseU">km/h</span>
     </div>
-    <div id="camCal">校准 <b id="camCalV">0%</b><span id="camCalBar"><span id="camCalFill" style="width:0%"></span></span></div>
   </div>
 </div>
 
@@ -337,12 +300,11 @@ const el = {
   camBtn: $('camBtn'), diagBtn: $('diagBtn'),
   camView: $('camView'), camClose: $('camClose'), camStatus: $('camStatus'),
   camSpd: $('camSpd'), camUnit: $('camUnit'), camAlert: $('camAlert'),
-  camDot: $('camDot'), camStateText: $('camStateText'),
-  camGear: $('camGear'), camBlL: $('camBlL'), camBlR: $('camBlR'),
-  camAlertText: $('camAlertText'),
+  camOpState: $('camOpState'), camGear: $('camGear'),
+  camBlL: $('camBlL'), camBlR: $('camBlR'),
+  camAlertCard: $('camAlertCard'), camAlertText: $('camAlertText'),
   camCruise: $('camCruise'), camCruiseDot: $('camCruiseDot'),
   camCruiseSet: $('camCruiseSet'), camCruiseU: $('camCruiseU'),
-  camCal: $('camCal'), camCalV: $('camCalV'), camCalFill: $('camCalFill'),
   panel: $('panel'), panelOverlay: $('panelOverlay'),
   procArea: $('procArea'), logList: $('logList'), logCount: $('logCount'), clearLog: $('clearLog'),
   canvas: $('v'),
@@ -435,18 +397,6 @@ function renderDash() {
   el.cruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
   el.cruiseU.textContent = car.speedUnit || 'km/h';
   el.cruiseDot.className = 'dot' + (car.cruise ? ' on' : '');
-  el.camSpd.textContent = v != null ? Math.round(v).toString() : '--';
-  el.camUnit.textContent = ' ' + (car.speedUnit || 'km/h');
-  // 摄像头顶栏
-  el.camDot.className = 'dot' + (self.enabled ? ' green' : ' gray');
-  el.camStateText.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
-  el.camGear.textContent = car.gear || '--';
-  el.camBlL.className = 'sig' + (car.blindspotL ? ' active' : '');
-  el.camBlR.className = 'sig' + (car.blindspotR ? ' active' : '');
-  // 摄像头巡航
-  el.camCruiseDot.className = 'dot' + (car.cruise ? ' green' : ' gray');
-  el.camCruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
-  el.camCruiseU.textContent = car.speedUnit || 'km/h';
   el.gearG.textContent = car.gear || '--';
 
   // 盲点 + 手扶方向盘
@@ -512,9 +462,18 @@ function renderDash() {
     el.calAim.textContent = '设备指向：' + cal.rpy.map(v => (v * 180 / Math.PI).toFixed(1) + '°').join(' ');
   }
 
-  // 更新摄像头 HUD
+  // 更新摄像头 HUD（仿仪表台）
   if (camActive) {
+    el.camOpState.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
+    el.camOpState.className = 'opState' + (self.enabled ? ' active' : '');
+    el.camGear.textContent = car.gear || '--';
     el.camSpd.textContent = v != null ? Math.round(v).toString() : '--';
+    el.camUnit.textContent = car.speedUnit || 'km/h';
+    el.camCruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
+    el.camCruiseU.textContent = car.speedUnit || 'km/h';
+    el.camCruiseDot.className = 'dot' + (car.cruise ? ' on' : '');
+    el.camBlL.className = 'sig' + (car.blindspotL ? ' active' : '');
+    el.camBlR.className = 'sig' + (car.blindspotR ? ' active' : '');
   }
 
   // 诊断日志：异常进程
@@ -542,19 +501,16 @@ function renderDash() {
   // 摄像头画面告警闪烁（严重事件）
   el.camAlert.classList.toggle('visible', hasSevere);
 
-  // 摄像头告警文本
+  // 摄像头告警卡片（复用仪表台提醒样式）
   const alert1 = self.alert1 || '';
   const alert2 = self.alert2 || '';
   const alertStatus = self.alertStatus || '';
   const hasAlert = alert1 && alert1 !== '—';
-  const alertCard = document.getElementById('camAlertCard');
-  if (alertCard) alertCard.classList.toggle('visible', hasAlert);
+  el.camAlertCard.style.display = hasAlert ? 'block' : 'none';
+  el.camAlertCard.className = 'alertCard ' + (alertStatus === 'severe' ? 'severe' :
+                                              alertStatus === 'warning' ? 'warn' : 'idle');
   if (hasAlert) {
     el.camAlertText.textContent = alert1 + (alert2 ? ' · ' + alert2 : '');
-    el.camAlertText.className = alertStatus === 'severe' ? 'severe visible' :
-                                 alertStatus === 'warning' ? 'warn visible' : 'visible';
-  } else {
-    el.camAlertText.className = '';
   }
 
   // 渲染诊断日志
@@ -820,8 +776,8 @@ function initMSE() {
   if (!hasMSE) { el.camStatus.textContent = 'Video unsupported'; return; }
   const ms = new MediaSource();
   el.canvas.style.display = 'none';
-  let video = document.querySelector('#camView video');
-  if (!video) { video = document.createElement('video'); video.muted = true; video.playsInline = true; video.autoplay = true; $('camView').appendChild(video); }
+  let video = document.querySelector('#camVideoWrap video');
+  if (!video) { video = document.createElement('video'); video.muted = true; video.playsInline = true; video.autoplay = true; $('camVideoWrap').appendChild(video); }
   video.style.display = 'block';
   video.src = URL.createObjectURL(ms);
 
@@ -958,6 +914,62 @@ setTimeout(() => {
     renderDash();
   }
 }, 2000);
+
+// ═══ Mock 场景：?demo=cam 自动演示"摄像头加载 + 系统告警" ═══
+// 用法：在浏览器地址栏追加 ?demo=cam 即可本地验证视觉效果（无需后端）
+if (/[?&]demo=cam/.test(location.search)) {
+  let tick = 0;
+  // 立即注入基础数据并打开摄像头
+  mergeState(DEMO_DATA);
+  renderDash();
+  openCamera();
+  // 强制进入模拟路况画面（跳过 3 次重连等待）
+  setTimeout(() => {
+    if (videoWS) { try { videoWS.close(); } catch(_){} videoWS = null; }
+    simMode = true;
+    el.camStatus.classList.remove('visible');
+    el.canvas.style.display = 'block';
+    const vv = document.querySelector('#camVideoWrap video');
+    if (vv) vv.style.display = 'none';
+    if (!simRoad) { simRoad = new SimRoad(el.canvas); simRoad.start(72); }
+  }, 300);
+
+  // 每 3 秒循环切换场景：正常行驶 → 警告 → 严重告警 → 恢复
+  setInterval(() => {
+    tick = (tick + 1) % 4;
+    const speeds = [72, 85, 45, 60];
+    const scene = {
+      _sync: false,
+      car: { ...DEMO_DATA.car, vKph: speeds[tick],
+             blindspotL: tick === 1, blindspotR: tick === 3,
+             steeringPressed: tick !== 2, gasPressed: tick === 1 },
+      self: { ...DEMO_DATA.self },
+      events: { count: 0, list: [] },
+    };
+    if (tick === 1) {
+      // 警告场景
+      scene.self.alert1 = '请注意前方车辆';
+      scene.self.alertStatus = 'warning';
+      scene.events = { count: 1, list: [{ name: 'steerWarning', severity: 1 }] };
+    } else if (tick === 2) {
+      // 严重告警场景（触发红色闪烁）
+      scene.self.alert1 = '接管！转向暂时不可用';
+      scene.self.alert2 = 'STEER TEMPORARILY UNAVAILABLE';
+      scene.self.alertStatus = 'severe';
+      scene.self.active = false;
+      scene.events = { count: 1, list: [{ name: 'steerTempUnavailable', severity: 3 }] };
+    } else {
+      // 正常场景
+      scene.self.alert1 = 'LKAS 运行中';
+      scene.self.alert2 = '';
+      scene.self.alertStatus = 'normal';
+      scene.self.active = true;
+    }
+    mergeState(scene);
+    renderDash();
+    if (simRoad) simRoad.speed = speeds[tick];
+  }, 3000);
+}
 </script>
 </body>
 </html>
