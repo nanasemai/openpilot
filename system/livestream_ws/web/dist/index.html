@@ -243,9 +243,10 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
 
 <!-- ═══ 摄像头页（仿仪表台样式） ═══ -->
 <div id="camView">
-  <button id="camClose">✕</button>
+  <button id="camClose" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:pointer;">✕</button>
 
-  <div class="topbar">
+  <div class="topbar" style="padding:12px 16px;">
+    <button id="camBack" style="background:none;border:none;color:var(--accent);font-size:1rem;cursor:pointer;padding:6px 12px;border-radius:8px;font-weight:600;">← 返回</button>
     <div class="brand">C3 <small>摄像头</small></div>
     <div class="opState" id="camOpState">未连接</div>
   </div>
@@ -296,6 +297,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
 <div id="settingsView" style="display:none;flex-direction:column;height:100%;">
   <button id="setClose" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:pointer;">✕</button>
   <div class="topbar" style="padding:12px 16px;">
+    <button id="setBack" style="background:none;border:none;color:var(--accent);font-size:1rem;cursor:pointer;padding:6px 12px;border-radius:8px;font-weight:600;">← 返回</button>
     <div class="brand">C3 <small>设置</small></div>
     <div id="setStatus" class="opState">安全</div>
   </div>
@@ -837,10 +839,12 @@ function closeDiag() {
 // ═══ 事件绑定 ═══
 $('camBtn').addEventListener('click', () => { camActive ? closeCamera() : openCamera(); });
 $('camClose').addEventListener('click', closeCamera);
+$('camBack').addEventListener('click', closeCamera);
 $('diagBtn').addEventListener('click', () => { diagActive ? closeDiag() : openDiag(); });
 el.panelOverlay.addEventListener('click', closeDiag);
 $('setBtn').addEventListener('click', openSettings);
 $('setClose').addEventListener('click', closeSettings);
+$('setBack').addEventListener('click', closeSettings);
 $('confirmCancel').addEventListener('click', () => { $('confirmModal').style.display = 'none'; pendingChange = null; });
 $('confirmOk').addEventListener('click', doConfirmChange);
 
@@ -946,15 +950,26 @@ window.adjustSetting = function(el) {
 async function doConfirmChange() {
   $('confirmModal').style.display = 'none';
   if (!pendingChange) return;
+  const { key, value, label } = pendingChange;
+  // 即时更新本地状态，不等 API 返回
+  if (settingsData) {
+    for (const g of settingsData.settings) {
+      for (const p of g.items) {
+        if (p.key === key) { p.value = value; break; }
+      }
+    }
+    renderSettings();
+  }
   try {
-    const r = await fetch('/api/settings/' + pendingChange.key, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({value: pendingChange.value}) });
+    const r = await fetch('/api/settings/' + key, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({value}) });
     const res = await r.json();
     if (res.error === 'locked') addLog(2, '设置失败: ' + (res.reason || ''));
-    else if (res.ok) addLog(0, '设置已更改: ' + pendingChange.label + ' → ' + (pendingChange.value ? '开' : '关'));
+    else if (res.ok) addLog(0, '设置已更改: ' + label + ' → ' + (value ? '开' : '关'));
     else addLog(2, '设置失败: ' + (res.message || ''));
   } catch (e) { addLog(2, '设置失败: ' + e.message); }
   pendingChange = null;
-  openSettings();
+  // 后台刷新确保与服务端同步
+  setTimeout(() => { if (setActive) openSettings(); }, 500);
 }
 
 // ═══ 演示数据（2 秒后加载） ═══

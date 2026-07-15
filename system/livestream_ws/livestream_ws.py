@@ -224,6 +224,7 @@ SETTINGS_DEFS = [
     {"key": "ExperimentalMode", "label": "实验模式", "type": "bool", "safety": "not_engaged"},
     {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
     {"key": "DynamicExperimentalControl", "label": "动态实验控制", "type": "bool", "safety": "not_engaged"},
+    {"key": "OffroadMode", "label": "始终非上路", "type": "bool", "safety": "always"},
   ]},
   # 驾驶
   {"group": "驾驶", "params": [
