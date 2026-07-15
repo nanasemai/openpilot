@@ -115,7 +115,7 @@ class HudAggregator:
 
     # ── 公开接口 ──────────────────────────────────────
 
-    def poll(self, timeout: int = 100) -> dict[str, Any]:
+    def poll(self) -> dict[str, Any]:
         """拉取一次最新数据。
 
         返回值格式:
@@ -136,7 +136,8 @@ class HudAggregator:
             # 重置帧计数，让本次 poll 触发全量同步（is_full_sync = True）
             self._frame = 0
 
-        self._sm.update(timeout)
+        # 非阻塞拉取，由 _loop 的 sleep 控制推送节奏
+        self._sm.update(0)
 
         # 周期刷新单位偏好
         if self._frame % METRIC_REFRESH_INTERVAL == 0:
