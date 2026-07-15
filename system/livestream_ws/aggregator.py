@@ -19,7 +19,6 @@ import time
 from typing import Any
 
 from cereal import messaging
-from cereal.services import SERVICE_LIST
 from openpilot.common.params import Params
 
 from openpilot.system.livestream_ws.projectors import HUD_SOURCES
@@ -47,7 +46,7 @@ class HudAggregator:
 
     def __init__(self):
         self._sm: messaging.SubMaster | None = None
-        # 全量快照（最新值）
+        # 全量快照（最新值，首次初始化时填入 None 默认值）
         self._full: dict[str, Any] = {}
         # 上一帧的逐 topic 数据（用于变更检测）
         self._prev: dict[str, Any] = {}
@@ -83,6 +82,27 @@ class HudAggregator:
             cfg["accelProfile"] = "标准"
         return cfg
 
+    def _read_car_params_from_params(self) -> dict:
+        """从 Params 持久化存储读取 CarParams（避免等待 0.02Hz 的低频 cereal 消息）"""
+        try:
+            from cereal import car
+            cp_bytes = self._ensure_params().get("CarParams")
+            if cp_bytes:
+                with car.CarParams.from_bytes(cp_bytes) as cp:
+                    from openpilot.system.livestream_ws.projectors import proj_carParams
+                    return proj_carParams(cp)
+        except Exception:
+            pass
+        return {"openpilotLongitudinal": False}
+
+    def _init_cache_defaults(self):
+        """初始化缓存默认值，让前端立即有数据可渲染（显示 Off/-- 而非"未连接"）"""
+        for key, _, _, _ in HUD_SOURCES:
+            if key not in self._full:
+                self._full[key] = None
+        # carParams 从 Params 持久化存储读取，不依赖 cereal 消息
+        self._full['carParams'] = self._read_car_params_from_params()
+
     @property
     def topics(self) -> list[str]:
         if not self._topics:
@@ -109,14 +129,10 @@ class HudAggregator:
         if self._sm is None:
             self._sm = messaging.SubMaster(self.topics)
             self._refresh_metric()
-            # 首次初始化：SubMaster 使用 conflate=True，新 subscriber 收不到历史消息
-            # 必须等所有 cereal 生产者发来至少一条新消息，否则 valid=False 导致数据被跳过
-            # 只等待高频 topic（>=1Hz），低频服务如 carParams(0.02Hz) 不阻塞初始化
-            fast_topics = [t for t in self.topics if SERVICE_LIST[t].frequency >= 1.0]
-            for _ in range(10):  # 最多等 10×100ms = 1s
-                self._sm.update(timeout)
-                if fast_topics and all(self._sm.valid.get(t, False) for t in fast_topics):
-                    break
+            # 非阻塞拉取，开始接收 cereal 消息
+            self._sm.update(0)
+            # 初始化缓存默认值，让前端立即有数据可渲染
+            self._init_cache_defaults()
             # 重置帧计数，让本次 poll 触发全量同步（is_full_sync = True）
             self._frame = 0
 
@@ -131,7 +147,7 @@ class HudAggregator:
         if self._frame % PARAMS_REFRESH_INTERVAL == 1:
             cfg = self._read_cfg_params()
 
-        # 强制全量同步
+        # 首次 poll 或每 N 帧强制全量同步
         is_full_sync = (self._frame % FULL_SYNC_INTERVAL == 1) or (not self._full)
 
         snapshot: dict[str, Any] = {}
