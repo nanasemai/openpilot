@@ -21,6 +21,8 @@ Livestream Web Server —— 局域网低占用实时投屏 + 车辆 HUD 数据
 - HUD 变更检测 + 增量推送 → 无变化时不产生 JSON 流量
 """
 from __future__ import annotations
+import sys
+sys.path.append("/usr/local/venv/lib/python3.12/site-packages")
 
 import asyncio
 import json
