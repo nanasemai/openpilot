@@ -108,6 +108,14 @@ class HudAggregator:
         if self._sm is None:
             self._sm = messaging.SubMaster(self.topics)
             self._refresh_metric()
+            # 首次初始化：SubMaster 使用 conflate=True，新 subscriber 收不到历史消息
+            # 必须等所有 cereal 生产者发来至少一条新消息，否则 valid=False 导致数据被跳过
+            for _ in range(10):  # 最多等 10×100ms = 1s
+                self._sm.update(timeout)
+                if all(self._sm.valid.get(t, False) for t in self.topics):
+                    break
+            # 重置帧计数，让本次 poll 触发全量同步（is_full_sync = True）
+            self._frame = 0
 
         self._sm.update(timeout)
 
