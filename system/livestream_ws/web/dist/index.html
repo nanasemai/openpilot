@@ -532,7 +532,9 @@ let useMSE = false, mseReady = false, mseSrc = null, mseBuf = null;
 let frames = 0, wsRetry = 0, simMode = false;
 let simAnimId = null;
 const hasWC = 'VideoDecoder' in window;
-const hasMSE = 'MediaSource' in window;
+// iOS 17.1+ 仅提供 ManagedMediaSource（不暴露标准 MediaSource）
+const MSEClass = window.MediaSource || window.ManagedMediaSource || null;
+const hasMSE = !!MSEClass;
 useMSE = !hasWC && hasMSE;
 
 // ── 模拟路况渲染器 ──
@@ -774,12 +776,18 @@ function tryPushDecoder(data) {
 
 function initMSE() {
   if (!hasMSE) { el.camStatus.textContent = 'Video unsupported'; return; }
-  const ms = new MediaSource();
+  const ms = new MSEClass();
   el.canvas.style.display = 'none';
   let video = document.querySelector('#camVideoWrap video');
   if (!video) { video = document.createElement('video'); video.muted = true; video.playsInline = true; video.autoplay = true; $('camVideoWrap').appendChild(video); }
   video.style.display = 'block';
-  video.src = URL.createObjectURL(ms);
+  // ManagedMediaSource（iOS）需要用 srcObject，且要禁用远程回放
+  if (window.ManagedMediaSource && ms instanceof window.ManagedMediaSource) {
+    video.disableRemotePlayback = true;
+    try { video.srcObject = ms; } catch(_) { video.src = URL.createObjectURL(ms); }
+  } else {
+    video.src = URL.createObjectURL(ms);
+  }
 
   ms.onsourceopen = () => {
     try {
