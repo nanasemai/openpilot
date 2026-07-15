@@ -326,7 +326,7 @@ async def get_settings_api(request):
             except Exception:
                 val = None
             min_safety = SAFETY_LEVELS.get(p["safety"], 0)
-            locked = ctx["level"] >= min_safety
+            locked = min_safety > 0 and ctx["level"] >= min_safety
             items.append({**p, "value": val, "locked": locked})
         result.append({"group": group["group"], "items": items})
     return web.json_response({"settings": result, "context": ctx})
