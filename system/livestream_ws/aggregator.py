@@ -21,7 +21,7 @@ from typing import Any
 from cereal import messaging
 from openpilot.common.params import Params
 
-from system.livestream_ws.projectors import HUD_SOURCES
+from openpilot.system.livestream_ws.projectors import HUD_SOURCES
 
 LOG = logging.getLogger("livestream_agg")
 
