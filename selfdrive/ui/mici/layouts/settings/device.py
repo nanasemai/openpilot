@@ -7,7 +7,7 @@ from collections.abc import Callable
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.time_helpers import system_time_valid
-from openpilot.system.ui.widgets.scroller import NavRawScrollPanel, NavScroller
+from openpilot.system.ui.widgets.scroller import NavRawScrollPanel, NavScroller, Scroller
 from openpilot.selfdrive.ui.mici.widgets.button import BigButton, BigCircleButton
 from openpilot.selfdrive.ui.mici.widgets.dialog import BigDialog, BigConfirmationDialog
 from openpilot.selfdrive.ui.mici.widgets.pairing_dialog import PairingDialog
@@ -15,8 +15,7 @@ from openpilot.selfdrive.ui.mici.onroad.driver_camera_dialog import DriverCamera
 from openpilot.selfdrive.ui.mici.layouts.onboarding import TrainingGuide, TermsPage
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
 from openpilot.system.ui.lib.multilang import multilang, tr
-from openpilot.system.ui.widgets import Widget, DialogResult
-from openpilot.system.ui.widgets.option_dialog import MultiOptionDialog
+from openpilot.system.ui.widgets import Widget
 from openpilot.selfdrive.ui.ui_state import device, ui_state
 from openpilot.system.ui.widgets.label import UnifiedLabel
 from openpilot.system.ui.widgets.html_render import HtmlModal, HtmlRenderer
@@ -287,12 +286,45 @@ class UpdateOpenpilotBigButton(BigButton):
       self._waiting_for_updater_t = None
 
 
+class LanguageSelectionLayout(Scroller):
+  """MICI-style language selection: click a language to change it immediately."""
+  def __init__(self, parent: Widget):
+    super().__init__(horizontal=False)
+    self._parent = parent
+
+    for display_name in multilang.languages.keys():
+      lang_code = multilang.languages[display_name]
+      btn = BigButton(display_name, "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+      # Use UNIFONT to render all scripts (Latin, CJK, Cyrillic, Thai, etc.) correctly
+      btn._label.set_font_weight(FontWeight.UNIFONT)
+      btn.set_click_callback(lambda code=lang_code, name=display_name: self._on_language_selected(code, name))
+      self._scroller.add_widget(btn)
+
+  def _render(self, _):
+    rl.draw_rectangle(0, 0, int(gui_app.width), int(gui_app.height), rl.Color(30, 30, 30, 255))
+    super()._render(_)
+
+  def _on_language_selected(self, lang_code: str, _display_name: str):
+    multilang.change_language(lang_code)
+    gui_app.on_language_changed(lang_code)
+    # Pop to SettingsLayout instantly, then push a fresh DeviceLayoutMici with new language
+    try:
+      parent_idx = gui_app._nav_stack.index(self._parent)
+      if parent_idx > 0:
+        settings_layout = gui_app._nav_stack[parent_idx - 1]
+        gui_app.pop_widgets_to(settings_layout, instant=True)
+        gui_app.push_widget(DeviceLayoutMici())
+        return
+    except ValueError:
+      pass
+    gui_app.pop_widgets_to(self._parent, instant=True)
+
+
 class DeviceLayoutMici(NavScroller):
   def __init__(self):
     super().__init__()
 
     self._fcc_dialog: HtmlModal | None = None
-    self._select_language_dialog: MultiOptionDialog | None = None
 
     def power_off_callback():
       ui_state.params.put_bool("DoShutdown", True, block=True)
@@ -361,17 +393,7 @@ class DeviceLayoutMici(NavScroller):
     ])
 
   def _show_language_dialog(self):
-    def handle_language_selection(result: DialogResult):
-      if result == DialogResult.CONFIRM and self._select_language_dialog:
-        selected_language = multilang.languages[self._select_language_dialog.selection]
-        multilang.change_language(selected_language)
-        gui_app.on_language_changed(selected_language)
-      self._select_language_dialog = None
-
-    self._select_language_dialog = MultiOptionDialog(tr("Select a language"), multilang.languages,
-                                                     multilang.codes[multilang.language],
-                                                     option_font_weight=FontWeight.UNIFONT, callback=handle_language_selection)
-    gui_app.push_widget(self._select_language_dialog)
+    gui_app.push_widget(LanguageSelectionLayout(self))
 
   def _on_regulatory(self):
     if not self._fcc_dialog:
