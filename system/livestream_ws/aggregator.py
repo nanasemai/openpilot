@@ -19,6 +19,7 @@ import time
 from typing import Any
 
 from cereal import messaging
+from cereal.services import SERVICE_LIST
 from openpilot.common.params import Params
 
 from openpilot.system.livestream_ws.projectors import HUD_SOURCES
@@ -110,9 +111,11 @@ class HudAggregator:
             self._refresh_metric()
             # 首次初始化：SubMaster 使用 conflate=True，新 subscriber 收不到历史消息
             # 必须等所有 cereal 生产者发来至少一条新消息，否则 valid=False 导致数据被跳过
+            # 只等待高频 topic（>=1Hz），低频服务如 carParams(0.02Hz) 不阻塞初始化
+            fast_topics = [t for t in self.topics if SERVICE_LIST[t].frequency >= 1.0]
             for _ in range(10):  # 最多等 10×100ms = 1s
                 self._sm.update(timeout)
-                if all(self._sm.valid.get(t, False) for t in self.topics):
+                if fast_topics and all(self._sm.valid.get(t, False) for t in fast_topics):
                     break
             # 重置帧计数，让本次 poll 触发全量同步（is_full_sync = True）
             self._frame = 0
