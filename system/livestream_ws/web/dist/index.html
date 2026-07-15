@@ -162,6 +162,19 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
 .logico { min-width:16px; text-align:center; }
 .plog { padding:3px 0; font-size:.85rem; display:flex; justify-content:space-between; font-weight:500; }
 #procArea h4 { margin:6px 0 4px; }
+
+/* ── 设置页（C3 仪表台风格） ── */
+#settingsView { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+#setList { flex:1; overflow-y:auto; padding:12px 16px 80px; max-width:500px; margin:0 auto; width:100%; box-sizing:border-box; }
+.setGroupTitle { font-size:1.1rem; font-weight:700; color:var(--accent); padding:16px 4px 8px; text-align:left; letter-spacing:.5px; }
+.setItem { background:var(--card); border:var(--bw); border-radius:var(--br); padding:16px 18px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.setItem .k { font-size:1rem; font-weight:700; color:var(--txt); }
+.setItem .sub { font-size:.8rem; color:var(--dim); margin-top:3px; font-weight:500; }
+.setItem.dim { opacity:.5; }
+@media (max-width:480px) {
+  #setList { padding:8px 10px 80px; }
+  .setItem { padding:14px 14px; }
+}
 </style>
 </head>
 <body>
@@ -280,9 +293,9 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
 </div>
 
 <!-- ═══ 设置页 ═══ -->
-<div id="settingsView" style="display:none;">
-  <button id="setClose">✕</button>
-  <div class="topbar">
+<div id="settingsView" style="display:none;flex-direction:column;height:100%;">
+  <button id="setClose" style="position:absolute;top:12px;right:12px;z-index:10;width:40px;height:40px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:pointer;">✕</button>
+  <div class="topbar" style="padding:12px 16px;">
     <div class="brand">C3 <small>设置</small></div>
     <div id="setStatus" class="opState">安全</div>
   </div>
@@ -842,19 +855,21 @@ function closeSettings() { setActive = false; $('settingsView').style.display = 
 
 function renderSettings() {
   if (!settingsData) return;
-  const ctx = settingsData.context || {}, started = ctx.started, engaged = ctx.engaged;
-  $('setStatus').textContent = started ? (engaged ? '⚠ 行驶中' : '🟢 停车') : '🟢 停车';
-  $('setStatus').className = 'opState' + (started ? ' active' : '');
+  const ctx = settingsData.context || {}, started = ctx.started, engaged = ctx.engaged, alwaysOffroad = ctx.always_offroad;
+  let statusText = '🟢 停车';
+  if (alwaysOffroad) statusText = '🟢 始终非上路';
+  else if (started) statusText = engaged ? '🔴 行驶中' : '🟡 停车(引擎启动)';
+  $('setStatus').textContent = statusText;
+  $('setStatus').className = 'opState' + (started && !alwaysOffroad ? ' active' : '');
   let html = '';
   for (const g of settingsData.settings) {
-    html += '<div style="margin-top:14px;"><div style="font-size:1.1rem;font-weight:700;color:var(--accent);padding:6px 12px;">' + g.group + '</div>';
+    html += '<div><div class="setGroupTitle">' + g.group + '</div>';
     for (const p of g.items) {
       const locked = p.locked, d = locked ? ' disabled' : '';
       const safetyNote = p.safety === 'offroad' ? '需停车' : p.safety === 'not_engaged' ? '需退出' : '随时';
-      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:var(--bw);border-radius:var(--br);margin-bottom:4px;' + (locked ? 'opacity:.5;' : '') + '">' +
-        '<div style="flex:1;min-width:0;"><div style="font-size:.95rem;font-weight:600;">' + p.label + '</div><div style="font-size:.75rem;color:var(--dim);">' + safetyNote + '</div></div>';
+      html += '<div class="setItem' + (locked ? ' dim' : '') + '">' +
+        '<div style="flex:1;min-width:0;"><div class="k">' + p.label + '</div><div class="sub">' + safetyNote + '</div></div>';
       if (p.type === 'select') {
-        // 选项类型：按钮组
         const opts = p.options || [];
         const curVal = p.value != null ? p.value : 0;
         html += '<div style="display:flex;gap:4px;flex-shrink:0;">';
@@ -864,18 +879,19 @@ function renderSettings() {
         }
         html += '</div>';
       } else if (p.type === 'int') {
-        // 数值类型：+/- 按钮
         const curVal = p.value != null ? p.value : 0;
         html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
           '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="-1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">−</button>' +
           '<span style="font-size:1.1rem;font-weight:700;min-width:32px;text-align:center;">' + curVal + '</span>' +
           '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">+</button></div>';
       } else {
-        // 布尔类型：开关
         const checked = p.value ? ' checked' : '';
-        html += '<label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;"><input type="checkbox" data-key="' + p.key + '" data-label="' + p.label + '" data-safety="' + p.safety + '" data-type="bool"' + checked + d +
+        // 更清晰的开关样式：开=蓝色+对勾，关=灰色+叉号
+        html += '<label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';">' +
+          '<input type="checkbox" data-key="' + p.key + '" data-label="' + p.label + '" data-safety="' + p.safety + '" data-type="bool"' + checked + d +
           ' style="opacity:0;width:0;height:0;" onchange="toggleSetting(this)">' +
-          '<span style="position:absolute;inset:0;background:' + (checked ? 'var(--accent)' : 'var(--dim)') + ';border-radius:13px;transition:.3s;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';"></span></label>';
+          '<span style="position:absolute;inset:0;background:' + (checked ? 'var(--accent)' : '#555') + ';border-radius:14px;transition:.3s;"></span>' +
+          '<span style="position:absolute;top:2px;left:' + (checked ? '26px' : '2px') + ';width:24px;height:24px;border-radius:50%;background:#fff;transition:.3s;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:' + (checked ? 'var(--accent)' : '#888') + ';">' + (checked ? '✓' : '✕') + '</span></label>';
       }
       html += '</div>';
     }

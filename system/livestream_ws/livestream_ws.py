@@ -289,7 +289,9 @@ def get_safety_context(params: Params) -> dict:
     """获取车辆安全上下文：started / engaged"""
     started = False
     engaged = False
+    always_offroad = False
     try:
+        always_offroad = params.get_bool("OffroadMode")
         sm = messaging.SubMaster(["deviceState", "selfdriveState"])
         sm.update(0)
         if sm.updated["deviceState"]:
@@ -298,7 +300,11 @@ def get_safety_context(params: Params) -> dict:
             engaged = sm["selfdriveState"].enabled
     except Exception:
         pass
-    return {"started": started, "engaged": engaged, "level": 2 if started and engaged else (1 if started else 0)}
+    # 始终非上路模式下，视为停车状态，允许修改停车时才能改的参数
+    if always_offroad:
+        started = False
+        engaged = False
+    return {"started": started, "engaged": engaged, "always_offroad": always_offroad, "level": 2 if started and engaged else (1 if started else 0)}
 
 
 async def get_settings_api(request):
