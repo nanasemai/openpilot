@@ -71,6 +71,10 @@ def livestream_enabled(started: bool, params: Params, CP: car.CarParams) -> bool
   # livestream_ws 只受 UI 开关 EnableLivestream 控制；无画面时依然提供诊断面板
   return params.get_bool("EnableLivestream")
 
+def livestream_video(started: bool, params: Params, CP: car.CarParams) -> bool:
+  # WebRTC 推流后端（stream_encoderd + webrtcd）：上路(或 ForceOnroad 调试) 且开了 livestream 开关才启动
+  return (started or params.get_bool("ForceOnroad")) and params.get_bool("EnableLivestream")
+
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
 
@@ -128,7 +132,7 @@ procs = [
 
   NativeProcess("loggerd", "system/loggerd", ["./loggerd"], logging),
   NativeProcess("encoderd", "system/loggerd", ["./encoderd"], encoderd_predicate),
-  NativeProcess("stream_encoderd", "system/loggerd", ["./encoderd", "--stream"], notcar),
+  NativeProcess("stream_encoderd", "system/loggerd", ["./encoderd", "--stream"], or_(notcar, livestream_video)),
   PythonProcess("logmessaged", "system.logmessaged", always_run),
   PythonProcess("livestream_ws", "system.livestream_ws.livestream_ws", livestream_enabled),
 
@@ -175,7 +179,7 @@ procs = [
 
   # debug procs
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], notcar),
-  PythonProcess("webrtcd", "system.webrtc.webrtcd", notcar),
+  PythonProcess("webrtcd", "system.webrtc.webrtcd", or_(notcar, livestream_video)),
   PythonProcess("webjoystick", "tools.bodyteleop.web", notcar),
   PythonProcess("joystick", "tools.joystick.joystick_control", and_(joystick, iscar)),
 

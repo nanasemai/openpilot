@@ -526,16 +526,10 @@ function renderProcBad(unhealthy) {
     ).join('');
 }
 
-// ═══ 摄像头（按需连接 + 模拟降级） ═══
-let videoWS = null, decoder = null, configured = false;
-let useMSE = false, mseReady = false, mseSrc = null, mseBuf = null;
-let frames = 0, wsRetry = 0, simMode = false;
+// ═══ 摄像头（WebRTC 按需连接 + 模拟降级） ═══
+let pc = null;                       // RTCPeerConnection
+let wsRetry = 0, simMode = false;    // 重试计数 / 模拟路况标志
 let simAnimId = null;
-const hasWC = 'VideoDecoder' in window;
-// iOS 17.1+ 仅提供 ManagedMediaSource（不暴露标准 MediaSource）
-const MSEClass = window.MediaSource || window.ManagedMediaSource || null;
-const hasMSE = !!MSEClass;
-useMSE = !hasWC && hasMSE;
 
 // ── 模拟路况渲染器 ──
 class SimRoad {
@@ -676,201 +670,95 @@ function closeCamera() {
 }
 
 function connectVideo() {
-  if (videoWS) return;
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  videoWS = new WebSocket(proto + '//' + location.host + '/ws/video?cam=road');
-  videoWS.binaryType = 'arraybuffer';
+  // WebRTC 方案：浏览器（含 iOS Safari）原生支持，无需 WebCodecs/MSE
+  if (pc) return;
   wsRetry++;
+  el.camStatus.classList.add('visible');
+  el.camStatus.textContent = '连接中…';
 
-  videoWS.onopen = () => {
-    el.camStatus.textContent = 'waiting…';
-    wsRetry = 0;
-    simMode = false;
-    initVideo();
-  };
-  videoWS.onmessage = e => {
-    if (e.data instanceof ArrayBuffer) onVideoFrame(new Uint8Array(e.data));
-  };
-  videoWS.onclose = () => {
-    videoWS = null;
-    if (camActive) {
-      if (wsRetry >= 3 && !simMode) {
-        // 3 次重连失败 → 启动模拟路况
-        simMode = true;
-        el.camStatus.textContent = 'simulation';
-        el.canvas.style.display = 'block';
-        const v = document.querySelector('#camView video');
-        if (v) v.style.display = 'none';
-        simRoad = new SimRoad(el.canvas);
-        simRoad.start((S.car && S.car.vKph) || 72);
-      } else if (!simMode) {
-        setTimeout(connectVideo, 2000);
-      }
+  const video = document.getElementById('vMse');
+  video.style.display = 'block';
+  el.canvas.style.display = 'none';
+
+  pc = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+
+  pc.addEventListener('track', ev => {
+    if (ev.track.kind === 'video') {
+      video.srcObject = ev.streams[0];
+      video.play().catch(() => {});
     }
-  };
-  videoWS.onerror = () => { videoWS && videoWS.close(); };
+  });
+
+  pc.addEventListener('connectionstatechange', () => {
+    if (!pc) return;
+    const st = pc.connectionState;
+    if (st === 'connected') {
+      el.camStatus.classList.remove('visible');
+      wsRetry = 0;
+      simMode = false;
+    } else if (st === 'failed' || st === 'disconnected' || st === 'closed') {
+      onVideoDrop();
+    }
+  });
+
+  // 只收视频，不发本地媒体
+  pc.addTransceiver('video', { direction: 'recvonly' });
+
+  pc.createOffer()
+    .then(offer => pc.setLocalDescription(offer))
+    .then(() => waitIceGathering(pc))
+    .then(() => fetch('/offer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sdp: pc.localDescription.sdp, camera: 'road' }),
+    }))
+    .then(resp => { if (!resp.ok) throw new Error('offer ' + resp.status); return resp.json(); })
+    .then(answer => pc.setRemoteDescription(answer))
+    .catch(err => { console.warn('webrtc offer failed', err); onVideoDrop(); });
+}
+
+function waitIceGathering(pc) {
+  return new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') { resolve(); return; }
+    const check = () => {
+      if (pc.iceGatheringState === 'complete') {
+        pc.removeEventListener('icegatheringstatechange', check);
+        resolve();
+      }
+    };
+    pc.addEventListener('icegatheringstatechange', check);
+    // 兜底：最多等 2 秒就用已收集到的候选发起
+    setTimeout(resolve, 2000);
+  });
+}
+
+// 连接失败/断开处理：重试 3 次后降级到模拟路况
+function onVideoDrop() {
+  closeVideo();
+  if (!camActive) return;
+  if (wsRetry >= 3 && !simMode) {
+    simMode = true;
+    el.camStatus.classList.remove('visible');
+    const video = document.getElementById('vMse');
+    if (video) video.style.display = 'none';
+    el.canvas.style.display = 'block';
+    simRoad = new SimRoad(el.canvas);
+    simRoad.start((S.car && S.car.vKph) || 72);
+  } else if (!simMode) {
+    setTimeout(connectVideo, 2000);
+  }
 }
 
 function closeVideo() {
-  if (videoWS) { videoWS.close(); videoWS = null; }
-  if (decoder) { try { decoder.close(); } catch(_) {} decoder = null; }
-  configured = false;
-  if (mseBuf) { try { mseBuf.abort(); } catch(_) {} mseBuf = null; }
-  frames = 0;
-}
-
-let pendingFrames = [];
-
-function initVideo() {
-  if (useMSE) initMSE();
-  else initWebCodecs();
-  for (const f of pendingFrames) onVideoFrame(f);
-  pendingFrames = [];
-}
-
-function initWebCodecs() {
-  if (!hasWC) return;
-  try {
-    decoder = new VideoDecoder({
-      output: frame => {
-        const ctx = el.canvas.getContext('2d');
-        if (ctx && camActive) {
-          el.canvas.width = frame.displayWidth;
-          el.canvas.height = frame.displayHeight;
-          ctx.drawImage(frame, 0, 0, el.canvas.width, el.canvas.height);
-        }
-        frame.close();
-      },
-      error: () => { useMSE = true; closeVideo(); openCamera(); }
-    });
-    configured = true;
-    el.canvas.style.display = 'block';
-    const v = document.querySelector('#camView video');
-    if (v) v.style.display = 'none';
-  } catch(e) {
-    useMSE = true;
-    initMSE();
-  }
-}
-
-function tryPushDecoder(data) {
-  const tag = data[0], payload = data.slice(1);
-  if (tag === 1) {
+  if (pc) {
     try {
-      const desc = new Uint8Array(payload);
-      const buf = new ArrayBuffer(desc.length);
-      new Uint8Array(buf).set(desc);
-      decoder.configure({ codec: 'avc1.42001E', description: buf, optimizeForLatency: true });
-      el.camStatus.textContent = 'decoding';
-    } catch(e) { console.warn('decoder config', e); }
-  } else if (tag >= 2 && decoder) {
-    const chunk = new EncodedVideoChunk({
-      type: tag === 2 ? 'key' : 'delta',
-      timestamp: performance.now() * 1000,
-      duration: 33000,
-      data: payload,
-    });
-    try { decoder.decode(chunk); frames++; } catch(_) {}
+      pc.getTransceivers && pc.getTransceivers().forEach(t => t.stop && t.stop());
+      pc.close();
+    } catch(_) {}
+    pc = null;
   }
-}
-
-function initMSE() {
-  if (!hasMSE) { el.camStatus.textContent = 'Video unsupported'; return; }
-  const ms = new MSEClass();
-  el.canvas.style.display = 'none';
-  let video = document.querySelector('#camVideoWrap video');
-  if (!video) { video = document.createElement('video'); video.muted = true; video.playsInline = true; video.autoplay = true; $('camVideoWrap').appendChild(video); }
-  video.style.display = 'block';
-  // ManagedMediaSource（iOS）需要用 srcObject，且要禁用远程回放
-  if (window.ManagedMediaSource && ms instanceof window.ManagedMediaSource) {
-    video.disableRemotePlayback = true;
-    try { video.srcObject = ms; } catch(_) { video.src = URL.createObjectURL(ms); }
-  } else {
-    video.src = URL.createObjectURL(ms);
-  }
-
-  ms.onsourceopen = () => {
-    try {
-      mseBuf = ms.addSourceBuffer('video/mp4; codecs="avc1.42001E"');
-      mseReady = true;
-      el.camStatus.textContent = 'MSE ready';
-      for (const f of pendingFrames) mseAppend(f);
-      pendingFrames = [];
-    } catch(e) { el.camStatus.textContent = 'MSE: ' + e.message; }
-  };
-  mseSrc = ms;
-}
-
-function mseAppend(data) {}
-function buildInitSegment(avcc) {}
-
-function onVideoFrame(data) {
-  if (!configured && !mseReady) {
-    pendingFrames.push(data);
-    return;
-  }
-  if (useMSE) mseAppendMSE(data);
-  else tryPushDecoder(data);
-}
-
-// MSE append helpers (精简版)
-let mseSeq = 1, mseInitSeg = null, mseInitBuilt = false;
-function u32(v) { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0,v); return b; }
-function u16(v) { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0,v); return b; }
-function str4(s) { return new Uint8Array(s.split('').map(c=>c.charCodeAt(0))); }
-function box(t,...p) {
-  let l=8; for(const x of p) l+=x.length;
-  const r=new Uint8Array(l); new DataView(r.buffer).setUint32(0,l);
-  for(let i=0;i<4;i++) r[4+i]=t.charCodeAt(i);
-  let o=8; for(const x of p){r.set(x,o);o+=x.length;} return r;
-}
-function fbox(t,v,f,...p) {
-  return box(t,new Uint8Array([v,f>>16&255,f>>8&255,f&255]),...p);
-}
-
-function buildMseInit(avcc) {
-  if (mseInitBuilt && mseInitSeg) return mseInitSeg;
-  const ftyp = box('ftyp', str4('isom'), u32(1), str4('isom'), str4('avc1'));
-  const mvhd = fbox('mvhd',0,0, u32(0),u32(0),u32(90000),u32(0),u32(0x00010000),u16(0x0100),new Uint8Array(10),new Uint8Array(36),new Uint8Array(24),u32(2));
-  const tkhd = fbox('tkhd',0,7, u32(0),u32(0),u32(1),u32(0),u32(0),u32(0),u32(0),u16(0),u16(0),u16(0x0100),new Uint8Array(10),new Uint8Array(36),u32(640<<16),u32(480<<16));
-  const mdhd = fbox('mdhd',0,0, u32(0),u32(0),u32(90000),u32(0),u16(0x55c4));
-  const hdlr = fbox('hdlr',0,0, u32(0),str4('vide'),u32(0),u32(0),u32(0));
-  const vmhd = fbox('vmhd',0,1, u16(0),u16(0));
-  const dref = fbox('dref',0,0, u32(1), fbox('url ',0,1));
-  const avcCBox = box('avcC', new Uint8Array(avcc));
-  const avc1Body = new Uint8Array(78);
-  const stsd = fbox('stsd',0,0, u32(1), box('avc1',avc1Body,avcCBox));
-  const e0=u32(0);
-  const stbl = box('stbl',stsd,fbox('stts',0,0,e0),fbox('stsc',0,0,e0),fbox('stsz',0,0,u32(0),e0),fbox('stco',0,0,e0));
-  const moov = box('moov',mvhd,box('trak',tkhd,box('mdia',mdhd,hdlr,box('minf',vmhd,box('dinf',dref),stbl))));
-  mseInitSeg = new Uint8Array(ftyp.length + moov.length);
-  mseInitSeg.set(ftyp); mseInitSeg.set(moov, ftyp.length);
-  mseInitBuilt = true;
-  return mseInitSeg;
-}
-
-function mseAppendMSE(data) {
-  if (!mseBuf || mseBuf.updating) return;
-  const tag = data[0], payload = data.slice(1);
-  if (tag === 1) {
-    buildMseInit(payload);
-    try { mseBuf.appendBuffer(mseInitSeg.buffer);
-      el.camStatus.textContent = 'MSE playing'; } catch(_) {}
-    return;
-  }
-  if (tag < 2 || !mseInitBuilt) return;
-  const isKey = tag === 2;
-  const d = (performance.now() * 0.09) | 0;
-  const mfhd = fbox('mfhd',0,0, u32(mseSeq++));
-  const tfhd = fbox('tfhd',0,0x020000, u32(1));
-  const tfdt8 = new Uint8Array(8); new DataView(tfdt8.buffer).setUint32(0, d/0x100000000); new DataView(tfdt8.buffer).setUint32(4, d);
-  const tfdt = fbox('tfdt',1,0, tfdt8);
-  const trun = fbox('trun',0,0x000301, u32(1),u32(0),u32(3000),u32(payload.length),u32(isKey?0x02000000:0x01010000),u32(0));
-  const moof = box('moof',mfhd,box('traf',tfhd,tfdt,trun));
-  const mdat = box('mdat', new Uint8Array(payload));
-  const seg = new Uint8Array(moof.length + mdat.length);
-  seg.set(moof); seg.set(mdat, moof.length);
-  try { mseBuf.appendBuffer(seg.buffer); } catch(_) {}
+  const video = document.getElementById('vMse');
+  if (video) { try { video.srcObject = null; } catch(_) {} }
 }
 
 // ═══ 诊断面板 ═══
@@ -931,13 +819,13 @@ if (/[?&]demo=cam/.test(location.search)) {
   mergeState(DEMO_DATA);
   renderDash();
   openCamera();
-  // 强制进入模拟路况画面（跳过 3 次重连等待）
+  // 强制进入模拟路况画面（跳过 WebRTC 连接）
   setTimeout(() => {
-    if (videoWS) { try { videoWS.close(); } catch(_){} videoWS = null; }
+    closeVideo();
     simMode = true;
     el.camStatus.classList.remove('visible');
     el.canvas.style.display = 'block';
-    const vv = document.querySelector('#camVideoWrap video');
+    const vv = document.getElementById('vMse');
     if (vv) vv.style.display = 'none';
     if (!simRoad) { simRoad = new SimRoad(el.canvas); simRoad.start(72); }
   }, 300);

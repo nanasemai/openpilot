@@ -36,6 +36,7 @@ import time
 from collections import deque
 from typing import Any
 
+import aiohttp
 from aiohttp import web, WSMsgType
 
 from cereal import messaging
@@ -45,6 +46,10 @@ LOG = logging.getLogger("livestream_ws")
 
 HOST = os.environ.get("LIVESTREAM_WS_HOST", "0.0.0.0")
 PORT = int(os.environ.get("LIVESTREAM_WS_PORT", "8090"))
+
+# WebRTC 信令后端（webrtcd）地址
+WEBRTCD_HOST = os.environ.get("WEBRTCD_HOST", "localhost")
+WEBRTCD_PORT = int(os.environ.get("WEBRTCD_PORT", "5001"))
 
 # Web 静态文件目录
 WEB_DIST = os.path.join(os.path.dirname(__file__), "web", "dist")
@@ -475,6 +480,43 @@ async def health(request):
     })
 
 
+# ─────────────────────────────────────────────────────────
+# WebRTC 信令代理：转发浏览器 SDP offer 给本机 webrtcd
+# 浏览器（含 iOS Safari）原生支持 WebRTC，无需 WebCodecs/MSE
+# ─────────────────────────────────────────────────────────
+async def webrtc_offer(request: web.Request):
+    try:
+        params = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="invalid JSON")
+
+    sdp = params.get("sdp")
+    if not sdp:
+        raise web.HTTPBadRequest(text="missing sdp")
+    camera = params.get("camera", "road")
+
+    # 转发给 webrtcd 的 /stream（body 契约见 webrtcd.StreamRequestBody）
+    body = json.dumps({
+        "sdp": sdp,
+        "initCamera": camera,
+        "bridge_services_in": [],
+        "bridge_services_out": [],
+    })
+    url = f"http://{WEBRTCD_HOST}:{WEBRTCD_PORT}/stream"
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+            async with session.post(url, data=body,
+                                    headers={"Content-Type": "application/json"}) as resp:
+                text = await resp.text()
+                return web.Response(status=resp.status, text=text,
+                                    content_type="application/json")
+    except aiohttp.ClientError as e:
+        LOG.warning("webrtcd unreachable: %s", e)
+        raise web.HTTPBadGateway(
+            text=json.dumps({"error": "webrtcd_unreachable", "message": str(e)}),
+            content_type="application/json")
+
+
 def make_app() -> web.Application:
     app = web.Application()
     app["video"] = {cam: VideoBroadcaster(cam, topic)
@@ -485,6 +527,7 @@ def make_app() -> web.Application:
     app.router.add_get("/ws", ws_legacy)
     app.router.add_get("/ws/video", ws_video)
     app.router.add_get("/ws/data", ws_data)
+    app.router.add_post("/offer", webrtc_offer)
     app.router.add_get("/health", health)
 
     # 静态文件（CSS/JS/图片等）
