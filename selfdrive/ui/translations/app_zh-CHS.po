@@ -4148,3 +4148,115 @@ msgstr "🔥 Firehose 模式 🔥"
 msgid "🚀 sunnylink 🚀"
 msgstr "🚀 sunnylink 🚀"
 
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "disengage on accelerator pedal"
+msgstr "踩油门时断开 sunnypilot"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "disable driver monitoring camera"
+msgstr "禁用驾驶监控摄像头"
+
+#: selfdrive/ui/mici/layouts/settings/developer.py
+msgid "copyparty service"
+msgstr "copyparty 文件服务"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/steering.py
+msgid "modular assistive driving system (MADS)"
+msgstr "模块化辅助驾驶系统 (MADS)"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/steering.py
+msgid "pause lateral control with blinker"
+msgstr "转向灯时暂停横向控制"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/steering.py
+msgid "enforce torque lateral control"
+msgstr "强制扭矩横向控制"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/steering.py
+msgid "neural network lateral control (NNLC)"
+msgstr "神经网络横向控制 (NNLC)"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/steering.py
+msgid "show blind spot warnings"
+msgstr "显示盲区警告"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/steering.py
+msgid "lane position offset"
+msgstr "车道位置偏移"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "steering arc"
+msgstr "转向弧"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "enable tesla rainbow mode"
+msgstr "开启特斯拉彩虹模式"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "enable standstill timer"
+msgstr "开启驻车计时器"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "display road name"
+msgstr "显示道路名称"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "green traffic light alert (beta)"
+msgstr "绿灯提醒 (测试版)"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "lead departure alert (beta)"
+msgstr "前车驶离提醒 (测试版)"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "speedometer: always display true speed"
+msgstr "车速表：始终显示真实速度"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "speedometer: hide from onroad screen"
+msgstr "车速表：在行车界面隐藏"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "display turn signals"
+msgstr "显示转向灯"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/visuals.py
+msgid "real-time acceleration bar"
+msgstr "实时加速度条"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/cruise.py
+msgid "smart cruise control - vision"
+msgstr "智能巡航控制 - 视觉"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/cruise.py
+msgid "smart cruise control - map"
+msgstr "智能巡航控制 - 地图"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/cruise.py
+msgid "custom ACC speed increments"
+msgstr "自定义 ACC 速度增减"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/display.py
+msgid "onroad brightness"
+msgstr "行车亮度"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/display.py
+msgid "interactivity timeout"
+msgstr "交互超时"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings.py
+msgid "steering"
+msgstr "转向"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings.py
+msgid "visuals"
+msgstr "视觉"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings.py
+msgid "cruise"
+msgstr "巡航"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings.py
+msgid "display"
+msgstr "显示"

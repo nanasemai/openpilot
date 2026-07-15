@@ -11,6 +11,10 @@ from openpilot.selfdrive.ui.mici.widgets.button import BigCircleButton
 from openpilot.selfdrive.ui.mici.widgets.dialog import BigConfirmationDialog, BigDialog
 from openpilot.selfdrive.ui.sunnypilot.mici.layouts.sunnylink import SunnylinkLayoutMici
 from openpilot.selfdrive.ui.sunnypilot.mici.layouts.models import ModelsLayoutMici
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.steering import SteeringLayoutMici
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.visuals import VisualsLayoutMici
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.cruise import CruiseLayoutMici
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.display import DisplayLayoutMici
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
@@ -40,6 +44,22 @@ class SettingsLayoutSP(OP.SettingsLayout):
     models_btn = SettingsBigButton(tr("models"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_models.png", ICON_SIZE, ICON_SIZE))
     models_btn.set_click_callback(lambda: gui_app.push_widget(models_panel))
 
+    steering_panel = SteeringLayoutMici(back_callback=gui_app.pop_widget)
+    steering_btn = SettingsBigButton(tr("steering"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_lateral.png", ICON_SIZE, ICON_SIZE))
+    steering_btn.set_click_callback(lambda: gui_app.push_widget(steering_panel))
+
+    visuals_panel = VisualsLayoutMici(back_callback=gui_app.pop_widget)
+    visuals_btn = SettingsBigButton(tr("visuals"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_visuals.png", ICON_SIZE, ICON_SIZE))
+    visuals_btn.set_click_callback(lambda: gui_app.push_widget(visuals_panel))
+
+    cruise_panel = CruiseLayoutMici(back_callback=gui_app.pop_widget)
+    cruise_btn = SettingsBigButton(tr("cruise"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_map.png", ICON_SIZE, ICON_SIZE))
+    cruise_btn.set_click_callback(lambda: gui_app.push_widget(cruise_panel))
+
+    display_panel = DisplayLayoutMici(back_callback=gui_app.pop_widget)
+    display_btn = SettingsBigButton(tr("display"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_display.png", ICON_SIZE, ICON_SIZE))
+    display_btn.set_click_callback(lambda: gui_app.push_widget(display_panel))
+
     # onroad: enable button sits at the front (left of toggles)
     self._enable_offroad_btn_onroad = BigCircleButton(self.icon_offroad_enable, red=True)
     self._enable_offroad_btn_onroad.set_click_callback(lambda: self._handle_always_offroad(True))
@@ -58,6 +78,10 @@ class SettingsLayoutSP(OP.SettingsLayout):
 
     items.insert(1, sunnylink_btn)
     items.insert(2, models_btn)
+    items.insert(3, steering_btn)
+    items.insert(4, visuals_btn)
+    items.insert(5, cruise_btn)
+    items.insert(6, display_btn)
 
     # front slots (only one ever visible at a time): exit-always-offroad, then enable-onroad
     items.insert(0, self._enable_offroad_btn_onroad)

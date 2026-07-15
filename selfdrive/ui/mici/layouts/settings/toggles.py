@@ -19,7 +19,9 @@ class TogglesLayoutMici(NavScroller):
     self._experimental_btn = BigParamControl(tr("experimental mode"), "ExperimentalMode")
     is_metric_toggle = BigParamControl(tr("use metric units"), "IsMetric")
     ldw_toggle = BigParamControl(tr("lane departure warnings"), "IsLdwEnabled")
+    disengage_on_accel = BigParamControl(tr("disengage on accelerator pedal"), "DisengageOnAccelerator")
     always_on_dm_toggle = BigParamControl(tr("always-on driver monitor"), "AlwaysOnDM")
+    disable_driver_cam = BigParamControl(tr("disable driver monitoring camera"), "DisableDriverMonitoringCamera", toggle_callback=restart_needed_callback)
     record_front = BigParamControl(tr("record & upload driver camera"), "RecordFront", toggle_callback=restart_needed_callback)
     record_mic = BigParamControl(tr("record & upload mic audio"), "RecordAudio", toggle_callback=restart_needed_callback)
     enable_openpilot = BigParamControl(tr("enable sunnypilot"), "OpenpilotEnabledToggle", toggle_callback=restart_needed_callback)
@@ -28,13 +30,16 @@ class TogglesLayoutMici(NavScroller):
     if disable_driver:
       always_on_dm_toggle.set_visible(False)
       record_front.set_visible(False)
+      disable_driver_cam.set_visible(False)
 
     self._scroller.add_widgets([
       self._personality_toggle,
       self._experimental_btn,
       is_metric_toggle,
       ldw_toggle,
+      disengage_on_accel,
       always_on_dm_toggle,
+      disable_driver_cam,
       record_front,
       record_mic,
       enable_openpilot,
@@ -45,7 +50,9 @@ class TogglesLayoutMici(NavScroller):
       ("ExperimentalMode", self._experimental_btn),
       ("IsMetric", is_metric_toggle),
       ("IsLdwEnabled", ldw_toggle),
+      ("DisengageOnAccelerator", disengage_on_accel),
       ("AlwaysOnDM", always_on_dm_toggle),
+      ("DisableDriverMonitoringCamera", disable_driver_cam),
       ("RecordFront", record_front),
       ("RecordAudio", record_mic),
       ("OpenpilotEnabledToggle", enable_openpilot),

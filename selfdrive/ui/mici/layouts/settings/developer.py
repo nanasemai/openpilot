@@ -87,6 +87,7 @@ class DeveloperLayoutMici(NavScroller):
                                               toggle_callback=lambda checked: (gui_app.set_show_touches(checked),
                                                                                gui_app.set_show_fps(checked)))
     self._enable_livestream_toggle = BigParamControl(tr("enable livestream"), "EnableLivestream")
+    self._enable_copyparty_toggle = BigParamControl(tr("copyparty service"), "EnableCopyparty")
 
     self._scroller.add_widgets([
       self._adb_toggle,
@@ -98,6 +99,7 @@ class DeveloperLayoutMici(NavScroller):
       self._alpha_long_toggle,
       self._debug_mode_toggle,
       self._enable_livestream_toggle,
+      self._enable_copyparty_toggle,
     ])
 
     # Toggle lists
@@ -110,6 +112,7 @@ class DeveloperLayoutMici(NavScroller):
       ("AlphaLongitudinalEnabled", self._alpha_long_toggle),
       ("ShowDebugInfo", self._debug_mode_toggle),
       ("EnableLivestream", self._enable_livestream_toggle),
+      ("EnableCopyparty", self._enable_copyparty_toggle),
     )
     onroad_blocked_toggles = (self._adb_toggle, self._joystick_toggle)
     release_blocked_toggles = (self._joystick_toggle, self._long_maneuver_toggle, self._lat_maneuver_toggle, self._alpha_long_toggle)
