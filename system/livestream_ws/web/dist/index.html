@@ -224,6 +224,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
   <div id="actions">
     <button id="camBtn">📷 摄像头</button>
     <button id="diagBtn">⚙ 诊断</button>
+    <button id="setBtn">🔧 设置</button>
   </div>
 </div>
 
@@ -278,6 +279,30 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
   </div>
 </div>
 
+<!-- ═══ 设置页 ═══ -->
+<div id="settingsView" style="display:none;">
+  <button id="setClose">✕</button>
+  <div class="topbar">
+    <div class="brand">C3 <small>设置</small></div>
+    <div id="setStatus" class="opState">安全</div>
+  </div>
+  <div id="setList"></div>
+</div>
+
+<!-- ═══ 确认弹窗 ═══ -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:var(--bw);border-radius:var(--br);padding:24px;max-width:360px;width:90%;margin:auto;">
+    <div style="font-size:1.5rem;font-weight:700;margin-bottom:8px;" id="confirmTitle">⚠ 确认修改</div>
+    <div style="font-size:1.1rem;font-weight:600;margin-bottom:4px;" id="confirmLabel"></div>
+    <div style="font-size:.95rem;color:var(--dim);margin-bottom:12px;" id="confirmDesc"></div>
+    <div style="font-size:.85rem;color:var(--warn);margin-bottom:16px;" id="confirmSafety"></div>
+    <div style="display:flex;gap:12px;">
+      <button id="confirmCancel" style="flex:1;padding:12px;border-radius:var(--br);border:var(--bw);background:var(--card);color:var(--txt);font-size:1rem;cursor:pointer;">取消</button>
+      <button id="confirmOk" style="flex:1;padding:12px;border-radius:var(--br);border:none;background:var(--accent);color:#fff;font-size:1rem;cursor:pointer;">确认</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -308,12 +333,21 @@ const el = {
   panel: $('panel'), panelOverlay: $('panelOverlay'),
   procArea: $('procArea'), logList: $('logList'), logCount: $('logCount'), clearLog: $('clearLog'),
   canvas: $('v'),
+  // 设置页
+  setBtn: $('setBtn'), setClose: $('setClose'), setView: $('settingsView'),
+  setList: $('setList'), setStatus: $('setStatus'),
+  confirmModal: $('confirmModal'), confirmTitle: $('confirmTitle'),
+  confirmLabel: $('confirmLabel'), confirmDesc: $('confirmDesc'),
+  confirmSafety: $('confirmSafety'), confirmCancel: $('confirmCancel'), confirmOk: $('confirmOk'),
 };
 
 // ═══ 状态 ═══
 let S = {};
 let camActive = false;    // 摄像头视图是否打开
 let diagActive = false;   // 诊断面板是否打开
+let setActive = false;    // 设置页是否打开
+let settingsData = null;  // 缓存设置数据
+let pendingChange = null; // 待确认的修改 {key, value, label, desc}
 
 // ═══ 诊断日志（最多保留 30 条） ═══
 const LOG_MAX = 30;
@@ -792,6 +826,120 @@ $('camBtn').addEventListener('click', () => { camActive ? closeCamera() : openCa
 $('camClose').addEventListener('click', closeCamera);
 $('diagBtn').addEventListener('click', () => { diagActive ? closeDiag() : openDiag(); });
 el.panelOverlay.addEventListener('click', closeDiag);
+$('setBtn').addEventListener('click', openSettings);
+$('setClose').addEventListener('click', closeSettings);
+$('confirmCancel').addEventListener('click', () => { $('confirmModal').style.display = 'none'; pendingChange = null; });
+$('confirmOk').addEventListener('click', doConfirmChange);
+
+// ═══ 设置页 ═══
+async function openSettings() {
+  setActive = true; $('dash').style.display = 'none'; $('camView').style.display = 'none'; $('settingsView').style.display = 'flex';
+  try {
+    const r = await fetch('/api/settings'); settingsData = await r.json(); renderSettings();
+  } catch (e) { $('setList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--dim);">加载失败: ' + e.message + '</div>'; }
+}
+function closeSettings() { setActive = false; $('settingsView').style.display = 'none'; $('dash').style.display = 'flex'; }
+
+function renderSettings() {
+  if (!settingsData) return;
+  const ctx = settingsData.context || {}, started = ctx.started, engaged = ctx.engaged;
+  $('setStatus').textContent = started ? (engaged ? '⚠ 行驶中' : '🟢 停车') : '🟢 停车';
+  $('setStatus').className = 'opState' + (started ? ' active' : '');
+  let html = '';
+  for (const g of settingsData.settings) {
+    html += '<div style="margin-top:14px;"><div style="font-size:1.1rem;font-weight:700;color:var(--accent);padding:6px 12px;">' + g.group + '</div>';
+    for (const p of g.items) {
+      const locked = p.locked, d = locked ? ' disabled' : '';
+      const safetyNote = p.safety === 'offroad' ? '需停车' : p.safety === 'not_engaged' ? '需退出' : '随时';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:var(--bw);border-radius:var(--br);margin-bottom:4px;' + (locked ? 'opacity:.5;' : '') + '">' +
+        '<div style="flex:1;min-width:0;"><div style="font-size:.95rem;font-weight:600;">' + p.label + '</div><div style="font-size:.75rem;color:var(--dim);">' + safetyNote + '</div></div>';
+      if (p.type === 'select') {
+        // 选项类型：按钮组
+        const opts = p.options || [];
+        const curVal = p.value != null ? p.value : 0;
+        html += '<div style="display:flex;gap:4px;flex-shrink:0;">';
+        for (const o of opts) {
+          const sel = o.v === curVal ? ' background:var(--accent);color:#fff;' : ' background:var(--card);color:var(--txt);';
+          html += '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="select" data-val="' + o.v + '" style="padding:6px 12px;border-radius:8px;border:var(--bw);font-size:.85rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';' + sel + '" onclick="selectSetting(this)">' + o.l + '</button>';
+        }
+        html += '</div>';
+      } else if (p.type === 'int') {
+        // 数值类型：+/- 按钮
+        const curVal = p.value != null ? p.value : 0;
+        html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
+          '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="-1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">−</button>' +
+          '<span style="font-size:1.1rem;font-weight:700;min-width:32px;text-align:center;">' + curVal + '</span>' +
+          '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">+</button></div>';
+      } else {
+        // 布尔类型：开关
+        const checked = p.value ? ' checked' : '';
+        html += '<label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;"><input type="checkbox" data-key="' + p.key + '" data-label="' + p.label + '" data-safety="' + p.safety + '" data-type="bool"' + checked + d +
+          ' style="opacity:0;width:0;height:0;" onchange="toggleSetting(this)">' +
+          '<span style="position:absolute;inset:0;background:' + (checked ? 'var(--accent)' : 'var(--dim)') + ';border-radius:13px;transition:.3s;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';"></span></label>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  $('setList').innerHTML = html;
+}
+
+window.toggleSetting = function(el) {
+  const key = el.dataset.key, label = el.dataset.label, safety = el.dataset.safety;
+  const newVal = el.checked;
+  el.checked = !newVal; // 恢复原状态
+  pendingChange = { key, value: newVal, label };
+  const safetyText = safety === 'offroad' ? '⚠ 此设置需要车辆完全熄火才能修改' : safety === 'not_engaged' ? '⚠ 此设置需要在 sunnypilot 未启用时修改' : 'ℹ 此设置可在行车中修改';
+  $('confirmTitle').textContent = '⚠ 确认修改';
+  $('confirmLabel').textContent = label;
+  $('confirmDesc').textContent = '当前: ' + (!newVal ? '开' : '关') + ' → 新值: ' + (newVal ? '开' : '关');
+  $('confirmSafety').textContent = safetyText;
+  $('confirmModal').style.display = 'flex';
+};
+
+window.selectSetting = function(el) {
+  const key = el.dataset.key, label = el.dataset.label, val = parseInt(el.dataset.val);
+  pendingChange = { key, value: val, label };
+  $('confirmTitle').textContent = '⚠ 确认修改';
+  $('confirmLabel').textContent = label;
+  $('confirmDesc').textContent = '选择: ' + el.textContent;
+  $('confirmSafety').textContent = 'ℹ 此设置可在行车中修改';
+  $('confirmModal').style.display = 'flex';
+};
+
+window.adjustSetting = function(el) {
+  const key = el.dataset.key, label = el.dataset.label, delta = parseInt(el.dataset.delta);
+  // 查找当前值
+  let curVal = 0;
+  if (settingsData) {
+    for (const g of settingsData.settings) {
+      for (const p of g.items) {
+        if (p.key === key) { curVal = p.value != null ? p.value : 0; break; }
+      }
+    }
+  }
+  const newVal = Math.max(0, curVal + delta);
+  pendingChange = { key, value: newVal, label };
+  $('confirmTitle').textContent = '⚠ 确认修改';
+  $('confirmLabel').textContent = label;
+  $('confirmDesc').textContent = '当前: ' + curVal + ' → 新值: ' + newVal;
+  $('confirmSafety').textContent = 'ℹ 此设置可在行车中修改';
+  $('confirmModal').style.display = 'flex';
+};
+
+async function doConfirmChange() {
+  $('confirmModal').style.display = 'none';
+  if (!pendingChange) return;
+  try {
+    const r = await fetch('/api/settings/' + pendingChange.key, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({value: pendingChange.value}) });
+    const res = await r.json();
+    if (res.error === 'locked') addLog(2, '设置失败: ' + (res.reason || ''));
+    else if (res.ok) addLog(0, '设置已更改: ' + pendingChange.label + ' → ' + (pendingChange.value ? '开' : '关'));
+    else addLog(2, '设置失败: ' + (res.message || ''));
+  } catch (e) { addLog(2, '设置失败: ' + e.message); }
+  pendingChange = null;
+  openSettings();
+}
 
 // ═══ 演示数据（2 秒后加载） ═══
 const DEMO_DATA = {

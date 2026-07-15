@@ -32,6 +32,8 @@ import aiohttp
 from aiohttp import web, WSMsgType
 
 from openpilot.system.livestream_ws.aggregator import HudAggregator
+from openpilot.common.params import Params
+from cereal import messaging
 
 LOG = logging.getLogger("livestream_ws")
 
@@ -209,14 +211,186 @@ async def webrtc_offer(request: web.Request):
             content_type="application/json")
 
 
+# ─────────────────────────────────────────────────────────
+# 设置管理 API
+# ─────────────────────────────────────────────────────────
+
+# 参数定义：分组、参数名、安全级别
+# safety: "offroad"=停车才能改, "not_engaged"=非engaged可改, "always"=随时可改
+SETTINGS_DEFS = [
+  # 核心系统
+  {"group": "核心系统", "params": [
+    {"key": "OpenpilotEnabledToggle", "label": "启用 sunnypilot", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+    {"key": "ExperimentalMode", "label": "实验模式", "type": "bool", "safety": "not_engaged"},
+    {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
+    {"key": "DynamicExperimentalControl", "label": "动态实验控制", "type": "bool", "safety": "not_engaged"},
+  ]},
+  # 驾驶
+  {"group": "驾驶", "params": [
+    {"key": "DisengageOnAccelerator", "label": "踩下加速踏板时脱离", "type": "bool", "safety": "always"},
+    {"key": "IsLdwEnabled", "label": "启用车道偏离警示", "type": "bool", "safety": "always"},
+    {"key": "LaneTurnDesire", "label": "使用车道转弯意图", "type": "bool", "safety": "always"},
+    {"key": "LagdToggle", "label": "实时学习转向延迟", "type": "bool", "safety": "always"},
+    {"key": "RoadEdgeLcaBlindspot", "label": "检测到道路边缘", "type": "bool", "safety": "always"},
+  ]},
+  # 安全监控
+  {"group": "安全监控", "params": [
+    {"key": "AlwaysOnDM", "label": "始终启用驾驶员监控", "type": "bool", "safety": "always"},
+    {"key": "DisableDriverMonitoringCamera", "label": "禁用驾驶监控摄像头", "type": "bool", "safety": "offroad", "needs_restart": True},
+    {"key": "dp_htd_enabled", "label": "人工转弯检测 (HTD)", "type": "bool", "safety": "always"},
+  ]},
+  # 性能
+  {"group": "性能", "params": [
+    {"key": "SPAccelProfileModeEnabled", "label": "自动激进模式", "type": "bool", "safety": "always"},
+    {"key": "QuickBootToggle", "label": "快速启动模式", "type": "bool", "safety": "offroad"},
+  ]},
+  # 连接
+  {"group": "连接", "params": [
+    {"key": "SshEnabled", "label": "启用 SSH", "type": "bool", "safety": "always"},
+    {"key": "DisableUpdates", "label": "禁用更新", "type": "bool", "safety": "offroad"},
+  ]},
+  # 转向
+  {"group": "转向", "params": [
+    {"key": "Mads", "label": "模块化辅助驾驶系统（MADS）", "type": "bool", "safety": "offroad"},
+    {"key": "BlinkerPauseLateralControl", "label": "拨杆时暂停横向控制", "type": "bool", "safety": "always"},
+    {"key": "NeuralNetworkLateralControl", "label": "神经网络横向控制（NNLC）", "type": "bool", "safety": "offroad"},
+    {"key": "BlindSpot", "label": "显示盲区警告", "type": "bool", "safety": "always"},
+  ]},
+  # 巡航
+  {"group": "巡航", "params": [
+    {"key": "SmartCruiseControlVision", "label": "智能巡航控制 - 视觉(SCC-V)", "type": "bool", "safety": "not_engaged"},
+    {"key": "SmartCruiseControlMap", "label": "智能巡航控制 - 地图(SCC-M)", "type": "bool", "safety": "not_engaged"},
+  ]},
+  # 显示单位
+  {"group": "显示单位", "params": [
+    {"key": "IsMetric", "label": "使用公制", "type": "bool", "safety": "always"},
+  ]},
+  # 录制
+  {"group": "录制", "params": [
+    {"key": "RecordFront", "label": "录制并上传车内摄像头", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+    {"key": "RecordAudio", "label": "录制并上传麦克风音频", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+  ]},
+  # 开发者
+  {"group": "开发者", "params": [
+    {"key": "AdbEnabled", "label": "启用 ADB", "type": "bool", "safety": "always"},
+    {"key": "EnableLivestream", "label": "启用投屏", "type": "bool", "safety": "always"},
+    {"key": "EnableCopyparty", "label": "copyparty 服务", "type": "bool", "safety": "offroad"},
+  ]},
+]
+
+# 安全级别映射
+SAFETY_LEVELS = {"offroad": 2, "not_engaged": 1, "always": 0}
+
+# 可写参数集合（白名单）
+WRITABLE_KEYS = {p["key"] for g in SETTINGS_DEFS for p in g["params"]}
+
+
+def get_safety_context(params: Params) -> dict:
+    """获取车辆安全上下文：started / engaged"""
+    started = False
+    engaged = False
+    try:
+        sm = messaging.SubMaster(["deviceState", "selfdriveState"])
+        sm.update(0)
+        if sm.updated["deviceState"]:
+            started = sm["deviceState"].started
+        if sm.updated["selfdriveState"]:
+            engaged = sm["selfdriveState"].enabled
+    except Exception:
+        pass
+    return {"started": started, "engaged": engaged, "level": 2 if started and engaged else (1 if started else 0)}
+
+
+async def get_settings_api(request):
+    """GET /api/settings → 返回所有参数配置 + 当前值 + 安全状态"""
+    params: Params = request.app["params"]
+    ctx = get_safety_context(params)
+    result = []
+    for group in SETTINGS_DEFS:
+        items = []
+        for p in group["params"]:
+            key = p["key"]
+            try:
+                if p["type"] == "bool":
+                    val = params.get_bool(key)
+                else:
+                    raw = params.get(key)
+                    val = int(raw) if raw is not None else 0
+            except Exception:
+                val = None
+            min_safety = SAFETY_LEVELS.get(p["safety"], 0)
+            locked = ctx["level"] >= min_safety
+            items.append({**p, "value": val, "locked": locked})
+        result.append({"group": group["group"], "items": items})
+    return web.json_response({"settings": result, "context": ctx})
+
+
+async def save_setting_api(request):
+    """POST /api/settings/{param}  body: {"value": ...} → 修改参数（带安全校验）"""
+    param_name = request.match_info.get("param")
+    if param_name not in WRITABLE_KEYS:
+        raise web.HTTPBadRequest(text=json.dumps({"error": "unknown_param"}), content_type="application/json")
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text=json.dumps({"error": "invalid_json"}), content_type="application/json")
+
+    params: Params = request.app["params"]
+    ctx = get_safety_context(params)
+
+    # 查找参数定义
+    pdef = None
+    for g in SETTINGS_DEFS:
+        for p in g["params"]:
+            if p["key"] == param_name:
+                pdef = p
+                break
+        if pdef:
+            break
+
+    if not pdef:
+        raise web.HTTPBadRequest(text=json.dumps({"error": "unknown_param"}), content_type="application/json")
+
+    # 安全校验
+    min_safety = SAFETY_LEVELS.get(pdef["safety"], 0)
+    if ctx["level"] >= min_safety:
+        reason = "车辆行驶中无法修改" if min_safety == 2 else "sunnypilot 启用中无法修改"
+        raise web.HTTPForbidden(text=json.dumps({"error": "locked", "reason": reason}), content_type="application/json")
+
+    value = body.get("value")
+    try:
+        if pdef["type"] == "bool":
+            params.put_bool(param_name, bool(value))
+        else:
+            params.put(param_name, str(int(value)))
+        if pdef.get("needs_restart"):
+            params.put_bool("OnroadCycleRequested", True)
+    except Exception as e:
+        raise web.HTTPBadRequest(text=json.dumps({"error": "write_failed", "message": str(e)}), content_type="application/json")
+
+    return web.json_response({"ok": True, "param": param_name, "value": value})
+
+
+async def get_context_api(request):
+    """GET /api/context → 车辆安全上下文"""
+    params: Params = request.app["params"]
+    ctx = get_safety_context(params)
+    return web.json_response(ctx)
+
+
 def make_app() -> web.Application:
     app = web.Application()
     app["hud"] = HudBroadcaster()
+    app["params"] = Params()
 
     app.router.add_get("/", index)
     app.router.add_get("/ws/data", ws_data)
     app.router.add_post("/offer", webrtc_offer)
     app.router.add_get("/health", health)
+    app.router.add_get("/api/settings", get_settings_api)
+    app.router.add_post("/api/settings/{param}", save_setting_api)
+    app.router.add_get("/api/context", get_context_api)
 
     # 静态文件（CSS/JS/图片等）
     if os.path.isdir(WEB_DIST):
