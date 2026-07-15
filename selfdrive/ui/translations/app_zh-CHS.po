@@ -4260,3 +4260,39 @@ msgstr "巡航"
 #: selfdrive/ui/sunnypilot/mici/layouts/settings.py
 msgid "display"
 msgstr "显示"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "disable remote connection"
+msgstr "禁用远程连接"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "use lane turn intent"
+msgstr "使用车道转弯意图"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "real-time steering lag learning"
+msgstr "实时学习转向延迟"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "road edge detection"
+msgstr "道路边缘检测"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "dynamic experimental control"
+msgstr "动态实验控制"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "human turn detection (HID)"
+msgstr "人控转向检测 (HID)"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "auto aggressive mode"
+msgstr "自动激进模式"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "quickboot mode"
+msgstr "快速启动模式"
+
+#: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "disable updates"
+msgstr "禁用更新"

@@ -22,6 +22,15 @@ class TogglesLayoutMici(NavScroller):
     disengage_on_accel = BigParamControl(tr("disengage on accelerator pedal"), "DisengageOnAccelerator")
     always_on_dm_toggle = BigParamControl(tr("always-on driver monitor"), "AlwaysOnDM")
     disable_driver_cam = BigParamControl(tr("disable driver monitoring camera"), "DisableDriverMonitoringCamera", toggle_callback=restart_needed_callback)
+    disable_ssh_toggle = BigParamControl(tr("disable remote connection"), "SshEnabled")
+    lane_turn_desire = BigParamControl(tr("use lane turn intent"), "LaneTurnDesire")
+    lagd_toggle = BigParamControl(tr("real-time steering lag learning"), "LagdToggle")
+    road_edge_toggle = BigParamControl(tr("road edge detection"), "RoadEdgeLcaBlindspot")
+    dynamic_exp_toggle = BigParamControl(tr("dynamic experimental control"), "DynamicExperimentalControl")
+    htd_toggle = BigParamControl(tr("human turn detection (HID)"), "dp_htd_enabled")
+    auto_aggressive_toggle = BigParamControl(tr("auto aggressive mode"), "SPAccelProfileModeEnabled")
+    quickboot_toggle = BigParamControl(tr("quickboot mode"), "QuickBootToggle")
+    disable_updates_toggle = BigParamControl(tr("disable updates"), "DisableUpdates")
     record_front = BigParamControl(tr("record & upload driver camera"), "RecordFront", toggle_callback=restart_needed_callback)
     record_mic = BigParamControl(tr("record & upload mic audio"), "RecordAudio", toggle_callback=restart_needed_callback)
     enable_openpilot = BigParamControl(tr("enable sunnypilot"), "OpenpilotEnabledToggle", toggle_callback=restart_needed_callback)
@@ -40,6 +49,15 @@ class TogglesLayoutMici(NavScroller):
       disengage_on_accel,
       always_on_dm_toggle,
       disable_driver_cam,
+      disable_ssh_toggle,
+      lane_turn_desire,
+      lagd_toggle,
+      road_edge_toggle,
+      dynamic_exp_toggle,
+      htd_toggle,
+      auto_aggressive_toggle,
+      quickboot_toggle,
+      disable_updates_toggle,
       record_front,
       record_mic,
       enable_openpilot,
@@ -53,6 +71,15 @@ class TogglesLayoutMici(NavScroller):
       ("DisengageOnAccelerator", disengage_on_accel),
       ("AlwaysOnDM", always_on_dm_toggle),
       ("DisableDriverMonitoringCamera", disable_driver_cam),
+      ("SshEnabled", disable_ssh_toggle),
+      ("LaneTurnDesire", lane_turn_desire),
+      ("LagdToggle", lagd_toggle),
+      ("RoadEdgeLcaBlindspot", road_edge_toggle),
+      ("DynamicExperimentalControl", dynamic_exp_toggle),
+      ("dp_htd_enabled", htd_toggle),
+      ("SPAccelProfileModeEnabled", auto_aggressive_toggle),
+      ("QuickBootToggle", quickboot_toggle),
+      ("DisableUpdates", disable_updates_toggle),
       ("RecordFront", record_front),
       ("RecordAudio", record_mic),
       ("OpenpilotEnabledToggle", enable_openpilot),

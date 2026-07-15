@@ -292,7 +292,7 @@ class LanguageSelectionLayout(Scroller):
     super().__init__(horizontal=False)
     self._parent = parent
 
-    for display_name in multilang.languages.keys():
+    for display_name in ("English", "中文（简体）"):
       lang_code = multilang.languages[display_name]
       btn = BigButton(display_name, "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
       # Use UNIFONT to render all scripts (Latin, CJK, Cyrillic, Thai, etc.) correctly
