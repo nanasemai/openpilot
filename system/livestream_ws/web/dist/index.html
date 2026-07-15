@@ -359,9 +359,10 @@ function connectData() {
   dataWS.onmessage = e => {
     try {
       const msg = JSON.parse(e.data);
+      const changedKeys = Object.keys(msg).filter(k => k !== '_ts' && k !== '_sync');
       if (msg._sync) S = msg;
       else Object.assign(S, msg);
-      renderDash();
+      renderDash(changedKeys);
     } catch (err) { console.warn('[data] parse', err); }
   };
   dataWS.onclose = () => setTimeout(connectData, 2000);
@@ -374,99 +375,109 @@ function mergeState(msg) {
   else Object.assign(S, msg);
 }
 
-// ═══ 仪表盘渲染 ═══
-function renderDash() {
+// ═══ 仪表盘渲染（支持增量：传 changedKeys 数组只更新对应区块，不传=全量） ═══
+function renderDash(changedKeys) {
+  const changed = (key) => !changedKeys || changedKeys.includes(key);
   const d = S, car = d.car || {}, self = d.self || {}, lead = d.lead || {},
         dev = d.dev || {}, cal = d.cal || {}, plan = d.plan || {},
         procs = d.procs || {}, events = d.events || {};
 
-  // OP 状态
-  el.opState.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
-  el.opState.className = self.enabled ? 'active' : '';
-
-  // 提醒
-  el.alert1.textContent = self.alert1 || '—';
-  el.alert2.textContent = self.alert2 || '';
-  el.alert.className = self.alertStatus === 'severe' ? 'severe' :
-                       self.alertStatus === 'warning' ? 'warn' : 'idle';
-
-  // 速度
-  const v = car.vKph;
-  el.spdN.textContent = v != null ? Math.round(v).toString() : '--';
-  el.speedUnit.textContent = car.speedUnit || 'km/h';
-  el.cruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
-  el.cruiseU.textContent = car.speedUnit || 'km/h';
-  el.cruiseDot.className = 'dot' + (car.cruise ? ' on' : '');
-  el.gearG.textContent = car.gear || '--';
-
-  // 盲点 + 手扶方向盘
-  el.blLeft.className = 'sig' + (car.blindspotL ? ' active' : '');
-  el.blRight.className = 'sig' + (car.blindspotR ? ' active' : '');
-  el.handIcon.className = car.steeringPressed ? 'active' : '';
-
-  // 配置参数（驾驶风格等）
-  const cfg = d._cfg || {};
-  el.styleVal.textContent = cfg.personality || '--';
-  el.accelVal.textContent = cfg.accelProfile || '--';
-  const longCtrl = d.carParams && d.carParams.openpilotLongitudinal;
-  el.longVal.textContent = longCtrl ? 'OP 控制' : '驾驶员控制';
-
-  // 网格
-  el.steerVal.innerHTML = (car.steer != null ? car.steer.toFixed(1) : '--') + '<small>°</small>';
-  if (car.gas != null) {
-    el.gasVal.textContent = Math.round(car.gas * 100) + '%';
-    el.gasFill.style.width = (car.gas * 100) + '%';
-    el.gasCell.className = 'cell' + (car.gas > 0.05 ? ' active' : '');
-    el.gasIcon.className = 'tag' + (car.gasPressed ? ' on' : '');
-  }
-  el.brakeVal.textContent = car.brake ? 'ON' : 'OFF';
-  el.brakeCell.className = 'cell' + (car.brake ? ' active' : '');
-
-  // 前车
-  if (lead.hasLead && lead.dRel != null) {
-    el.leadD.innerHTML = lead.dRel.toFixed(1) + '<small>m</small>';
-    el.leadVRel.textContent = lead.vRel != null ? lead.vRel.toFixed(1) : '--';
-  } else {
-    el.leadD.innerHTML = '--<small>m</small>';
-    el.leadVRel.textContent = '--';
+  // ── OP 状态 + 提醒（self） ──
+  if (changed('self')) {
+    el.opState.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
+    el.opState.className = self.enabled ? 'active' : '';
+    el.alert1.textContent = self.alert1 || '—';
+    el.alert2.textContent = self.alert2 || '';
+    el.alert.className = self.alertStatus === 'severe' ? 'severe' :
+                         self.alertStatus === 'warning' ? 'warn' : 'idle';
   }
 
-  // TTC
-  if (lead.hasLead && lead.ttcValue != null && lead.ttcValue < 99) {
-    el.ttcVal.innerHTML = lead.ttcValue.toFixed(1) + '<small>s</small>';
-    el.ttcVal.style.color = lead.ttcUrgent ? 'var(--danger)' : 'var(--txt)';
-  } else {
-    el.ttcVal.innerHTML = '--<small>s</small>';
-    el.ttcVal.style.color = 'var(--dim)';
+  // ── 速度卡 + 盲点 / 方向盘（car） ──
+  if (changed('car')) {
+    const v = car.vKph;
+    el.spdN.textContent = v != null ? Math.round(v).toString() : '--';
+    el.speedUnit.textContent = car.speedUnit || 'km/h';
+    el.cruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
+    el.cruiseU.textContent = car.speedUnit || 'km/h';
+    el.cruiseDot.className = 'dot' + (car.cruise ? ' on' : '');
+    el.gearG.textContent = car.gear || '--';
+    el.blLeft.className = 'sig' + (car.blindspotL ? ' active' : '');
+    el.blRight.className = 'sig' + (car.blindspotR ? ' active' : '');
+    el.handIcon.className = car.steeringPressed ? 'active' : '';
   }
 
-  // 系统
-  el.sCpu.textContent = dev.cpuTempC != null ? dev.cpuTempC.toFixed(0) + '°C' : '--';
-  const memPct = dev.memPct != null ? dev.memPct + '%' : '--';
-  const freePct = dev.freePct != null ? dev.freePct.toFixed(0) + '%' : '--';
-  el.sMem.textContent = memPct + ' / ' + freePct;
-  el.sNet.textContent = dev.networkType || '--';
-
-  // 规划
-  if (plan.aTarget != null || plan.vTarget != null) {
-    el.sPlan.textContent = (plan.aTarget != null ? plan.aTarget.toFixed(2) : '--') +
-                           ' / ' + (plan.vTarget != null ? (plan.vTarget * 3.6).toFixed(0) : '--');
+  // ── 配置参数（_cfg / carParams） ──
+  if (changed('_cfg')) {
+    const cfg = d._cfg || {};
+    el.styleVal.textContent = cfg.personality || '--';
+    el.accelVal.textContent = cfg.accelProfile || '--';
+  }
+  if (changed('carParams')) {
+    const longCtrl = d.carParams && d.carParams.openpilotLongitudinal;
+    el.longVal.textContent = longCtrl ? 'OP 控制' : '驾驶员控制';
   }
 
-  // 校准
-  el.calStatus.textContent = cal.calStatus || '--';
-  const cp = cal.calPerc;
-  el.calPct.textContent = cp != null ? cp + '%' : '--';
-  el.calFill.style.width = (cp != null ? Math.min(cp, 100) : 0) + '%';
-  if (cal.rpy) {
-    el.calAim.textContent = '设备指向：' + cal.rpy.map(v => (v * 180 / Math.PI).toFixed(1) + '°').join(' ');
+  // ── 网格（car / lead） ──
+  if (changed('car')) {
+    el.steerVal.innerHTML = (car.steer != null ? car.steer.toFixed(1) : '--') + '<small>°</small>';
+    if (car.gas != null) {
+      el.gasVal.textContent = Math.round(car.gas * 100) + '%';
+      el.gasFill.style.width = (car.gas * 100) + '%';
+      el.gasCell.className = 'cell' + (car.gas > 0.05 ? ' active' : '');
+      el.gasIcon.className = 'tag' + (car.gasPressed ? ' on' : '');
+    }
+    el.brakeVal.textContent = car.brake ? 'ON' : 'OFF';
+    el.brakeCell.className = 'cell' + (car.brake ? ' active' : '');
+  }
+  if (changed('lead')) {
+    if (lead.hasLead && lead.dRel != null) {
+      el.leadD.innerHTML = lead.dRel.toFixed(1) + '<small>m</small>';
+      el.leadVRel.textContent = lead.vRel != null ? lead.vRel.toFixed(1) : '--';
+    } else {
+      el.leadD.innerHTML = '--<small>m</small>';
+      el.leadVRel.textContent = '--';
+    }
+    if (lead.hasLead && lead.ttcValue != null && lead.ttcValue < 99) {
+      el.ttcVal.innerHTML = lead.ttcValue.toFixed(1) + '<small>s</small>';
+      el.ttcVal.style.color = lead.ttcUrgent ? 'var(--danger)' : 'var(--txt)';
+    } else {
+      el.ttcVal.innerHTML = '--<small>s</small>';
+      el.ttcVal.style.color = 'var(--dim)';
+    }
   }
 
-  // 更新摄像头 HUD（仿仪表台）
-  if (camActive) {
+  // ── 系统（dev / plan） ──
+  if (changed('dev')) {
+    el.sCpu.textContent = dev.cpuTempC != null ? dev.cpuTempC.toFixed(0) + '°C' : '--';
+    const memPct = dev.memPct != null ? dev.memPct + '%' : '--';
+    const freePct = dev.freePct != null ? dev.freePct.toFixed(0) + '%' : '--';
+    el.sMem.textContent = memPct + ' / ' + freePct;
+    el.sNet.textContent = dev.networkType || '--';
+  }
+  if (changed('plan')) {
+    if (plan.aTarget != null || plan.vTarget != null) {
+      el.sPlan.textContent = (plan.aTarget != null ? plan.aTarget.toFixed(2) : '--') +
+                             ' / ' + (plan.vTarget != null ? (plan.vTarget * 3.6).toFixed(0) : '--');
+    }
+  }
+
+  // ── 校准（cal） ──
+  if (changed('cal')) {
+    el.calStatus.textContent = cal.calStatus || '--';
+    const cp = cal.calPerc;
+    el.calPct.textContent = cp != null ? cp + '%' : '--';
+    el.calFill.style.width = (cp != null ? Math.min(cp, 100) : 0) + '%';
+    if (cal.rpy) {
+      el.calAim.textContent = '设备指向：' + cal.rpy.map(v => (v * 180 / Math.PI).toFixed(1) + '°').join(' ');
+    }
+  }
+
+  // ── 摄像头 HUD（car / self） ──
+  if (camActive && (changed('car') || changed('self'))) {
     el.camOpState.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
     el.camOpState.className = 'opState' + (self.enabled ? ' active' : '');
     el.camGear.textContent = car.gear || '--';
+    const v = car.vKph;
     el.camSpd.textContent = v != null ? Math.round(v).toString() : '--';
     el.camUnit.textContent = car.speedUnit || 'km/h';
     el.camCruiseSet.textContent = car.cruiseSet != null ? Math.round(car.cruiseSet).toString() : '--';
@@ -476,44 +487,46 @@ function renderDash() {
     el.camBlR.className = 'sig' + (car.blindspotR ? ' active' : '');
   }
 
-  // 诊断日志：异常进程
-  if (procs.unhealthy && procs.unhealthy.length > 0) {
-    renderProcBad(procs.unhealthy);
-    procs.unhealthy.forEach(p => {
-      addUniqueLog(p.running ? 1 : 3, 'proc:' + p.name + ':' + (p.exitCode || ''),
-        '进程 ' + p.name + (p.running ? ' 状态异常' : ' 退出=' + p.exitCode));
-    });
-  } else {
-    el.procArea.innerHTML = '';
+  // ── 摄像头告警卡片（self） ──
+  if (changed('self')) {
+    const alert1 = self.alert1 || '';
+    const alert2 = self.alert2 || '';
+    const alertStatus = self.alertStatus || '';
+    const hasAlert = alert1 && alert1 !== '—';
+    el.camAlertCard.style.display = hasAlert ? 'block' : 'none';
+    el.camAlertCard.className = 'alertCard ' + (alertStatus === 'severe' ? 'severe' :
+                                                alertStatus === 'warning' ? 'warn' : 'idle');
+    if (hasAlert) {
+      el.camAlertText.textContent = alert1 + (alert2 ? ' · ' + alert2 : '');
+    }
   }
 
-  // 诊断日志：系统事件
-  let hasSevere = false;
-  if (events.count !== undefined && events.count > 0) {
-    (events.list || []).forEach(e => {
-      const sev = e.severity || 0;
-      const key = 'evt:' + e.name;
-      addUniqueLog(sev, key, e.name);
-      if (sev >= 3) hasSevere = true;
-    });
+  // ── 诊断日志（procs / events） ──
+  if (changed('procs')) {
+    if (procs.unhealthy && procs.unhealthy.length > 0) {
+      renderProcBad(procs.unhealthy);
+      procs.unhealthy.forEach(p => {
+        addUniqueLog(p.running ? 1 : 3, 'proc:' + p.name + ':' + (p.exitCode || ''),
+          '进程 ' + p.name + (p.running ? ' 状态异常' : ' 退出=' + p.exitCode));
+      });
+    } else {
+      el.procArea.innerHTML = '';
+    }
+  }
+  if (changed('events')) {
+    let hasSevere = false;
+    if (events.count !== undefined && events.count > 0) {
+      (events.list || []).forEach(e => {
+        const sev = e.severity || 0;
+        const key = 'evt:' + e.name;
+        addUniqueLog(sev, key, e.name);
+        if (sev >= 3) hasSevere = true;
+      });
+    }
+    el.camAlert.classList.toggle('visible', hasSevere);
   }
 
-  // 摄像头画面告警闪烁（严重事件）
-  el.camAlert.classList.toggle('visible', hasSevere);
-
-  // 摄像头告警卡片（复用仪表台提醒样式）
-  const alert1 = self.alert1 || '';
-  const alert2 = self.alert2 || '';
-  const alertStatus = self.alertStatus || '';
-  const hasAlert = alert1 && alert1 !== '—';
-  el.camAlertCard.style.display = hasAlert ? 'block' : 'none';
-  el.camAlertCard.className = 'alertCard ' + (alertStatus === 'severe' ? 'severe' :
-                                              alertStatus === 'warning' ? 'warn' : 'idle');
-  if (hasAlert) {
-    el.camAlertText.textContent = alert1 + (alert2 ? ' · ' + alert2 : '');
-  }
-
-  // 渲染诊断日志
+  // 诊断时间线（始终渲染，开销极低）
   renderTimeline();
 }
 

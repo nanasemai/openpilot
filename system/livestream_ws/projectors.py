@@ -77,12 +77,15 @@ def proj_radarState(rs, v_ego: float = 0.0) -> dict:
 
     ttc_value = None
     ttc_urgent = False
-    if has_lead and v_ego > 0.5:
+    if has_lead:
         d_rel = lead.dRel or 0.0
-        ttc = abs(d_rel / v_ego) if v_ego > 0 else 999
-        if ttc < 99:
-            ttc_value = round(ttc, 1)
-            ttc_urgent = ttc < 5.0
+        v_rel = lead.vRel or 0.0
+        # v_rel < 0 表示前车接近，TTC = 距离 / 接近速度
+        if v_rel < -0.01 and d_rel > 0.5:
+            ttc = d_rel / abs(v_rel)
+            if ttc < 99:
+                ttc_value = round(ttc, 1)
+                ttc_urgent = ttc < 5.0
 
     return {
         "hasLead": has_lead,
