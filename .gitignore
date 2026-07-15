@@ -97,3 +97,6 @@ PORT_DP_HARDWARE_SUPPORT.md
 !.idea/tools/*
 !.run/*
 
+
+# Compiled binaries
+selfdrive/pandad_tici/pandad
