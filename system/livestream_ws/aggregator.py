@@ -56,6 +56,8 @@ class HudAggregator:
         self._is_metric: bool = True
         self._frame: int = 0
         self._params: Params | None = None
+        # 初始化缓存默认值，让 register() 的首次 full_snapshot 就有数据
+        self._init_cache_defaults()
 
     def _ensure_params(self) -> Params:
         if self._params is None:
@@ -131,8 +133,6 @@ class HudAggregator:
             self._refresh_metric()
             # 非阻塞拉取，开始接收 cereal 消息
             self._sm.update(0)
-            # 初始化缓存默认值，让前端立即有数据可渲染
-            self._init_cache_defaults()
             # 重置帧计数，让本次 poll 触发全量同步（is_full_sync = True）
             self._frame = 0
 
