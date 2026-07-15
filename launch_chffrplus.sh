@@ -223,7 +223,7 @@ function launch {
 
   # handle pythonpath
   ln -sfn $(pwd) /data/pythonpath
-  export PYTHONPATH="$PWD"
+  export PYTHONPATH="$PWD:/usr/local/venv/lib/python3.12/site-packages"
 
   # hardware specific init
   if [ -f /AGNOS ]; then
