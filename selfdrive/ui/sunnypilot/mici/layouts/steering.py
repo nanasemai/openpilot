@@ -21,10 +21,16 @@ class SteeringLayoutMici(NavScroller):
     self._blinker_pause_toggle = BigParamControl(tr("pause lateral control with blinker"), "BlinkerPauseLateralControl")
     self._nnlc_toggle = BigParamControl(tr("neural network lateral control (NNLC)"), "NeuralNetworkLateralControl")
     self._blindspot_toggle = BigParamControl(tr("show blind spot warnings"), "BlindSpot")
+    self._lane_turn_toggle = BigParamControl(tr("use lane turn intent"), "LaneTurnDesire")
+    self._lagd_toggle = BigParamControl(tr("real-time steering lag learning"), "LagdToggle")
+    self._road_edge_toggle = BigParamControl(tr("road edge detection"), "RoadEdgeLcaBlindspot")
 
     self._scroller.add_widgets([
       self._mads_toggle,
       self._blinker_pause_toggle,
       self._nnlc_toggle,
       self._blindspot_toggle,
+      self._lane_turn_toggle,
+      self._lagd_toggle,
+      self._road_edge_toggle,
     ])

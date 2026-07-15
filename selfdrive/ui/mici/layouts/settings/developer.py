@@ -88,6 +88,8 @@ class DeveloperLayoutMici(NavScroller):
                                                                                gui_app.set_show_fps(checked)))
     self._enable_livestream_toggle = BigParamControl(tr("enable livestream"), "EnableLivestream")
     self._enable_copyparty_toggle = BigParamControl(tr("copyparty service"), "EnableCopyparty")
+    self._quickboot_toggle = BigParamControl(tr("quickboot mode"), "QuickBootToggle")
+    self._disable_updates_toggle = BigParamControl(tr("disable updates"), "DisableUpdates")
 
     self._scroller.add_widgets([
       self._adb_toggle,
@@ -100,6 +102,8 @@ class DeveloperLayoutMici(NavScroller):
       self._debug_mode_toggle,
       self._enable_livestream_toggle,
       self._enable_copyparty_toggle,
+      self._quickboot_toggle,
+      self._disable_updates_toggle,
     ])
 
     # Toggle lists
@@ -113,6 +117,8 @@ class DeveloperLayoutMici(NavScroller):
       ("ShowDebugInfo", self._debug_mode_toggle),
       ("EnableLivestream", self._enable_livestream_toggle),
       ("EnableCopyparty", self._enable_copyparty_toggle),
+      ("QuickBootToggle", self._quickboot_toggle),
+      ("DisableUpdates", self._disable_updates_toggle),
     )
     onroad_blocked_toggles = (self._adb_toggle, self._joystick_toggle)
     release_blocked_toggles = (self._joystick_toggle, self._long_maneuver_toggle, self._lat_maneuver_toggle, self._alpha_long_toggle)

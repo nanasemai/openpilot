@@ -19,8 +19,12 @@ class CruiseLayoutMici(NavScroller):
 
     self._scc_v_toggle = BigParamControl(tr("smart cruise control - vision"), "SmartCruiseControlVision")
     self._scc_m_toggle = BigParamControl(tr("smart cruise control - map"), "SmartCruiseControlMap")
+    self._htd_toggle = BigParamControl(tr("human turn detection (HID)"), "dp_htd_enabled")
+    self._auto_aggressive_toggle = BigParamControl(tr("auto aggressive mode"), "SPAccelProfileModeEnabled")
 
     self._scroller.add_widgets([
       self._scc_v_toggle,
       self._scc_m_toggle,
+      self._htd_toggle,
+      self._auto_aggressive_toggle,
     ])
