@@ -33,11 +33,11 @@ PARAMS_REFRESH_INTERVAL = 50  # frames (≈5s)，驾驶风格等配置
 
 # Params → 前端标签映射
 PERSONALITY_MAP = {
-    "0": "激进", "1":  "标准", "2":  "放松",
+    0: "激进", 1: "标准", 2: "放松",
 }
 ACCEL_PROFILE_MAP = {
-    "0": "标准", "1":  "节能", "2":  "运动",
-    "3": "舒适", "4":  "自定义",
+    0: "标准", 1: "节能", 2: "运动",
+    3: "舒适", 4: "自定义",
 }
 
 
@@ -77,10 +77,14 @@ class HudAggregator:
         cfg = {}
         try:
             p = self._ensure_params()
-            personality = p.get("LongitudinalPersonality", block=False) or "0"
-            cfg["personality"] = PERSONALITY_MAP.get(personality, personality)
-            accel = p.get("SPAccelProfile", block=False) or "0"
-            cfg["accelProfile"] = ACCEL_PROFILE_MAP.get(accel, accel)
+            personality = p.get("LongitudinalPersonality", block=False)
+            if personality is None:
+                personality = 1  # default: standard
+            cfg["personality"] = PERSONALITY_MAP.get(personality, "标准")
+            accel = p.get("SPAccelProfile", block=False)
+            if accel is None:
+                accel = 0  # default: standard
+            cfg["accelProfile"] = ACCEL_PROFILE_MAP.get(accel, "标准")
         except Exception:
             cfg["personality"] = "标准"
             cfg["accelProfile"] = "标准"
