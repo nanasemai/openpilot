@@ -418,12 +418,6 @@ function connectData() {
   dataWS.onerror = () => dataWS.close();
 }
 
-// ═══ 状态合并（支持增量/全量） ═══
-function mergeState(msg) {
-  if (msg._sync) S = msg;
-  else Object.assign(S, msg);
-}
-
 // ═══ 仪表盘渲染（支持增量：传 changedKeys 数组只更新对应区块，不传=全量） ═══
 function renderDash(changedKeys) {
   const changed = (key) => !changedKeys || changedKeys.includes(key);
@@ -588,126 +582,9 @@ function renderProcBad(unhealthy) {
     ).join('');
 }
 
-// ═══ 摄像头（WebRTC 按需连接 + 模拟降级） ═══
+// ═══ 摄像头（WebRTC 按需连接） ═══
 let pc = null;                       // RTCPeerConnection
-let wsRetry = 0, simMode = false;    // 重试计数 / 模拟路况标志
-let simAnimId = null;
-
-// ── 模拟路况渲染器 ──
-class SimRoad {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.fx = 0;           // 横向偏移（模拟转向）
-    this.scroll = 0;       // 纵向滚动
-    this.lastT = 0;
-    this.speed = 72;
-    this.run = false;
-  }
-  start(speed) {
-    this.speed = speed || 72;
-    this.run = true;
-    this.lastT = performance.now();
-    this._tick(this.lastT);
-  }
-  stop() {
-    this.run = false;
-    if (simAnimId) { cancelAnimationFrame(simAnimId); simAnimId = null; }
-  }
-  _tick(t) {
-    if (!this.run) return;
-    const dt = Math.min((t - this.lastT) / 1000, 0.05);
-    this.lastT = t;
-    const spd = (S.car && S.car.vKph) || this.speed || 72;
-    this.scroll += spd * dt * 1.2;
-    this.fx += ((S.car && S.car.steer) || 0) * dt * 0.005;
-    this.fx = Math.max(-0.3, Math.min(0.3, this.fx));
-    this._draw();
-    simAnimId = requestAnimationFrame(t2 => this._tick(t2));
-  }
-  _draw() {
-    const W = this.canvas.width = this.canvas.clientWidth || 800;
-    const H = this.canvas.height = this.canvas.clientHeight || 600;
-    const ctx = this.ctx;
-    const cx = W / 2 + this.fx * W * 0.15;
-    const vy = H * 0.55; // 消失点 y
-
-    // 天空渐变
-    const sky = ctx.createLinearGradient(0, 0, 0, vy);
-    sky.addColorStop(0, '#0a1628');
-    sky.addColorStop(1, '#1a2a4a');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, vy);
-
-    // 路面
-    ctx.fillStyle = '#2a3a3a';
-    const roadL = W * 0.15, roadR = W * 0.85;
-    ctx.beginPath();
-    ctx.moveTo(cx - 20, vy);
-    ctx.lineTo(roadL - 10, H);
-    ctx.lineTo(roadR + 10, H);
-    ctx.lineTo(cx + 20, vy);
-    ctx.closePath();
-    ctx.fill();
-
-    // 车道线（虚线透视）
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    const segLen = 120 * (H / 600);
-    const gapLen = 80 * (H / 600);
-    const totalLen = segLen + gapLen;
-    const offset = this.scroll % totalLen;
-    for (let y = vy + 10; y < H; y += 8) {
-      const t = (y - vy) / (H - vy);
-      const lw = 3 + t * 6;
-      if (t < 0.02) continue;
-      // 左右车道线
-      for (const side of [-1, 1]) {
-        const lx = cx + side * (100 + t * (W * 0.55));
-        const ly = y;
-        const local = (y - vy + offset * t) % totalLen;
-        if (local > segLen) continue;
-        ctx.fillStyle = 'rgba(255,255,255,' + (0.3 + t * 0.7) + ')';
-        const bw = Math.max(2, lw * 0.6);
-        ctx.fillRect(lx - bw / 2, ly, bw, 12 + t * 20);
-      }
-      // 中央虚线
-      if (t > 0.1) {
-        const local = (y - vy + offset * t) % totalLen;
-        if (local < segLen) {
-          ctx.fillStyle = 'rgba(255,255,200,' + (0.2 + t * 0.6) + ')';
-          ctx.fillRect(cx - 1.5, y, 3, 8 + t * 12);
-        }
-      }
-    }
-
-    // 前车（如果有前车且 dRel < 80m）
-    if (S.lead && S.lead.hasLead && S.lead.dRel != null && S.lead.dRel < 80) {
-      const dt = Math.max(0.08, Math.min(0.8, S.lead.dRel / 100));
-      const carSz = 30 + dt * 60;
-      const carY = vy + (H - vy) * (1 - dt);
-      ctx.fillStyle = 'rgba(50,50,60,0.9)';
-      ctx.fillRect(cx - carSz / 2, carY - carSz / 3, carSz, carSz * 0.8);
-      ctx.fillStyle = '#ef4444';
-      ctx.fillRect(cx - 4, carY - carSz / 3 - 4, 8, 4);
-    }
-
-    // HUD 文字叠加：当前速度（增强可读性）
-    const spd = (S.car && S.car.vKph) || this.speed;
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 10;
-    ctx.font = 'bold 48px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(Math.round(spd).toString(), cx, H - 60);
-    ctx.font = '16px sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText(S.car && S.car.speedUnit || 'km/h', cx, H - 30);
-    ctx.shadowBlur = 0;
-  }
-}
-
-let simRoad = null;
+let wsRetry = 0;                     // 重试计数
 
 function openCamera() {
   camActive = true;
@@ -717,7 +594,6 @@ function openCamera() {
   el.camStatus.classList.add('visible');
   el.camStatus.textContent = '连接中…';
   wsRetry = 0;
-  simMode = false;
   connectVideo();
 }
 
@@ -727,7 +603,6 @@ function closeCamera() {
   el.camBtn.classList.remove('open');
   el.camClose.style.display = 'none';
   el.camStatus.classList.remove('visible');
-  if (simRoad) { simRoad.stop(); simRoad = null; }
   closeVideo();
 }
 
@@ -757,7 +632,6 @@ function connectVideo() {
     if (st === 'connected') {
       el.camStatus.classList.remove('visible');
       wsRetry = 0;
-      simMode = false;
     } else if (st === 'failed' || st === 'disconnected' || st === 'closed') {
       onVideoDrop();
     }
@@ -794,20 +668,14 @@ function waitIceGathering(pc) {
   });
 }
 
-// 连接失败/断开处理：重试 3 次后降级到模拟路况
+// 连接失败/断开处理：重试 3 次后放弃
 function onVideoDrop() {
   closeVideo();
   if (!camActive) return;
-  if (wsRetry >= 3 && !simMode) {
-    simMode = true;
-    el.camStatus.classList.remove('visible');
-    const video = document.getElementById('vMse');
-    if (video) video.style.display = 'none';
-    el.canvas.style.display = 'block';
-    simRoad = new SimRoad(el.canvas);
-    simRoad.start((S.car && S.car.vKph) || 72);
-  } else if (!simMode) {
+  if (wsRetry < 3) {
     setTimeout(connectVideo, 2000);
+  } else {
+    el.camStatus.textContent = '连接失败';
   }
 }
 
@@ -972,92 +840,9 @@ async function doConfirmChange() {
   setTimeout(() => { if (setActive) openSettings(); }, 500);
 }
 
-// ═══ 演示数据（2 秒后加载） ═══
-const DEMO_DATA = {
-  _sync: true,
-  car: { vKph: 72, speedUnit: 'km/h', distUnit: 'm', gear: 'D', steer: -12.3,
-    steeringPressed: true,
-    gas: 0.25, gasPressed: false, brake: false, blinkerL: false, blinkerR: false,
-    blindspotL: false, blindspotR: false,
-    cruise: true, cruiseSet: 120 },
-  self: { enabled: true, active: true,
-    alert1: 'LKAS 运行中', alert2: '',
-    alertStatus: 'normal', experimentalMode: true },
-  lead: { hasLead: true, dRel: 52.3, vRel: -2.1, ttcValue: 3.2, ttcUrgent: true },
-  plan: { aTarget: -0.12, vTarget: 18.0 },
-  dev: { cpuTempC: 62.5, memPct: 45, freePct: 72, networkType: 'wifi', fanPct: 38, uptime: 3725 },
-  cal: { calStatus: 'valid', calPerc: 82, rpy: [0.021, 0.009, -0.005] },
-  procs: { total: 26, healthy: 25, unhealthy: [{ name: 'controlsExtraExit', running: false, shouldBeRunning: true, exitCode: 256 }] },
-  events: { count: 3, list: [{ name: 'steerTempUnavailable', severity: 3 }, { name: 'steerWarning', severity: 1 }, { name: 'startup', severity: 0 }] },
-  _cfg: { personality: '运动', accelProfile: '舒适' },
-  carParams: { openpilotLongitudinal: true },
-};
-
 // ═══ 启动 ═══
 connectData();
-// 演示：2 秒后注入模拟数据（无后端连接时展示效果）
-setTimeout(() => {
-  if (S._ts == null) {
-    mergeState(DEMO_DATA);
-    renderDash();
-  }
-}, 2000);
 
-// ═══ Mock 场景：?demo=cam 自动演示"摄像头加载 + 系统告警" ═══
-// 用法：在浏览器地址栏追加 ?demo=cam 即可本地验证视觉效果（无需后端）
-if (/[?&]demo=cam/.test(location.search)) {
-  let tick = 0;
-  // 立即注入基础数据并打开摄像头
-  mergeState(DEMO_DATA);
-  renderDash();
-  openCamera();
-  // 强制进入模拟路况画面（跳过 WebRTC 连接）
-  setTimeout(() => {
-    closeVideo();
-    simMode = true;
-    el.camStatus.classList.remove('visible');
-    el.canvas.style.display = 'block';
-    const vv = document.getElementById('vMse');
-    if (vv) vv.style.display = 'none';
-    if (!simRoad) { simRoad = new SimRoad(el.canvas); simRoad.start(72); }
-  }, 300);
-
-  // 每 3 秒循环切换场景：正常行驶 → 警告 → 严重告警 → 恢复
-  setInterval(() => {
-    tick = (tick + 1) % 4;
-    const speeds = [72, 85, 45, 60];
-    const scene = {
-      _sync: false,
-      car: { ...DEMO_DATA.car, vKph: speeds[tick],
-             blindspotL: tick === 1, blindspotR: tick === 3,
-             steeringPressed: tick !== 2, gasPressed: tick === 1 },
-      self: { ...DEMO_DATA.self },
-      events: { count: 0, list: [] },
-    };
-    if (tick === 1) {
-      // 警告场景
-      scene.self.alert1 = '请注意前方车辆';
-      scene.self.alertStatus = 'warning';
-      scene.events = { count: 1, list: [{ name: 'steerWarning', severity: 1 }] };
-    } else if (tick === 2) {
-      // 严重告警场景（触发红色闪烁）
-      scene.self.alert1 = '接管！转向暂时不可用';
-      scene.self.alert2 = 'STEER TEMPORARILY UNAVAILABLE';
-      scene.self.alertStatus = 'severe';
-      scene.self.active = false;
-      scene.events = { count: 1, list: [{ name: 'steerTempUnavailable', severity: 3 }] };
-    } else {
-      // 正常场景
-      scene.self.alert1 = 'LKAS 运行中';
-      scene.self.alert2 = '';
-      scene.self.alertStatus = 'normal';
-      scene.self.active = true;
-    }
-    mergeState(scene);
-    renderDash();
-    if (simRoad) simRoad.speed = speeds[tick];
-  }, 3000);
-}
 </script>
 </body>
 </html>

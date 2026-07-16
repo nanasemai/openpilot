@@ -56,6 +56,8 @@ class HudAggregator:
         self._is_metric: bool = True
         self._frame: int = 0
         self._params: Params | None = None
+        # 配置参数缓存（驾驶风格等），首次 poll 全量同步时一并推送
+        self._cfg: dict = {}
         # 初始化缓存默认值，让 register() 的首次 full_snapshot 就有数据
         self._init_cache_defaults()
 
@@ -143,10 +145,9 @@ class HudAggregator:
         if self._frame % METRIC_REFRESH_INTERVAL == 0:
             self._refresh_metric()
 
-        # 周期读取配置参数（驾驶风格等）
-        cfg = {}
+        # 周期读取配置参数（驾驶风格等），始终缓存到 self._cfg 供全量同步使用
         if self._frame % PARAMS_REFRESH_INTERVAL == 1:
-            cfg = self._read_cfg_params()
+            self._cfg = self._read_cfg_params()
 
         # 首次 poll 或每 N 帧强制全量同步
         is_full_sync = (self._frame % FULL_SYNC_INTERVAL == 1) or (not self._full)
@@ -178,15 +179,24 @@ class HudAggregator:
             except Exception as e:
                 LOG.debug("projection error for %s: %s", key, e)
 
-        if not snapshot and not is_full_sync and not cfg:
+        if not snapshot and not is_full_sync:
             return {'_ts': time.time(), '_sync': False}
 
         # 更新全量快照
         self._full.update(snapshot)
 
-        result = dict(self._full) if is_full_sync else dict(snapshot)
-        if cfg:
-            result['_cfg'] = cfg
+        if is_full_sync:
+            result = dict(self._full)
+            # 全量同步 → 清除已失效 topic 的脏数据（车熄火后旧速度/转向等不再推送）
+            for key, topic, _, _ in HUD_SOURCES:
+                if not self._sm.valid.get(topic, False) and key in result:
+                    result[key] = None
+                    self._full[key] = None   # 同步清除缓存，避免下轮增量带出旧值
+            # 全量同步携带配置参数，确保前端 _cfg 始终生效
+            if self._cfg:
+                result['_cfg'] = self._cfg
+        else:
+            result = dict(snapshot)
         result['_ts'] = time.time()
         result['_sync'] = is_full_sync
         return result
@@ -195,6 +205,13 @@ class HudAggregator:
     def full_snapshot(self) -> dict[str, Any]:
         """获取当前全量快照（不触发 cereal 更新）"""
         result = dict(self._full)
+        # 新客户端连接时也清除脏数据，避免刚上车时看到熄火前的旧值
+        if self._sm is not None:
+            for key, topic, _, _ in HUD_SOURCES:
+                if not self._sm.valid.get(topic, False) and key in result:
+                    result[key] = None
+        if self._cfg:
+            result['_cfg'] = self._cfg
         result['_ts'] = time.time()
         result['_sync'] = True
         return result
