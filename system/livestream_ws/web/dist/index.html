@@ -441,7 +441,7 @@ function renderDash(changedKeys) {
 
   // ── OP 状态 + 提醒（self） ──
   if (changed('self')) {
-    el.opState.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
+    el.opState.textContent = self.enabled ? (self.active ? '激活中' : '已介入') : '关闭';
     el.opState.className = self.enabled ? 'active' : '';
     el.alert1.textContent = self.alert1 || '—';
     el.alert2.textContent = self.alert2 || '';
@@ -509,7 +509,7 @@ function renderDash(changedKeys) {
     const memPct = dev.memPct != null ? dev.memPct + '%' : '--';
     const freePct = dev.freePct != null ? dev.freePct.toFixed(0) + '%' : '--';
     el.sMem.textContent = memPct + ' / ' + freePct;
-    el.sNet.textContent = dev.networkType || '--';
+    el.sNet.textContent = ({ wifi:'WiFi', cell:'蜂窝', none:'无', wired:'有线' })[dev.networkType] || dev.networkType || '--';
   }
   if (changed('plan')) {
     if (plan.aTarget != null || plan.vTarget != null) {
@@ -520,7 +520,7 @@ function renderDash(changedKeys) {
 
   // ── 校准（cal） ──
   if (changed('cal')) {
-    el.calStatus.textContent = cal.calStatus || '--';
+    el.calStatus.textContent = ({ calibrated:'已校准', uncalibrated:'未校准', calibrating:'校准中', invalid:'无效' })[cal.calStatus] || cal.calStatus || '--';
     const cp = cal.calPerc;
     el.calPct.textContent = cp != null ? cp + '%' : '--';
     el.calFill.style.width = (cp != null ? Math.min(cp, 100) : 0) + '%';
@@ -531,7 +531,7 @@ function renderDash(changedKeys) {
 
   // ── 摄像头 HUD（car / self） ──
   if (camActive && (changed('car') || changed('self'))) {
-    el.camOpState.textContent = self.enabled ? (self.active ? 'Active' : 'Engaged') : 'Off';
+    el.camOpState.textContent = self.enabled ? (self.active ? '激活中' : '已介入') : '关闭';
     el.camOpState.className = 'opState' + (self.enabled ? ' active' : '');
     el.camGear.textContent = car.gear || '--';
     const v = car.vKph;
