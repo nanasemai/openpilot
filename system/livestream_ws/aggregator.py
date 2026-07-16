@@ -273,6 +273,8 @@ class HudAggregator:
                 result['_cfg'] = self._cfg
             # 从 Params 持久化存储读取 CarParams（不依赖 cereal 消息）
             result['carParams'] = self._read_car_params_from_params()
+            # 后备：直接从系统读取温度/内存等（不依赖 cereal deviceState）
+            result['dev'] = self._read_system_dev_state()
             return result
 
         result = dict(self._full)
