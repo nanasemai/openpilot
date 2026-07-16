@@ -47,8 +47,8 @@ WEBRTCD_PORT = int(os.environ.get("WEBRTCD_PORT", "5001"))
 # Web 静态文件目录
 WEB_DIST = os.path.join(os.path.dirname(__file__), "web", "dist")
 
-# HUD 广播频率（Hz）
-HUD_RATE_HZ = 15.0
+# HUD 广播频率（Hz）- 0.5s 更新一次，避免前端刷新过快
+HUD_RATE_HZ = 2.0
 
 # 无客户端 5 秒后停止聚合（省 CPU）
 IDLE_STOP_SEC = 5.0
