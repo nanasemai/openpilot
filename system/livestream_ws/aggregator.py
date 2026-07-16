@@ -23,6 +23,19 @@ from openpilot.common.params import Params
 
 from openpilot.system.livestream_ws.projectors import HUD_SOURCES
 
+# 后备读取系统状态（当 cereal deviceState 不可用时）
+try:
+    import psutil
+    _HAS_PSUTIL = True
+except ImportError:
+    _HAS_PSUTIL = False
+
+try:
+    from openpilot.system.hardware import HARDWARE as _HARDWARE
+    _HAS_HW = True
+except Exception:
+    _HAS_HW = False
+
 LOG = logging.getLogger("livestream_agg")
 
 # 每 N 帧强制全量同步（让前端修正可能的合并偏差）
@@ -104,6 +117,44 @@ class HudAggregator:
             pass
         return {"openpilotLongitudinal": False}
 
+    def _read_system_dev_state(self) -> dict:
+        """后备读取系统状态（当 cereal deviceState 不可用时直接从系统读取）"""
+        result: dict[str, Any] = {}
+        # CPU 温度
+        temps = []
+        if _HAS_PSUTIL and hasattr(psutil, "sensors_temperatures"):
+            try:
+                for name, entries in psutil.sensors_temperatures().items():
+                    for entry in entries:
+                        if entry.current is not None:
+                            temps.append(entry.current)
+            except Exception:
+                pass
+        if temps:
+            result["cpuTempC"] = round(max(temps), 1)
+        else:
+            result["cpuTempC"] = 0.0
+        # 内存
+        if _HAS_PSUTIL:
+            try:
+                mem = psutil.virtual_memory()
+                result["memPct"] = int(round(mem.percent))
+                result["freePct"] = int(round(100.0 - mem.percent))
+            except Exception:
+                result["memPct"] = 0
+                result["freePct"] = 0
+        else:
+            result["memPct"] = 0
+            result["freePct"] = 0
+        # GPU / 风扇
+        result["gpuPct"] = int(round(_HARDWARE.get_gpu_usage_percent())) if _HAS_HW else 0
+        result["fanPct"] = 0
+        # 网络
+        result["networkType"] = str(_HARDWARE.get_network_type()).split(".")[-1] if _HAS_HW else None
+        result["thermalStatus"] = "ok"
+        result["uptime"] = 0.0
+        return result
+
     @property
     def topics(self) -> list[str]:
         if not self._topics:
@@ -181,6 +232,14 @@ class HudAggregator:
                 snapshot[key] = new_data
             except Exception as e:
                 LOG.debug("projection error for %s: %s", key, e)
+
+        # 后备：当 cereal deviceState 不可用时，直接从系统读取温度/内存等
+        if 'dev' not in snapshot and (is_full_sync or self._frame % 4 == 0):
+            fallback_dev = self._read_system_dev_state()
+            old = self._prev.get('dev')
+            if fallback_dev != old or is_full_sync:
+                self._prev['dev'] = fallback_dev
+                snapshot['dev'] = fallback_dev
 
         if not snapshot and not is_full_sync:
             return {'_ts': time.time(), '_sync': False}

@@ -18,7 +18,7 @@ LITE = os.getenv("LITE") is not None
 TICI_DOS = "TICI_DOS" in os.environ
 
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return started or params.get_bool("IsDriverViewEnabled") or params.get_bool("ForceOnroad")
+  return started or params.get_bool("IsDriverViewEnabled") or params.get_bool("ForceOnroad") or params.get_bool("EnableLivestream")
 
 def notcar(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and CP.notCar
@@ -65,15 +65,15 @@ def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
 
 def encoderd_predicate(started: bool, params: Params, CP: car.CarParams) -> bool:
   # encoderd: 上路时编码推流；ForceOnroad 调试时也需要它才有画面
-  return started or params.get_bool("ForceOnroad")
+  return started or params.get_bool("ForceOnroad") or params.get_bool("EnableLivestream")
 
 def livestream_enabled(started: bool, params: Params, CP: car.CarParams) -> bool:
   # livestream_ws 只受 UI 开关 EnableLivestream 控制；无画面时依然提供诊断面板
   return params.get_bool("EnableLivestream")
 
 def livestream_video(started: bool, params: Params, CP: car.CarParams) -> bool:
-  # WebRTC 推流后端（stream_encoderd + webrtcd）：上路(或 ForceOnroad 调试) 且开了 livestream 开关才启动
-  return (started or params.get_bool("ForceOnroad")) and params.get_bool("EnableLivestream")
+  # WebRTC 推流后端（stream_encoderd + webrtcd）：开了 livestream 开关就启动
+  return params.get_bool("EnableLivestream")
 
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
