@@ -26,10 +26,10 @@ from openpilot.system.livestream_ws.projectors import HUD_SOURCES
 LOG = logging.getLogger("livestream_agg")
 
 # 每 N 帧强制全量同步（让前端修正可能的合并偏差）
-FULL_SYNC_INTERVAL = 30  # frames (≈3s @ 10Hz)
+FULL_SYNC_INTERVAL = 6  # frames (≈3s @ 2Hz)
 
-METRIC_REFRESH_INTERVAL = 100  # frames (≈10s)
-PARAMS_REFRESH_INTERVAL = 50  # frames (≈5s)，驾驶风格等配置
+METRIC_REFRESH_INTERVAL = 20  # frames (≈10s)
+PARAMS_REFRESH_INTERVAL = 10  # frames (≈5s)，驾驶风格等配置
 
 # Params → 前端标签映射
 PERSONALITY_MAP = {
@@ -58,6 +58,9 @@ class HudAggregator:
         self._params: Params | None = None
         # 配置参数缓存（驾驶风格等），首次 poll 全量同步时一并推送
         self._cfg: dict = {}
+        # 前车距离平滑（指数移动平均），α=0.3 兼顾响应速度和平滑度
+        self._lead_smooth: dict[str, float] = {}
+        self._lead_smooth_alpha: float = 0.3
         # 初始化缓存默认值，让 register() 的首次 full_snapshot 就有数据
         self._init_cache_defaults()
 
@@ -170,6 +173,12 @@ class HudAggregator:
                 # lead 投影需要 v_ego
                 if key == 'lead':
                     new_data = proj(raw, v_ego=float(v_ego))
+                    # 对 dRel 做指数移动平均平滑，避免雷达噪声导致前端跳动
+                    if new_data.get('dRel') is not None:
+                        prev = self._lead_smooth.get('dRel', new_data['dRel'])
+                        smoothed = self._lead_smooth_alpha * new_data['dRel'] + (1 - self._lead_smooth_alpha) * prev
+                        self._lead_smooth['dRel'] = smoothed
+                        new_data['dRel'] = round(smoothed, 2)
                 else:
                     new_data = proj(raw, is_metric=self._is_metric)
 
@@ -208,6 +217,13 @@ class HudAggregator:
     @property
     def full_snapshot(self) -> dict[str, Any]:
         """获取当前全量快照（不触发 cereal 更新）"""
+        # SubMaster 从未收到有效数据 → 返回最小响应，避免前端被 None 值覆盖
+        if self._sm is None or not any(self._sm.valid.values()):
+            result: dict[str, Any] = {'_ts': time.time(), '_sync': True}
+            if self._cfg:
+                result['_cfg'] = self._cfg
+            return result
+
         result = dict(self._full)
         # 新客户端连接时也清除脏数据，避免刚上车时看到熄火前的旧值
         if self._sm is not None:
