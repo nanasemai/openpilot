@@ -46,7 +46,7 @@ class HudAggregator:
 
     def __init__(self):
         self._sm: messaging.SubMaster | None = None
-        # 全量快照（最新值，首次初始化时填入 None 默认值）
+        # 全量快照（首次 poll 前为空，触发第一次全量同步）
         self._full: dict[str, Any] = {}
         # 上一帧的逐 topic 数据（用于变更检测）
         self._prev: dict[str, Any] = {}
@@ -61,8 +61,6 @@ class HudAggregator:
         # 前车距离平滑（指数移动平均），α=0.3 兼顾响应速度和平滑度
         self._lead_smooth: dict[str, float] = {}
         self._lead_smooth_alpha: float = 0.3
-        # 初始化缓存默认值，让 register() 的首次 full_snapshot 就有数据
-        self._init_cache_defaults()
 
     def _ensure_params(self) -> Params:
         if self._params is None:
@@ -105,14 +103,6 @@ class HudAggregator:
         except Exception:
             pass
         return {"openpilotLongitudinal": False}
-
-    def _init_cache_defaults(self):
-        """初始化缓存默认值，让前端立即有数据可渲染（显示 Off/-- 而非"未连接"）"""
-        for key, _, _, _ in HUD_SOURCES:
-            if key not in self._full:
-                self._full[key] = None
-        # carParams 从 Params 持久化存储读取，不依赖 cereal 消息
-        self._full['carParams'] = self._read_car_params_from_params()
 
     @property
     def topics(self) -> list[str]:
@@ -217,19 +207,20 @@ class HudAggregator:
     @property
     def full_snapshot(self) -> dict[str, Any]:
         """获取当前全量快照（不触发 cereal 更新）"""
-        # SubMaster 从未收到有效数据 → 返回最小响应，避免前端被 None 值覆盖
+        # SubMaster 尚未创建或从未收到有效数据 → 返回最小响应
         if self._sm is None or not any(self._sm.valid.values()):
             result: dict[str, Any] = {'_ts': time.time(), '_sync': True}
             if self._cfg:
                 result['_cfg'] = self._cfg
+            # 从 Params 持久化存储读取 CarParams（不依赖 cereal 消息）
+            result['carParams'] = self._read_car_params_from_params()
             return result
 
         result = dict(self._full)
         # 新客户端连接时也清除脏数据，避免刚上车时看到熄火前的旧值
-        if self._sm is not None:
-            for key, topic, _, _ in HUD_SOURCES:
-                if not self._sm.valid.get(topic, False) and key in result:
-                    result[key] = None
+        for key, topic, _, _ in HUD_SOURCES:
+            if not self._sm.valid.get(topic, False) and key in result:
+                result[key] = None
         if self._cfg:
             result['_cfg'] = self._cfg
         result['_ts'] = time.time()
