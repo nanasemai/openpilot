@@ -138,6 +138,19 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
   0%,100% { opacity:1; transform:scale(1); }
   50% { opacity:.4; transform:scale(1.15); }
 }
+#camFullBtn { position:absolute; bottom:8px; right:8px; z-index:10; width:34px; height:34px;
+  border-radius:6px; border:none; background:rgba(0,0,0,.5); color:#fff; font-size:1rem;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  backdrop-filter:blur(4px); opacity:.6; transition:opacity .2s; }
+#camFullBtn:hover { opacity:1; }
+#camView.fullscreen { padding:0; gap:0; background:#000; }
+#camView.fullscreen #camVideoCard { flex:1; border:none; border-radius:0; padding:0; display:flex; }
+#camView.fullscreen #camVideoWrap { border-radius:0; aspect-ratio:unset; flex:1; }
+#camView.fullscreen .topbar { display:none; }
+#camView.fullscreen .speedCard { display:none; }
+#camView.fullscreen .alertCard { display:none; }
+#camView.fullscreen .camSelector { display:none; }
+#camView.fullscreen #camClose { display:none; }
 
 /* ── 诊断面板 ── */
 #panel { display:none; }
@@ -262,6 +275,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
       <video id="vMse" muted playsinline></video>
       <div id="camAlert"><span class="alarm">⚠</span></div>
       <div id="camStatus">连接中…</div>
+      <button id="camFullBtn" title="全屏">⛶</button>
     </div>
   </div>
 
@@ -691,6 +705,24 @@ function closeVideo() {
   if (video) { try { video.srcObject = null; } catch(_) {} }
 }
 
+// ═══ 全屏切换 ═══
+function toggleFullscreen() {
+  const el = document.getElementById('camView');
+  const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (isFs) {
+    (document.exitFullscreen || document.webkitExitFullscreen)().catch(() => {});
+  } else {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) req.call(el);
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  document.getElementById('camView').classList.toggle('fullscreen', !!document.fullscreenElement);
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  document.getElementById('camView').classList.toggle('fullscreen', !!document.webkitFullscreenElement);
+});
+
 // ═══ 诊断面板 ═══
 function openDiag() {
   diagActive = true;
@@ -708,6 +740,7 @@ function closeDiag() {
 $('camBtn').addEventListener('click', () => { camActive ? closeCamera() : openCamera(); });
 $('camClose').addEventListener('click', closeCamera);
 $('camBack').addEventListener('click', closeCamera);
+$('camFullBtn').addEventListener('click', toggleFullscreen);
 $('diagBtn').addEventListener('click', () => { diagActive ? closeDiag() : openDiag(); });
 el.panelOverlay.addEventListener('click', closeDiag);
 $('setBtn').addEventListener('click', openSettings);
