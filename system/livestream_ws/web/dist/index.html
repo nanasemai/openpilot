@@ -758,6 +758,22 @@ async function openSettings() {
 }
 function closeSettings() { setActive = false; $('settingsView').style.display = 'none'; $('dash').style.display = 'flex'; }
 
+// 根据 key 查找 param safety 并返回安全提示文本
+function safetyTextFor(key) {
+  const st = { offroad: '⚠ 此设置需要车辆完全熄火才能修改', not_engaged: '⚠ 此设置需要在 sunnypilot 未启用时修改' };
+  for (const g of (settingsData?.settings || []))
+    for (const p of g.items)
+      if (p.key === key) return st[p.safety] || 'ℹ 此设置可在行车中修改';
+  return 'ℹ 此设置可在行车中修改';
+}
+// 格式化值显示：bool 显示"开/关"，其他显示原值
+function formatValue(key, val) {
+  for (const g of (settingsData?.settings || []))
+    for (const p of g.items)
+      if (p.key === key) return p.type === 'bool' ? (val ? '开' : '关') : val;
+  return val;
+}
+
 function renderSettings() {
   if (!settingsData) return;
   const ctx = settingsData.context || {}, started = ctx.started, engaged = ctx.engaged, alwaysOffroad = ctx.always_offroad;
@@ -824,7 +840,7 @@ window.selectSetting = function(el) {
   $('confirmTitle').textContent = '⚠ 确认修改';
   $('confirmLabel').textContent = label;
   $('confirmDesc').textContent = '选择: ' + el.textContent;
-  $('confirmSafety').textContent = 'ℹ 此设置可在行车中修改';
+  $('confirmSafety').textContent = safetyTextFor(key);
   $('confirmModal').style.display = 'flex';
 };
 
@@ -844,7 +860,7 @@ window.adjustSetting = function(el) {
   $('confirmTitle').textContent = '⚠ 确认修改';
   $('confirmLabel').textContent = label;
   $('confirmDesc').textContent = '当前: ' + curVal + ' → 新值: ' + newVal;
-  $('confirmSafety').textContent = 'ℹ 此设置可在行车中修改';
+  $('confirmSafety').textContent = safetyTextFor(key);
   $('confirmModal').style.display = 'flex';
 };
 
@@ -865,7 +881,7 @@ async function doConfirmChange() {
     const r = await fetch('/api/settings/' + key, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({value}) });
     const res = await r.json();
     if (res.error === 'locked') addLog(2, '设置失败: ' + (res.reason || ''));
-    else if (res.ok) addLog(0, '设置已更改: ' + label + ' → ' + (value ? '开' : '关'));
+    else if (res.ok) addLog(0, '设置已更改: ' + label + ' → ' + formatValue(key, value));
     else addLog(2, '设置失败: ' + (res.message || ''));
   } catch (e) { addLog(2, '设置失败: ' + e.message); }
   pendingChange = null;
