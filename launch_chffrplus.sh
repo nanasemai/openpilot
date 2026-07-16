@@ -231,6 +231,11 @@ function launch {
     set_lite_hw
     agnos_init
     set_model_fingerprint
+
+    # create unified log directory in /data/media/0 for convenient access
+    mkdir -p /data/media/0/system_logs
+    [ -d /data/log ] && ln -sfn /data/log/ /data/media/0/system_logs/swaglog
+    [ -d /data/community/crashes ] && ln -sfn /data/community/crashes/ /data/media/0/system_logs/crashlog
   fi
 
   # openpilot ssh key installer (same as C2's default key mechanism)
