@@ -130,29 +130,30 @@ class HudAggregator:
     def _read_system_dev_state(self) -> dict:
         """后备读取系统状态（当 cereal deviceState 不可用时直接从系统读取）"""
         result: dict[str, Any] = {}
-        # CPU 温度 — 从 thermal zones 读取（不依赖 psutil）
+        # CPU 温度 — 优先从 HARDWARE API 获取（准确）
         temps = []
-        import glob
-        try:
-            for path in glob.glob('/sys/class/thermal/thermal_zone*/temp'):
-                try:
-                    with open(path) as f:
-                        raw = f.read().strip()
-                        if raw:
-                            # 有些 thermal zone 直接输出毫摄氏度，有些输出摄氏度
-                            val = float(raw) / 1000.0 if float(raw) > 100 else float(raw)
-                            temps.append(val)
-                except Exception:
-                    pass
-        except Exception:
-            pass
-        # 后备：从 HARDWARE API 获取温度
-        if not temps and _HAS_HW:
+        if _HAS_HW:
             try:
                 cfg = _HARDWARE.get_thermal_config()
                 msg = cfg.get_msg()
                 if hasattr(msg, 'cpuTempC') and msg.cpuTempC:
-                    temps = list(msg.cpuTempC)
+                    temps = [t for t in list(msg.cpuTempC) if 0 < t < 120]
+            except Exception:
+                pass
+        # 后备：从 thermal zones 读取（不依赖 capnp）
+        if not temps:
+            import glob
+            try:
+                for path in glob.glob('/sys/class/thermal/thermal_zone*/temp'):
+                    try:
+                        with open(path) as f:
+                            raw = f.read().strip()
+                            if raw:
+                                val = float(raw) / 1000.0 if float(raw) > 100 else float(raw)
+                                if 0 < val < 120:
+                                    temps.append(val)
+                    except Exception:
+                        pass
             except Exception:
                 pass
         result["cpuTempC"] = round(max(temps), 1) if temps else 0.0
