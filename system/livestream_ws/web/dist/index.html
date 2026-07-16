@@ -237,7 +237,6 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
     <div class="row"><span class="k">CPU 温度</span><span class="v" id="sCpu">--</span></div>
     <div class="row"><span class="k">内存 / 存储</span><span class="v" id="sMem">--</span></div>
     <div class="row"><span class="k">网络</span><span class="v" id="sNet">--</span></div>
-    <div class="row"><span class="k">规划 a* / v*</span><span class="v" id="sPlan">--</span></div>
   </div>
 
   <div id="calCard">
@@ -347,7 +346,7 @@ const el = {
   steerVal: $('steerVal'), gasVal: $('gasVal'), gasFill: $('gasFill'),
   gasCell: $('gasCell'), brakeVal: $('brakeVal'), brakeCell: $('brakeCell'),
   leadD: $('leadD'), leadVRel: $('leadVRel'), ttcVal: $('ttcVal'),
-  sCpu: $('sCpu'), sMem: $('sMem'), sNet: $('sNet'), sPlan: $('sPlan'),
+  sCpu: $('sCpu'), sMem: $('sMem'), sNet: $('sNet'),
   calStatus: $('calStatus'), calFill: $('calFill'), calPct: $('calPct'), calAim: $('calAim'),
   handIcon: $('handIcon'), gasIcon: $('gasIcon'),
   styleVal: $('styleVal'), accelVal: $('accelVal'), longVal: $('longVal'),
@@ -436,7 +435,7 @@ function connectData() {
 function renderDash(changedKeys) {
   const changed = (key) => !changedKeys || changedKeys.includes(key);
   const d = S, car = d.car || {}, self = d.self || {}, lead = d.lead || {},
-        dev = d.dev || {}, cal = d.cal || {}, plan = d.plan || {},
+        dev = d.dev || {}, cal = d.cal || {},
         procs = d.procs || {}, events = d.events || {};
 
   // ── OP 状态 + 提醒（self） ──
@@ -503,19 +502,13 @@ function renderDash(changedKeys) {
     }
   }
 
-  // ── 系统（dev / plan） ──
+  // ── 系统（dev） ──
   if (changed('dev')) {
     el.sCpu.textContent = dev.cpuTempC != null ? dev.cpuTempC.toFixed(0) + '°C' : '--';
     const memPct = dev.memPct != null ? dev.memPct + '%' : '--';
     const freePct = dev.freePct != null ? dev.freePct.toFixed(0) + '%' : '--';
     el.sMem.textContent = memPct + ' / ' + freePct;
     el.sNet.textContent = ({ wifi:'WiFi', cell:'蜂窝', none:'无', wired:'有线' })[dev.networkType] || dev.networkType || '--';
-  }
-  if (changed('plan')) {
-    if (plan.aTarget != null || plan.vTarget != null) {
-      el.sPlan.textContent = (plan.aTarget != null ? plan.aTarget.toFixed(2) : '--') +
-                             ' / ' + (plan.vTarget != null ? (plan.vTarget * 3.6).toFixed(0) : '--');
-    }
   }
 
   // ── 校准（cal） ──

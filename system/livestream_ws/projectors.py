@@ -235,7 +235,6 @@ HUD_SOURCES: list[tuple[str, str, callable, dict]] = [
     ("car",    "carState",         proj_carState,         {}),
     ("self",   "selfdriveState",   proj_selfdriveState,   {}),
     ("lead",   "radarState",       proj_radarState,       {}),
-    ("plan",   "longitudinalPlan", proj_longitudinalPlan, {}),
     ("dev",    "deviceState",      proj_deviceState,      {}),
     ("ctrl",   "controlsState",    proj_controlsState,    {}),
     ("cal",    "liveCalibration",  proj_liveCalibration,  {}),
