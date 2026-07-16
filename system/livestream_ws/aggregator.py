@@ -25,12 +25,6 @@ from openpilot.system.livestream_ws.projectors import HUD_SOURCES
 
 # 后备读取系统状态（当 cereal deviceState 不可用时）
 try:
-    import psutil
-    _HAS_PSUTIL = True
-except ImportError:
-    _HAS_PSUTIL = False
-
-try:
     from openpilot.system.hardware import HARDWARE as _HARDWARE
     _HAS_HW = True
 except Exception:
@@ -120,32 +114,53 @@ class HudAggregator:
     def _read_system_dev_state(self) -> dict:
         """后备读取系统状态（当 cereal deviceState 不可用时直接从系统读取）"""
         result: dict[str, Any] = {}
-        # CPU 温度
+        # CPU 温度 — 从 thermal zones 读取（不依赖 psutil）
         temps = []
-        if _HAS_PSUTIL and hasattr(psutil, "sensors_temperatures"):
+        import glob
+        try:
+            for path in glob.glob('/sys/class/thermal/thermal_zone*/temp'):
+                try:
+                    with open(path) as f:
+                        raw = f.read().strip()
+                        if raw:
+                            # 有些 thermal zone 直接输出毫摄氏度，有些输出摄氏度
+                            val = float(raw) / 1000.0 if float(raw) > 100 else float(raw)
+                            temps.append(val)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        # 后备：从 HARDWARE API 获取温度
+        if not temps and _HAS_HW:
             try:
-                for name, entries in psutil.sensors_temperatures().items():
-                    for entry in entries:
-                        if entry.current is not None:
-                            temps.append(entry.current)
+                cfg = _HARDWARE.get_thermal_config()
+                msg = cfg.get_msg()
+                if hasattr(msg, 'cpuTempC') and msg.cpuTempC:
+                    temps = list(msg.cpuTempC)
             except Exception:
                 pass
-        if temps:
-            result["cpuTempC"] = round(max(temps), 1)
-        else:
-            result["cpuTempC"] = 0.0
-        # 内存
-        if _HAS_PSUTIL:
-            try:
-                mem = psutil.virtual_memory()
-                result["memPct"] = int(round(mem.percent))
-                result["freePct"] = int(round(100.0 - mem.percent))
-            except Exception:
-                result["memPct"] = 0
-                result["freePct"] = 0
+        result["cpuTempC"] = round(max(temps), 1) if temps else 0.0
+
+        # 内存 — 从 /proc/meminfo 读取
+        mem_total = 0
+        mem_avail = 0
+        try:
+            with open('/proc/meminfo') as f:
+                for line in f:
+                    if line.startswith('MemTotal:'):
+                        mem_total = int(line.split()[1])
+                    elif line.startswith('MemAvailable:'):
+                        mem_avail = int(line.split()[1])
+        except Exception:
+            pass
+        if mem_total > 0:
+            used_pct = int(round((mem_total - mem_avail) / mem_total * 100))
+            result["memPct"] = used_pct
+            result["freePct"] = 100 - used_pct
         else:
             result["memPct"] = 0
             result["freePct"] = 0
+
         # GPU / 风扇
         result["gpuPct"] = int(round(_HARDWARE.get_gpu_usage_percent())) if _HAS_HW else 0
         result["fanPct"] = 0

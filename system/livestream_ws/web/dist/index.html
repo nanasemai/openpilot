@@ -692,12 +692,13 @@ function onVideoDrop() {
 }
 
 function closeVideo() {
-  if (pc) {
+  const oldPc = pc;
+  pc = null;  // 先清空，这样旧连接触发的 connectionstatechange 不会误判
+  if (oldPc) {
     try {
-      pc.getTransceivers && pc.getTransceivers().forEach(t => t.stop && t.stop());
-      pc.close();
+      oldPc.getTransceivers && oldPc.getTransceivers().forEach(t => t.stop && t.stop());
+      oldPc.close();
     } catch(_) {}
-    pc = null;
   }
   const video = document.getElementById('vMse');
   if (video) { try { video.srcObject = null; } catch(_) {} }
