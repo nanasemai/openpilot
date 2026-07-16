@@ -243,7 +243,7 @@ SETTINGS_DEFS = [
     {"key": "CustomAccShortPressIncrement", "label": "短按增量 (km/h)", "type": "int", "safety": "always"},
     {"key": "CustomAccLongPressIncrement", "label": "长按增量 (km/h)", "type": "int", "safety": "always"},
     {"key": "SPAccelProfile", "label": "加速度预设", "type": "select", "safety": "offroad", "options": [{"v": 0, "l": "标准"}, {"v": 1, "l": "节能"}, {"v": 2, "l": "运动"}, {"v": 3, "l": "舒适"}]},
-    {"key": "SPAccelProfileModeEnabled", "label": "自动激进模式 (APM)", "type": "bool", "safety": "always"},
+    {"key": "SPAccelProfileModeEnabled", "label": "自动激进模式 (APM)", "type": "bool", "safety": "offroad"},
     {"key": "dp_htd_enabled", "label": "人工转弯检测 (HTD)", "type": "bool", "safety": "always"},
     {"key": "dp_htd_turn_angle_threshold", "label": "HTD 转向角阈值", "type": "int", "safety": "always"},
     {"key": "SpeedLimitMode", "label": "限速模式", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "关闭"}, {"v": 1, "l": "提示"}, {"v": 2, "l": "警告"}, {"v": 3, "l": "辅助"}]},
@@ -288,7 +288,6 @@ SETTINGS_DEFS = [
     {"key": "LaneTurnDesire", "label": "使用车道转弯意图", "type": "bool", "safety": "always"},
     {"key": "LaneTurnValue", "label": "车道转弯速度调整", "type": "int", "safety": "always"},
     {"key": "LagdToggle", "label": "实时学习转向延迟", "type": "bool", "safety": "always"},
-    {"key": "LagdToggleDelay", "label": "转向延迟调整 (ms)", "type": "int", "safety": "always"},
   ]},
   # Device - 设备页面 (selfdrive/ui/sunnypilot/layouts/settings/device.py)
   {"group": "Device", "params": [
@@ -310,8 +309,8 @@ SETTINGS_DEFS = [
   ]},
   # Sunnylink (selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py)
   {"group": "Sunnylink", "params": [
-    {"key": "SunnylinkEnabled", "label": "启用 Sunnylink", "type": "bool", "safety": "always"},
-    {"key": "EnableSunnylinkUploader", "label": "启用 Sunnylink 上传", "type": "bool", "safety": "always"},
+    {"key": "SunnylinkEnabled", "label": "启用 Sunnylink", "type": "bool", "safety": "offroad"},
+    {"key": "EnableSunnylinkUploader", "label": "启用 Sunnylink 上传", "type": "bool", "safety": "offroad"},
   ]},
   # Developer - 开发者页面 (selfdrive/ui/sunnypilot/layouts/settings/developer.py)
   {"group": "Developer", "params": [
@@ -374,7 +373,13 @@ async def get_settings_api(request):
                     val = params.get_bool(key)
                 else:
                     raw = params.get(key)
-                    val = int(raw) if raw is not None else 0
+                    if raw is not None:
+                        try:
+                            val = int(float(raw))
+                        except (ValueError, TypeError):
+                            val = 0
+                    else:
+                        val = 0
             except Exception:
                 val = None
             min_safety = SAFETY_LEVELS.get(p["safety"], 0)

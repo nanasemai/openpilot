@@ -839,7 +839,7 @@ window.adjustSetting = function(el) {
       }
     }
   }
-  const newVal = Math.max(0, curVal + delta);
+  const newVal = curVal + delta;
   pendingChange = { key, value: newVal, label };
   $('confirmTitle').textContent = '⚠ 确认修改';
   $('confirmLabel').textContent = label;
