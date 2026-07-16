@@ -230,7 +230,7 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
     <div class="cell"><div class="k">纵向控制</div><div class="v" id="longVal">--</div></div>
     <div class="cell"><div class="k">前车距离</div><div class="v" id="leadD">--<small>m</small></div></div>
     <div class="cell"><div class="k">相对速度</div><div class="v" id="leadVRel">--</div></div>
-    <div class="cell"><div class="k">TTC</div><div class="v" id="ttcVal" style="color:var(--dim)">--<small>s</small></div></div>
+    <div class="cell"><div class="k">横向控制</div><div class="v" id="latCtrlVal">--<small></small></div></div>
   </div>
 
   <div id="sys">
@@ -344,7 +344,7 @@ const el = {
   cruiseSet: $('cruiseSet'), cruiseU: $('cruiseU'), cruiseDot: $('cruiseDot'),
   steerVal: $('steerVal'), gasVal: $('gasVal'), gasFill: $('gasFill'),
   gasCell: $('gasCell'), brakeVal: $('brakeVal'), brakeCell: $('brakeCell'),
-  leadD: $('leadD'), leadVRel: $('leadVRel'), ttcVal: $('ttcVal'),
+  leadD: $('leadD'), leadVRel: $('leadVRel'), latCtrlVal: $('latCtrlVal'),
   sCpu: $('sCpu'), sMem: $('sMem'),
   calStatus: $('calStatus'), calFill: $('calFill'), calPct: $('calPct'), calAim: $('calAim'),
   handIcon: $('handIcon'), gasIcon: $('gasIcon'),
@@ -492,12 +492,14 @@ function renderDash(changedKeys) {
       el.leadD.innerHTML = '--<small>m</small>';
       el.leadVRel.textContent = '--';
     }
-    if (lead.hasLead && lead.ttcValue != null && lead.ttcValue < 99) {
-      el.ttcVal.innerHTML = lead.ttcValue.toFixed(1) + '<small>s</small>';
-      el.ttcVal.style.color = lead.ttcUrgent ? 'var(--danger)' : 'var(--txt)';
+  }
+  // ── 横向控制（ctrl） ──
+  if (changed('ctrl')) {
+    const ctrl = d.ctrl || {};
+    if (ctrl.desiredCurvature != null && ctrl.curvature != null) {
+      el.latCtrlVal.innerHTML = (ctrl.curvature * 1e3).toFixed(1) + '<small> / ' + (ctrl.desiredCurvature * 1e3).toFixed(1) + '</small>';
     } else {
-      el.ttcVal.innerHTML = '--<small>s</small>';
-      el.ttcVal.style.color = 'var(--dim)';
+      el.latCtrlVal.innerHTML = '--<small></small>';
     }
   }
 
