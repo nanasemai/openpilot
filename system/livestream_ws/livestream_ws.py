@@ -326,7 +326,7 @@ SETTINGS_DEFS = [
     {"key": "LateralManeuverMode", "label": "横向操控模式", "type": "bool", "safety": "offroad"},
     {"key": "AlphaLongitudinalEnabled", "label": "纵向控制 (Alpha)", "type": "bool", "safety": "offroad"},
     {"key": "ShowDebugInfo", "label": "UI 调试模式", "type": "bool", "safety": "always"},
-    {"key": "ForceOnroad", "label": "强制上路视图", "type": "bool", "safety": "always"},
+    {"key": "ForceOnroad", "label": "强制上路视图", "type": "bool", "safety": "offroad"},
   ]},
 ]
 
