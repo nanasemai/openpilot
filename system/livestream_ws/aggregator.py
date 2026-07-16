@@ -30,6 +30,22 @@ try:
 except Exception:
     _HAS_HW = False
 
+# 网络类型名称映射（capnp enum → 前端可识别的字符串）
+try:
+    from cereal import log as _log
+    _NT = _log.DeviceState.NetworkType
+    _NETWORK_TYPE_NAMES = {
+        _NT.none: None,
+        _NT.wifi: "wifi",
+        _NT.ethernet: "wired",
+        _NT.cell2G: "cell",
+        _NT.cell3G: "cell",
+        _NT.cell4G: "cell",
+        _NT.cell5G: "cell",
+    }
+except Exception:
+    _NETWORK_TYPE_NAMES = {}
+
 LOG = logging.getLogger("livestream_agg")
 
 # 每 N 帧强制全量同步（让前端修正可能的合并偏差）
@@ -164,11 +180,36 @@ class HudAggregator:
         # GPU / 风扇
         result["gpuPct"] = int(round(_HARDWARE.get_gpu_usage_percent())) if _HAS_HW else 0
         result["fanPct"] = 0
-        # 网络
-        result["networkType"] = str(_HARDWARE.get_network_type()).split(".")[-1] if _HAS_HW else None
+        # 网络类型 — 使用映射表避免 capnp enum 被 str() 转为数字
+        if _HAS_HW:
+            try:
+                nt = _HARDWARE.get_network_type()
+                result["networkType"] = _NETWORK_TYPE_NAMES.get(nt, str(nt))
+            except Exception:
+                result["networkType"] = None
+        else:
+            result["networkType"] = None
         result["thermalStatus"] = "ok"
         result["uptime"] = 0.0
         return result
+
+    def _read_calibration_from_params(self) -> dict:
+        """从 Params 读取校准数据（当 cereal liveCalibration 不可用时）"""
+        try:
+            cp_bytes = self._ensure_params().get("CalibrationParams")
+            if cp_bytes:
+                import json
+                cal = json.loads(cp_bytes)
+                rpy = cal.get("extrinsic_matrix", [])
+                # 从 Params 读取的校准数据可能没有 calPerc，默认 100%
+                return {
+                    "rpy": rpy[:3] if len(rpy) >= 3 else [0, 0, 0],
+                    "calStatus": "calibrated",
+                    "calPerc": 100,
+                }
+        except Exception:
+            pass
+        return {"rpy": [0, 0, 0], "calStatus": "uncalibrated", "calPerc": 0}
 
     @property
     def topics(self) -> list[str]:
@@ -256,6 +297,14 @@ class HudAggregator:
                 self._prev['dev'] = fallback_dev
                 snapshot['dev'] = fallback_dev
 
+        # 后备：当 cereal liveCalibration 不可用时，从 Params 读取校准数据
+        if 'cal' not in snapshot and (is_full_sync or self._frame % 8 == 0):
+            fallback_cal = self._read_calibration_from_params()
+            old = self._prev.get('cal')
+            if fallback_cal != old or is_full_sync:
+                self._prev['cal'] = fallback_cal
+                snapshot['cal'] = fallback_cal
+
         if not snapshot and not is_full_sync:
             return {'_ts': time.time(), '_sync': False}
 
@@ -290,6 +339,8 @@ class HudAggregator:
             result['carParams'] = self._read_car_params_from_params()
             # 后备：直接从系统读取温度/内存等（不依赖 cereal deviceState）
             result['dev'] = self._read_system_dev_state()
+            # 后备：从 Params 读取校准数据（不依赖 cereal liveCalibration）
+            result['cal'] = self._read_calibration_from_params()
             return result
 
         result = dict(self._full)
