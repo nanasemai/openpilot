@@ -18,7 +18,7 @@ LITE = os.getenv("LITE") is not None
 TICI_DOS = "TICI_DOS" in os.environ
 
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return started or params.get_bool("IsDriverViewEnabled") or params.get_bool("ForceOnroad") or params.get_bool("EnableLivestream")
+  return started or params.get_bool("IsDriverViewEnabled") or params.get_bool("ForceOnroad")
 
 def notcar(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and CP.notCar
@@ -65,7 +65,7 @@ def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
 
 def encoderd_predicate(started: bool, params: Params, CP: car.CarParams) -> bool:
   # encoderd: 上路时编码推流；ForceOnroad 调试时也需要它才有画面
-  return started or params.get_bool("ForceOnroad") or params.get_bool("EnableLivestream")
+  return started or params.get_bool("ForceOnroad")
 
 def livestream_enabled(started: bool, params: Params, CP: car.CarParams) -> bool:
   # livestream_ws 只受 UI 开关 EnableLivestream 控制；无画面时依然提供诊断面板
