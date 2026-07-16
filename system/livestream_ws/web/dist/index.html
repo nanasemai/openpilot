@@ -236,7 +236,6 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--txt)
   <div id="sys">
     <div class="row"><span class="k">CPU 温度</span><span class="v" id="sCpu">--</span></div>
     <div class="row"><span class="k">内存 / 存储</span><span class="v" id="sMem">--</span></div>
-    <div class="row"><span class="k">网络</span><span class="v" id="sNet">--</span></div>
   </div>
 
   <div id="calCard">
@@ -346,7 +345,7 @@ const el = {
   steerVal: $('steerVal'), gasVal: $('gasVal'), gasFill: $('gasFill'),
   gasCell: $('gasCell'), brakeVal: $('brakeVal'), brakeCell: $('brakeCell'),
   leadD: $('leadD'), leadVRel: $('leadVRel'), ttcVal: $('ttcVal'),
-  sCpu: $('sCpu'), sMem: $('sMem'), sNet: $('sNet'),
+  sCpu: $('sCpu'), sMem: $('sMem'),
   calStatus: $('calStatus'), calFill: $('calFill'), calPct: $('calPct'), calAim: $('calAim'),
   handIcon: $('handIcon'), gasIcon: $('gasIcon'),
   styleVal: $('styleVal'), accelVal: $('accelVal'), longVal: $('longVal'),
@@ -508,7 +507,6 @@ function renderDash(changedKeys) {
     const memPct = dev.memPct != null ? dev.memPct + '%' : '--';
     const freePct = dev.freePct != null ? dev.freePct.toFixed(0) + '%' : '--';
     el.sMem.textContent = memPct + ' / ' + freePct;
-    el.sNet.textContent = ({ wifi:'WiFi', cell:'蜂窝', none:'无', wired:'有线' })[dev.networkType] || dev.networkType || '--';
   }
 
   // ── 校准（cal） ──
