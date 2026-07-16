@@ -55,9 +55,14 @@ def format_timestamp(created):
     return str(created)
 
 
-def format_level(level_name):
-    """统一级别宽度，保持对齐"""
-    return level_name.ljust(5)
+_LEVEL_MAP = {50: "CRITICAL", 40: "ERROR", 30: "WARNING", 20: "INFO", 10: "DEBUG"}
+
+
+def format_level(level_name, levelnum=None):
+    if level_name is None or level_name == "?":
+        if levelnum is not None and levelnum in _LEVEL_MAP:
+            return _LEVEL_MAP[levelnum].ljust(5)
+    return (level_name or "?").ljust(5)
 
 
 def format_message(raw_msg):
@@ -80,7 +85,7 @@ def format_message(raw_msg):
 def format_entry(entry):
     """将一条日志条目转为易读文本。"""
     ts = format_timestamp(entry.get("created", 0))
-    level = format_level(entry.get("level", "?"))
+    level = format_level(entry.get("level"), entry.get("levelnum"))
     daemon = (entry.get("ctx") or {}).get("daemon", "?")
     module = entry.get("module", daemon)
     msg = format_message(entry.get("msg", ""))
