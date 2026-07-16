@@ -599,6 +599,7 @@ function renderProcBad(unhealthy) {
 // ═══ 摄像头（WebRTC 按需连接） ═══
 let pc = null;                       // RTCPeerConnection
 let wsRetry = 0;                     // 重试计数
+let _retryTimer = null;              // 重试定时器句柄
 
 function openCamera() {
   camActive = true;
@@ -607,12 +608,16 @@ function openCamera() {
   el.camClose.style.display = 'flex';
   el.camStatus.classList.add('visible');
   el.camStatus.textContent = '连接中…';
+  // 清除残余重试，关闭旧连接，避免冲突
+  if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+  closeVideo();
   wsRetry = 0;
   connectVideo();
 }
 
 function closeCamera() {
   camActive = false;
+  if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
   el.camView.classList.remove('open');
   el.camBtn.classList.remove('open');
   el.camClose.style.display = 'none';
@@ -688,7 +693,7 @@ function onVideoDrop() {
   if (!camActive) return;
   const delay = Math.min(2000 * Math.pow(2, Math.min(wsRetry, 3)), 10000);
   wsRetry++;
-  setTimeout(connectVideo, delay);
+  _retryTimer = setTimeout(connectVideo, delay);
 }
 
 function closeVideo() {
