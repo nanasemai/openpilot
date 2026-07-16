@@ -33,7 +33,7 @@ PARAMS_REFRESH_INTERVAL = 50  # frames (≈5s)，驾驶风格等配置
 
 # Params → 前端标签映射
 PERSONALITY_MAP = {
-    "0": "标准", "1":  "运动", "2":  "经济",
+    "0": "激进", "1":  "标准", "2":  "放松",
 }
 ACCEL_PROFILE_MAP = {
     "0": "标准", "1":  "节能", "2":  "运动",
