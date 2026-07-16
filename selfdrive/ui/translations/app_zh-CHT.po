@@ -2941,6 +2941,34 @@ msgstr "车辆转向时间限制"
 msgid "View the error log for sunnypilot crashes."
 msgstr "查看 sunnypilot 當機的錯誤日誌。"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System Logs"
+msgstr "系統日誌"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Clear or format swaglog files. Only available when offroad."
+msgstr "清除或轉換系統日誌格式。僅在非上路模式下可用。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System log operations are only available when offroad."
+msgstr "系統日誌操作僅在非上路模式下可用。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "No swaglog files found."
+msgstr "找不到系統日誌檔案。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} swaglog file(s) found, {size} total.<br><br>Are you sure you want to delete them?"
+msgstr "找到 {count} 個系統日誌檔案，共 {size}。<br><br>確定要刪除嗎？"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Delete All"
+msgstr "全部刪除"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} swaglog file(s) cleared."
+msgstr "已清除 {count} 個系統日誌檔案。"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Vision Model"
 msgstr "視覺模型"
@@ -4119,4 +4147,32 @@ msgstr "🔥 Firehose 模式 🔥"
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "🚀 sunnylink 🚀"
 msgstr "🚀 sunnylink 🚀"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "FORMAT"
+msgstr "格式轉換"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format completed successfully."
+msgstr "格式轉換完成。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format failed (exit code {code})."
+msgstr "格式轉換失敗（退出碼 {code}）。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format timed out after 120 seconds."
+msgstr "格式轉換逾時（120 秒）。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Error running format script: {error}"
+msgstr "執行格式轉換指令碼出錯：{error}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format script not found: {path}"
+msgstr "找不到格式轉換指令碼：{path}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Output"
+msgstr "輸出"
 

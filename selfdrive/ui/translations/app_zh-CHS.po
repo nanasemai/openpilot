@@ -2943,6 +2943,34 @@ msgstr "车辆转向时间限制"
 msgid "View the error log for sunnypilot crashes."
 msgstr "查看 sunnypilot 崩溃的错误日志。"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System Logs"
+msgstr "系统日志"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Clear or format swaglog files. Only available when offroad."
+msgstr "清除或转换系统日志格式。仅在非上路模式下可用。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System log operations are only available when offroad."
+msgstr "系统日志操作仅在非上路模式下可用。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "No swaglog files found."
+msgstr "未找到系统日志文件。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} swaglog file(s) found, {size} total.<br><br>Are you sure you want to delete them?"
+msgstr "找到 {count} 个系统日志文件，共 {size}。<br><br>确定要删除吗？"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Delete All"
+msgstr "全部删除"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} swaglog file(s) cleared."
+msgstr "已清除 {count} 个系统日志文件。"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/models.py
 msgid "Vision Model"
 msgstr "视觉模型"
@@ -4296,3 +4324,31 @@ msgstr "快速启动模式"
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "disable updates"
 msgstr "禁用更新"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "FORMAT"
+msgstr "格式转换"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format completed successfully."
+msgstr "格式转换完成。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format failed (exit code {code})."
+msgstr "格式转换失败（退出码 {code}）。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format timed out after 120 seconds."
+msgstr "格式转换超时（120 秒）。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Error running format script: {error}"
+msgstr "运行格式转换脚本出错：{error}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Format script not found: {path}"
+msgstr "未找到格式转换脚本：{path}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Output"
+msgstr "输出"
