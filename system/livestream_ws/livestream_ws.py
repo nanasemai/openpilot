@@ -217,6 +217,7 @@ async def webrtc_offer(request: web.Request):
 
 # 参数定义：分组、参数名、安全级别
 # 分组结构参考 selfdrive/ui/layouts/ (stock + sunnypilot)
+# type: "bool"=开关, "int"=数值(+/-), "select"=多选一
 # safety: "offroad"=停车才能改, "not_engaged"=非engaged可改, "always"=随时可改
 SETTINGS_DEFS = [
   # Toggles - 主开关页面 (selfdrive/ui/layouts/settings/toggles.py)
@@ -234,35 +235,83 @@ SETTINGS_DEFS = [
   ]},
   # Cruise - 巡航页面 (selfdrive/ui/sunnypilot/layouts/settings/cruise.py)
   {"group": "Cruise", "params": [
-    {"key": "DynamicExperimentalControl", "label": "动态实验控制", "type": "bool", "safety": "not_engaged"},
-    {"key": "SmartCruiseControlVision", "label": "智能巡航控制 - 视觉(SCC-V)", "type": "bool", "safety": "not_engaged"},
-    {"key": "SmartCruiseControlMap", "label": "智能巡航控制 - 地图(SCC-M)", "type": "bool", "safety": "not_engaged"},
+    {"key": "DynamicExperimentalControl", "label": "动态实验控制 (DEC)", "type": "bool", "safety": "not_engaged"},
+    {"key": "IntelligentCruiseButtonManagement", "label": "智能巡航按钮管理 (ICBM)", "type": "bool", "safety": "offroad"},
+    {"key": "SmartCruiseControlVision", "label": "智能巡航控制 - 视觉 (SCC-V)", "type": "bool", "safety": "not_engaged"},
+    {"key": "SmartCruiseControlMap", "label": "智能巡航控制 - 地图 (SCC-M)", "type": "bool", "safety": "not_engaged"},
+    {"key": "CustomAccIncrementsEnabled", "label": "自定义 ACC 速度增量", "type": "bool", "safety": "offroad"},
+    {"key": "CustomAccShortPressIncrement", "label": "短按增量 (km/h)", "type": "int", "safety": "always"},
+    {"key": "CustomAccLongPressIncrement", "label": "长按增量 (km/h)", "type": "int", "safety": "always"},
+    {"key": "SPAccelProfile", "label": "加速度预设", "type": "select", "safety": "offroad", "options": [{"v": 0, "l": "标准"}, {"v": 1, "l": "节能"}, {"v": 2, "l": "运动"}, {"v": 3, "l": "舒适"}]},
+    {"key": "SPAccelProfileModeEnabled", "label": "自动激进模式 (APM)", "type": "bool", "safety": "always"},
     {"key": "dp_htd_enabled", "label": "人工转弯检测 (HTD)", "type": "bool", "safety": "always"},
-    {"key": "SPAccelProfileModeEnabled", "label": "自动激进模式", "type": "bool", "safety": "always"},
+    {"key": "dp_htd_turn_angle_threshold", "label": "HTD 转向角阈值", "type": "int", "safety": "always"},
+    {"key": "SpeedLimitMode", "label": "限速模式", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "关闭"}, {"v": 1, "l": "提示"}, {"v": 2, "l": "警告"}, {"v": 3, "l": "辅助"}]},
+    {"key": "SpeedLimitPolicy", "label": "限速数据源", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "仅车辆"}, {"v": 1, "l": "仅地图"}, {"v": 2, "l": "车辆优先"}, {"v": 3, "l": "地图优先"}, {"v": 4, "l": "综合"}]},
+    {"key": "SpeedLimitOffsetType", "label": "限速偏移类型", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "无"}, {"v": 1, "l": "固定值"}, {"v": 2, "l": "百分比"}]},
+    {"key": "SpeedLimitValueOffset", "label": "限速偏移值", "type": "int", "safety": "not_engaged"},
   ]},
   # Steering - 转向页面 (selfdrive/ui/sunnypilot/layouts/settings/steering.py)
   {"group": "Steering", "params": [
-    {"key": "Mads", "label": "模块化辅助驾驶系统（MADS）", "type": "bool", "safety": "offroad"},
+    {"key": "Mads", "label": "模块化辅助驾驶系统 (MADS)", "type": "bool", "safety": "offroad"},
+    {"key": "MadsMainCruiseAllowed", "label": "MADS 允许主巡航切换", "type": "bool", "safety": "offroad"},
+    {"key": "MadsUnifiedEngagementMode", "label": "MADS 统一接合模式 (UEM)", "type": "bool", "safety": "offroad"},
+    {"key": "MadsSteeringMode", "label": "制动踏板转向模式", "type": "select", "safety": "offroad", "options": [{"v": 0, "l": "保持活跃"}, {"v": 1, "l": "暂停"}, {"v": 2, "l": "脱离"}]},
     {"key": "BlinkerPauseLateralControl", "label": "拨杆时暂停横向控制", "type": "bool", "safety": "always"},
-    {"key": "NeuralNetworkLateralControl", "label": "神经网络横向控制（NNLC）", "type": "bool", "safety": "offroad"},
-    {"key": "RoadEdgeLcaBlindspot", "label": "检测到道路边缘", "type": "bool", "safety": "always"},
+    {"key": "BlinkerMinLateralControlSpeed", "label": "暂停横向最低速度", "type": "int", "safety": "always"},
+    {"key": "BlinkerLateralReengageDelay", "label": "拨杆后重接延迟 (秒)", "type": "int", "safety": "always"},
+    {"key": "EnforceTorqueControl", "label": "强制扭矩横向控制", "type": "bool", "safety": "offroad"},
+    {"key": "NeuralNetworkLateralControl", "label": "神经网络横向控制 (NNLC)", "type": "bool", "safety": "offroad"},
+    {"key": "LateralPositionOffset", "label": "车道位置偏移 (cm)", "type": "int", "safety": "always"},
+    {"key": "RoadEdgeLcaBlindspot", "label": "变道检测到道路边缘", "type": "bool", "safety": "always"},
+    {"key": "AutoLaneChangeTimer", "label": "自动变道延迟 (秒)", "type": "int", "safety": "always"},
+    {"key": "AutoLaneChangeBsmDelay", "label": "盲区时延迟自动变道", "type": "bool", "safety": "always"},
   ]},
   # Visuals - 视觉页面 (selfdrive/ui/sunnypilot/layouts/settings/visuals.py)
   {"group": "Visuals", "params": [
     {"key": "BlindSpot", "label": "显示盲区警告", "type": "bool", "safety": "always"},
+    {"key": "TorqueBar", "label": "转向弧度", "type": "bool", "safety": "always"},
+    {"key": "RainbowMode", "label": "彩红路径模式", "type": "bool", "safety": "always"},
+    {"key": "StandstillTimer", "label": "停车计时器", "type": "bool", "safety": "always"},
+    {"key": "RoadNameToggle", "label": "显示道路名称", "type": "bool", "safety": "always"},
+    {"key": "GreenLightAlert", "label": "绿灯提醒 (Beta)", "type": "bool", "safety": "always"},
+    {"key": "LeadDepartAlert", "label": "前车驶离提醒 (Beta)", "type": "bool", "safety": "always"},
+    {"key": "TrueVEgoUI", "label": "车速表：始终显示真实速度", "type": "bool", "safety": "always"},
+    {"key": "HideVEgoUI", "label": "车速表：隐藏", "type": "bool", "safety": "always"},
+    {"key": "ShowTurnSignals", "label": "显示转向灯", "type": "bool", "safety": "always"},
+    {"key": "RocketFuel", "label": "实时加速度条", "type": "bool", "safety": "always"},
+    {"key": "ChevronInfo", "label": "前车下方显示信息", "type": "select", "safety": "always", "options": [{"v": 0, "l": "关闭"}, {"v": 1, "l": "距离"}, {"v": 2, "l": "速度"}, {"v": 3, "l": "时间"}, {"v": 4, "l": "全部"}]},
+    {"key": "DevUIInfo", "label": "开发者信息显示", "type": "select", "safety": "always", "options": [{"v": 0, "l": "关闭"}, {"v": 1, "l": "底部"}, {"v": 2, "l": "右侧"}, {"v": 3, "l": "右侧和底部"}]},
   ]},
   # Models - 模型页面 (selfdrive/ui/sunnypilot/layouts/settings/models.py)
   {"group": "Models", "params": [
     {"key": "LaneTurnDesire", "label": "使用车道转弯意图", "type": "bool", "safety": "always"},
+    {"key": "LaneTurnValue", "label": "车道转弯速度调整", "type": "int", "safety": "always"},
     {"key": "LagdToggle", "label": "实时学习转向延迟", "type": "bool", "safety": "always"},
+    {"key": "LagdToggleDelay", "label": "转向延迟调整 (ms)", "type": "int", "safety": "always"},
   ]},
-  # Device - 设备页面 (selfdrive/ui/layouts/settings/device.py)
+  # Device - 设备页面 (selfdrive/ui/sunnypilot/layouts/settings/device.py)
   {"group": "Device", "params": [
     {"key": "OffroadMode", "label": "始终非上路", "type": "bool", "safety": "always"},
+    {"key": "MaxTimeOffroad", "label": "最大熄火时间 (分钟)", "type": "int", "safety": "always"},
+    {"key": "DeviceBootMode", "label": "启动行为", "type": "select", "safety": "offroad", "options": [{"v": 0, "l": "默认"}, {"v": 1, "l": "非上路"}]},
+    {"key": "AudibleAlertMode", "label": "声音提示模式", "type": "select", "safety": "always", "options": [{"v": 0, "l": "全部"}, {"v": 1, "l": "仅警告"}, {"v": 2, "l": "静音"}]},
+    {"key": "dp_dev_disable_connect", "label": "禁用 Comma Connect", "type": "bool", "safety": "always"},
+  ]},
+  # Display - 显示页面 (selfdrive/ui/sunnypilot/layouts/settings/display.py)
+  {"group": "Display", "params": [
+    {"key": "OnroadScreenOffBrightness", "label": "行车中屏幕亮度", "type": "int", "safety": "always"},
+    {"key": "OnroadScreenOffTimer", "label": "行车中亮度延迟 (秒)", "type": "int", "safety": "always"},
+    {"key": "InteractivityTimeout", "label": "交互超时 (秒)", "type": "int", "safety": "always"},
   ]},
   # Software - 软件页面 (selfdrive/ui/layouts/settings/software.py)
   {"group": "Software", "params": [
     {"key": "DisableUpdates", "label": "禁用更新", "type": "bool", "safety": "offroad"},
+  ]},
+  # Sunnylink (selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py)
+  {"group": "Sunnylink", "params": [
+    {"key": "SunnylinkEnabled", "label": "启用 Sunnylink", "type": "bool", "safety": "always"},
+    {"key": "EnableSunnylinkUploader", "label": "启用 Sunnylink 上传", "type": "bool", "safety": "always"},
   ]},
   # Developer - 开发者页面 (selfdrive/ui/sunnypilot/layouts/settings/developer.py)
   {"group": "Developer", "params": [
@@ -271,6 +320,14 @@ SETTINGS_DEFS = [
     {"key": "EnableLivestream", "label": "启用投屏", "type": "bool", "safety": "always"},
     {"key": "EnableCopyparty", "label": "copyparty 服务", "type": "bool", "safety": "offroad"},
     {"key": "QuickBootToggle", "label": "快速启动模式", "type": "bool", "safety": "offroad"},
+    {"key": "ShowAdvancedControls", "label": "显示高级控制", "type": "bool", "safety": "always"},
+    {"key": "EnableGithubRunner", "label": "GitHub Runner 服务", "type": "bool", "safety": "always"},
+    {"key": "JoystickDebugMode", "label": "摇杆调试模式", "type": "bool", "safety": "offroad"},
+    {"key": "LongitudinalManeuverMode", "label": "纵向操控模式", "type": "bool", "safety": "offroad"},
+    {"key": "LateralManeuverMode", "label": "横向操控模式", "type": "bool", "safety": "offroad"},
+    {"key": "AlphaLongitudinalEnabled", "label": "纵向控制 (Alpha)", "type": "bool", "safety": "offroad"},
+    {"key": "ShowDebugInfo", "label": "UI 调试模式", "type": "bool", "safety": "always"},
+    {"key": "ForceOnroad", "label": "强制上路视图", "type": "bool", "safety": "always"},
   ]},
 ]
 
