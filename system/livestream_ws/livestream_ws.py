@@ -216,66 +216,61 @@ async def webrtc_offer(request: web.Request):
 # ─────────────────────────────────────────────────────────
 
 # 参数定义：分组、参数名、安全级别
+# 分组结构参考 selfdrive/ui/layouts/ (stock + sunnypilot)
 # safety: "offroad"=停车才能改, "not_engaged"=非engaged可改, "always"=随时可改
 SETTINGS_DEFS = [
-  # 核心系统
-  {"group": "核心系统", "params": [
+  # Toggles - 主开关页面 (selfdrive/ui/layouts/settings/toggles.py)
+  {"group": "Toggles", "params": [
     {"key": "OpenpilotEnabledToggle", "label": "启用 sunnypilot", "type": "bool", "safety": "not_engaged", "needs_restart": True},
     {"key": "ExperimentalMode", "label": "实验模式", "type": "bool", "safety": "not_engaged"},
     {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
-    {"key": "DynamicExperimentalControl", "label": "动态实验控制", "type": "bool", "safety": "not_engaged"},
-    {"key": "OffroadMode", "label": "始终非上路", "type": "bool", "safety": "always"},
-  ]},
-  # 驾驶
-  {"group": "驾驶", "params": [
     {"key": "DisengageOnAccelerator", "label": "踩下加速踏板时脱离", "type": "bool", "safety": "always"},
     {"key": "IsLdwEnabled", "label": "启用车道偏离警示", "type": "bool", "safety": "always"},
-    {"key": "LaneTurnDesire", "label": "使用车道转弯意图", "type": "bool", "safety": "always"},
-    {"key": "LagdToggle", "label": "实时学习转向延迟", "type": "bool", "safety": "always"},
-    {"key": "RoadEdgeLcaBlindspot", "label": "检测到道路边缘", "type": "bool", "safety": "always"},
-  ]},
-  # 安全监控
-  {"group": "安全监控", "params": [
     {"key": "AlwaysOnDM", "label": "始终启用驾驶员监控", "type": "bool", "safety": "always"},
     {"key": "DisableDriverMonitoringCamera", "label": "禁用驾驶监控摄像头", "type": "bool", "safety": "offroad", "needs_restart": True},
+    {"key": "RecordFront", "label": "录制并上传车内摄像头", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+    {"key": "RecordAudio", "label": "录制并上传麦克风音频", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+    {"key": "IsMetric", "label": "使用公制", "type": "bool", "safety": "always"},
+  ]},
+  # Cruise - 巡航页面 (selfdrive/ui/sunnypilot/layouts/settings/cruise.py)
+  {"group": "Cruise", "params": [
+    {"key": "DynamicExperimentalControl", "label": "动态实验控制", "type": "bool", "safety": "not_engaged"},
+    {"key": "SmartCruiseControlVision", "label": "智能巡航控制 - 视觉(SCC-V)", "type": "bool", "safety": "not_engaged"},
+    {"key": "SmartCruiseControlMap", "label": "智能巡航控制 - 地图(SCC-M)", "type": "bool", "safety": "not_engaged"},
     {"key": "dp_htd_enabled", "label": "人工转弯检测 (HTD)", "type": "bool", "safety": "always"},
-  ]},
-  # 性能
-  {"group": "性能", "params": [
     {"key": "SPAccelProfileModeEnabled", "label": "自动激进模式", "type": "bool", "safety": "always"},
-    {"key": "QuickBootToggle", "label": "快速启动模式", "type": "bool", "safety": "offroad"},
   ]},
-  # 连接
-  {"group": "连接", "params": [
-    {"key": "SshEnabled", "label": "启用 SSH", "type": "bool", "safety": "always"},
-    {"key": "DisableUpdates", "label": "禁用更新", "type": "bool", "safety": "offroad"},
-  ]},
-  # 转向
-  {"group": "转向", "params": [
+  # Steering - 转向页面 (selfdrive/ui/sunnypilot/layouts/settings/steering.py)
+  {"group": "Steering", "params": [
     {"key": "Mads", "label": "模块化辅助驾驶系统（MADS）", "type": "bool", "safety": "offroad"},
     {"key": "BlinkerPauseLateralControl", "label": "拨杆时暂停横向控制", "type": "bool", "safety": "always"},
     {"key": "NeuralNetworkLateralControl", "label": "神经网络横向控制（NNLC）", "type": "bool", "safety": "offroad"},
+    {"key": "RoadEdgeLcaBlindspot", "label": "检测到道路边缘", "type": "bool", "safety": "always"},
+  ]},
+  # Visuals - 视觉页面 (selfdrive/ui/sunnypilot/layouts/settings/visuals.py)
+  {"group": "Visuals", "params": [
     {"key": "BlindSpot", "label": "显示盲区警告", "type": "bool", "safety": "always"},
   ]},
-  # 巡航
-  {"group": "巡航", "params": [
-    {"key": "SmartCruiseControlVision", "label": "智能巡航控制 - 视觉(SCC-V)", "type": "bool", "safety": "not_engaged"},
-    {"key": "SmartCruiseControlMap", "label": "智能巡航控制 - 地图(SCC-M)", "type": "bool", "safety": "not_engaged"},
+  # Models - 模型页面 (selfdrive/ui/sunnypilot/layouts/settings/models.py)
+  {"group": "Models", "params": [
+    {"key": "LaneTurnDesire", "label": "使用车道转弯意图", "type": "bool", "safety": "always"},
+    {"key": "LagdToggle", "label": "实时学习转向延迟", "type": "bool", "safety": "always"},
   ]},
-  # 显示单位
-  {"group": "显示单位", "params": [
-    {"key": "IsMetric", "label": "使用公制", "type": "bool", "safety": "always"},
+  # Device - 设备页面 (selfdrive/ui/layouts/settings/device.py)
+  {"group": "Device", "params": [
+    {"key": "OffroadMode", "label": "始终非上路", "type": "bool", "safety": "always"},
   ]},
-  # 录制
-  {"group": "录制", "params": [
-    {"key": "RecordFront", "label": "录制并上传车内摄像头", "type": "bool", "safety": "not_engaged", "needs_restart": True},
-    {"key": "RecordAudio", "label": "录制并上传麦克风音频", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+  # Software - 软件页面 (selfdrive/ui/layouts/settings/software.py)
+  {"group": "Software", "params": [
+    {"key": "DisableUpdates", "label": "禁用更新", "type": "bool", "safety": "offroad"},
   ]},
-  # 开发者
-  {"group": "开发者", "params": [
+  # Developer - 开发者页面 (selfdrive/ui/sunnypilot/layouts/settings/developer.py)
+  {"group": "Developer", "params": [
     {"key": "AdbEnabled", "label": "启用 ADB", "type": "bool", "safety": "always"},
+    {"key": "SshEnabled", "label": "启用 SSH", "type": "bool", "safety": "always"},
     {"key": "EnableLivestream", "label": "启用投屏", "type": "bool", "safety": "always"},
     {"key": "EnableCopyparty", "label": "copyparty 服务", "type": "bool", "safety": "offroad"},
+    {"key": "QuickBootToggle", "label": "快速启动模式", "type": "bool", "safety": "offroad"},
   ]},
 ]
 
