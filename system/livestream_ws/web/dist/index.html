@@ -467,9 +467,9 @@ function renderDash(changedKeys) {
     el.styleVal.textContent = cfg.personality || '--';
     el.accelVal.textContent = cfg.accelProfile || '--';
   }
-  if (changed('carParams')) {
-    const longCtrl = d.carParams && d.carParams.openpilotLongitudinal;
-    el.longVal.textContent = longCtrl ? 'OP 控制' : '驾驶员控制';
+  // ── 纵向控制（从 carState 读取巡航状态） ──
+  if (changed('car')) {
+    el.longVal.textContent = car.cruise ? '巡航中' : '--';
   }
 
   // ── 网格（car / lead） ──
