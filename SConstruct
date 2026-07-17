@@ -260,6 +260,8 @@ SConscript([
   'selfdrive/ui/SConscript',
 ])
 
+SConscript(['sunnypilot/SConscript'])
+
 # Build desktop-only tools
 if GetOption('extras') and arch != "larch64":
   SConscript([
