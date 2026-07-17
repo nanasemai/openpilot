@@ -321,11 +321,11 @@ SETTINGS_DEFS = [
   ]},
 ]
 
-# 安全级别语义（数值越大要求越严苛）：
+# 安全级别数值（与 level 比较）：
 #   always(0):       任何状态可改
-#   not_engaged(1):  engaged 时锁定 → locked = engaged
-#   offroad(2):      started 时锁定 → locked = started
-SAFETY_LEVELS = {"offroad": 2, "not_engaged": 1, "always": 0}
+#   offroad(1):      started 时锁定   → locked = level >= 1
+#   not_engaged(2):  engaged 时锁定  → locked = level >= 2
+SAFETY_LEVELS = {"offroad": 1, "not_engaged": 2, "always": 0}
 
 # 可写参数集合（白名单）
 WRITABLE_KEYS = {p["key"] for g in SETTINGS_DEFS for p in g["params"]}
@@ -428,12 +428,12 @@ async def save_setting_api(request):
     min_safety = SAFETY_LEVELS.get(pdef["safety"], 0)
     if ctx["level"] >= min_safety:
         # reason 按 RAYLIB UI 语义生成：
-        #   offroad(2)    锁定条件 = started  → "车辆启动后无法修改"
-        #   not_engaged(1) 锁定条件 = engaged  → "sunnypilot 启用中无法修改"
+        #   offroad(1)     锁定条件 = started  → "车辆启动后无法修改"
+        #   not_engaged(2) 锁定条件 = engaged  → "sunnypilot 启用中无法修改"
         if min_safety == 2:
-            reason = "车辆启动后无法修改，请熄火后再试"
-        else:
             reason = "sunnypilot 启用中无法修改，请脱离后再试"
+        else:
+            reason = "车辆启动后无法修改，请熄火后再试"
         raise web.HTTPForbidden(text=json.dumps({"error": "locked", "reason": reason}), content_type="application/json")
 
     value = body.get("value")
