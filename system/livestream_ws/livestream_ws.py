@@ -465,6 +465,8 @@ async def save_setting_api(request):
 
     # 安全校验
     min_safety = SAFETY_LEVELS.get(pdef["safety"], 0)
+    LOG.info("save_setting: key=%s value=%s safety=%s min_safety=%s level=%s",
+             param_name, body.get("value"), pdef["safety"], min_safety, ctx["level"])
     if min_safety > 0 and ctx["level"] >= min_safety:
         # reason 按 RAYLIB UI 语义生成：
         #   offroad(1)     锁定条件 = started  → "车辆启动后无法修改"
