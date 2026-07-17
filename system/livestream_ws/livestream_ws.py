@@ -321,7 +321,10 @@ SETTINGS_DEFS = [
   ]},
 ]
 
-# 安全级别映射
+# 安全级别语义（数值越大要求越严苛）：
+#   always(0):       任何状态可改
+#   not_engaged(1):  engaged 时锁定 → locked = engaged
+#   offroad(2):      started 时锁定 → locked = started
 SAFETY_LEVELS = {"offroad": 2, "not_engaged": 1, "always": 0}
 
 # 可写参数集合（白名单）
@@ -329,25 +332,38 @@ WRITABLE_KEYS = {p["key"] for g in SETTINGS_DEFS for p in g["params"]}
 
 
 def get_safety_context(params: Params) -> dict:
-    """获取车辆安全上下文：started / engaged"""
+    """获取车辆安全上下文：started / engaged
+
+    语义对齐 RAYLIB UI（selfdrive/ui/ui_state.py）：
+      engaged = started AND (selfdriveState.enabled OR selfdriveStateSP.mads.enabled)
+      is_onroad = started（这里不带 force_onroad，livestream_ws 用 OffroadMode 做反向覆盖）
+    安全级别锁定条件：
+      offroad(2):    started 时锁定   → locked = started
+      not_engaged(1): engaged 时锁定  → locked = engaged
+      always(0):     任何状态可改
+    """
     started = False
     engaged = False
     always_offroad = False
     try:
         always_offroad = params.get_bool("OffroadMode")
-        sm = messaging.SubMaster(["deviceState", "selfdriveState"])
+        sm = messaging.SubMaster(["deviceState", "selfdriveState", "selfdriveStateSP"])
         sm.update(0)
         if sm.updated["deviceState"]:
             started = sm["deviceState"].started
-        if sm.updated["selfdriveState"]:
-            engaged = sm["selfdriveState"].enabled
+        # 与 RAYLIB UI 一致：MADS 或 selfdrive 任一启用即视为 engaged
+        sd_enabled = bool(sm["selfdriveState"].enabled) if sm.updated["selfdriveState"] else False
+        mads_enabled = bool(sm["selfdriveStateSP"].mads.enabled) if sm.updated.get("selfdriveStateSP", False) else False
+        engaged = started and (sd_enabled or mads_enabled)
     except Exception:
         pass
     # 始终非上路模式下，视为停车状态，允许修改停车时才能改的参数
     if always_offroad:
         started = False
         engaged = False
-    return {"started": started, "engaged": engaged, "always_offroad": always_offroad, "level": 2 if started and engaged else (1 if started else 0)}
+    # level 用于前端旧式数值比较；语义同上面注释
+    return {"started": started, "engaged": engaged, "always_offroad": always_offroad,
+            "level": 2 if engaged else (1 if started else 0)}
 
 
 async def get_settings_api(request):
@@ -410,7 +426,13 @@ async def save_setting_api(request):
     # 安全校验
     min_safety = SAFETY_LEVELS.get(pdef["safety"], 0)
     if ctx["level"] >= min_safety:
-        reason = "车辆行驶中无法修改" if min_safety == 2 else "sunnypilot 启用中无法修改"
+        # reason 按 RAYLIB UI 语义生成：
+        #   offroad(2)    锁定条件 = started  → "车辆启动后无法修改"
+        #   not_engaged(1) 锁定条件 = engaged  → "sunnypilot 启用中无法修改"
+        if min_safety == 2:
+            reason = "车辆启动后无法修改，请熄火后再试"
+        else:
+            reason = "sunnypilot 启用中无法修改，请脱离后再试"
         raise web.HTTPForbidden(text=json.dumps({"error": "locked", "reason": reason}), content_type="application/json")
 
     value = body.get("value")
