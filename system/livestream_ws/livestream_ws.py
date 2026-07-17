@@ -455,7 +455,12 @@ async def save_setting_api(request):
         if pdef["type"] == "bool":
             params.put_bool(param_name, bool(value))
         else:
-            params.put(param_name, str(int(value)))
+            # 部分 Params 键为 INT 类型（如 LongitudinalPersonality），
+            # params.put(str) 会报 Type mismatch，需用 put_int
+            try:
+                params.put_int(param_name, int(value))
+            except Exception:
+                params.put(param_name, str(int(value)))
         if pdef.get("needs_restart"):
             params.put_bool("OnroadCycleRequested", True)
     except Exception as e:
