@@ -465,7 +465,7 @@ async def save_setting_api(request):
 
     # 安全校验
     min_safety = SAFETY_LEVELS.get(pdef["safety"], 0)
-    if ctx["level"] >= min_safety:
+    if min_safety > 0 and ctx["level"] >= min_safety:
         # reason 按 RAYLIB UI 语义生成：
         #   offroad(1)     锁定条件 = started  → "车辆启动后无法修改"
         #   not_engaged(2) 锁定条件 = engaged  → "sunnypilot 启用中无法修改"
