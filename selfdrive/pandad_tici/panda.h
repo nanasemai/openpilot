@@ -11,7 +11,7 @@
 
 #include "cereal/gen/cpp/car.capnp.h"
 #include "cereal/gen/cpp/log.capnp.h"
-#include "panda/board/health.h"
+#include "panda_tici/board/health.h"
 #include "panda/board/can.h"
 #include "selfdrive/pandad_tici/panda_comms.h"
 
