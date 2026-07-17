@@ -253,6 +253,7 @@ async def webrtc_offer(request: web.Request):
 SETTINGS_DEFS = [
   # Toggles - 主开关页面 (selfdrive/ui/layouts/settings/toggles.py)
   {"group": "Toggles", "params": [
+    {"key": "OffroadMode", "label": "启用非上路模式", "type": "bool", "safety": "always"},
     {"key": "OpenpilotEnabledToggle", "label": "启用 sunnypilot", "type": "bool", "safety": "not_engaged", "needs_restart": True},
     {"key": "ExperimentalMode", "label": "实验模式", "type": "bool", "safety": "not_engaged"},
     {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
