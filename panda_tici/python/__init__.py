@@ -130,7 +130,7 @@ class Panda:
   CAN_PACKET_VERSION = 4
   HEALTH_PACKET_VERSION = 18
   CAN_HEALTH_PACKET_VERSION = 5
-  HEALTH_STRUCT = struct.Struct("<IIIIIIIIBBBBBHBBBHfBBHBHHBBB")
+  HEALTH_STRUCT = struct.Struct("<IIIIIIIIBBBBBHBBBHfBBHHHBHBBB")
   CAN_HEALTH_STRUCT = struct.Struct("<BIBBBBBBBBIIIIIIIHHBBBIIII")
 
   F4_DEVICES = [HW_TYPE_WHITE_PANDA, HW_TYPE_GREY_PANDA, HW_TYPE_BLACK_PANDA, HW_TYPE_UNO, HW_TYPE_DOS]
@@ -556,12 +556,13 @@ class Panda:
       "fan_power": a[19],
       "safety_rx_checks_invalid": a[20],
       "spi_error_count": a[21],
-      "fan_stall_count": a[22],
-      "sbu1_voltage_mV": a[23],
-      "sbu2_voltage_mV": a[24],
-      "som_reset_triggered": a[25],
+      "sbu1_voltage_mV": a[22],
+      "sbu2_voltage_mV": a[23],
+      "som_reset_triggered": a[24],
+      "sound_output_level_pkt": a[25],
       "controls_allowed_lateral": a[26],
       "controls_allowed_longitudinal": a[27],
+      "fan_stall_count": a[28],
     }
 
   @ensure_can_health_packet_version

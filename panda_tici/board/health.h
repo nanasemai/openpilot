@@ -24,12 +24,13 @@ struct __attribute__((packed)) health_t {
   uint8_t fan_power;
   uint8_t safety_rx_checks_invalid_pkt;
   uint16_t spi_error_count_pkt;
-  uint8_t fan_stall_count;
   uint16_t sbu1_voltage_mV;
   uint16_t sbu2_voltage_mV;
   uint8_t som_reset_triggered;
+  uint16_t sound_output_level_pkt;
   uint8_t controls_allowed_lateral_pkt;
   uint8_t controls_allowed_longitudinal_pkt;
+  uint8_t fan_stall_count;
 };
 
 #define CAN_HEALTH_PACKET_VERSION 5
