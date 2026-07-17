@@ -238,7 +238,6 @@ SETTINGS_DEFS = [
   # Toggles - 主开关页面 (selfdrive/ui/layouts/settings/toggles.py)
   {"group": "Toggles", "params": [
     {"key": "OffroadMode", "label": "启用非上路模式", "type": "bool", "safety": "always"},
-    {"key": "OpenpilotEnabledToggle", "label": "启用 sunnypilot", "type": "bool", "safety": "offroad", "needs_restart": True},
     {"key": "ExperimentalMode", "label": "实验模式", "type": "bool", "safety": "not_engaged"},
     {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
     {"key": "DisengageOnAccelerator", "label": "踩下加速踏板时脱离", "type": "bool", "safety": "always"},
@@ -447,13 +446,8 @@ async def save_setting_api(request):
     LOG.info("save_setting: key=%s value=%s safety=%s min_safety=%s level=%s",
              param_name, body.get("value"), pdef["safety"], min_safety, ctx["level"])
     if min_safety > 0 and ctx["level"] >= min_safety:
-        # reason 按 RAYLIB UI 语义生成：
-        #   offroad(1)     锁定条件 = started  → "车辆启动后无法修改"
-        #   not_engaged(2) 锁定条件 = engaged  → "sunnypilot 启用中无法修改"
-        if min_safety == 2:
-            reason = "sunnypilot 启用中无法修改，请脱离后再试"
-        else:
-            reason = "车辆启动后无法修改，请熄火后再试"
+        # 简化后只可能触发 offroad(1) 锁定
+        reason = "请先开启「启用非上路模式」再修改"
         raise web.HTTPForbidden(text=json.dumps({"error": "locked", "reason": reason}), content_type="application/json")
 
     value = body.get("value")
