@@ -95,48 +95,12 @@ def main() -> None:
         time.sleep(3)  # wait to come back up
 
       # Flash all Pandas in DFU mode
-      # Try full DFU flash (bootstub + app) first; fall back to simple recover()
       dfu_serials = PandaDFU.list()
       if len(dfu_serials) > 0:
         for serial in dfu_serials:
-          try:
-            cloudlog.info(f"Panda in DFU mode found, full flash via DFU {serial}")
-            dfu = PandaDFU(serial)
-            mcu = dfu.get_mcu_type()
-
-            bootstub_fn = os.path.join(FW_PATH, mcu.config.bootstub_fn)
-            app_fn = os.path.join(FW_PATH, mcu.config.app_fn)
-
-            with open(bootstub_fn, "rb") as f:
-              bootstub = f.read()
-            with open(app_fn, "rb") as f:
-              app = f.read()
-
-            cloudlog.info(f"Full DFU flash for {mcu}: bootstub={len(bootstub)}B, app={len(app)}B")
-
-            # Erase all sectors
-            for i in range(mcu.config.sector_count):
-              dfu._handle.erase_sector(i)
-
-            # Write bootstub + app firmware via DFU
-            dfu._handle.program(mcu.config.bootstub_address, bootstub)
-            dfu._handle.program(mcu.config.app_address, app)
-
-            # Software jump: bootstub runs, detects valid app, jumps to it
-            dfu.reset()
-            dfu.close()
-            cloudlog.info("Full firmware written via DFU")
-          except Exception:
-            cloudlog.exception("DFU full flash failed, falling back to recover")
-            try:
-              PandaDFU(serial).recover()
-            except Exception:
-              cloudlog.exception("DFU recover also failed")
-
-        # GPIO reset for internal panda: ensures clean boot into app firmware
-        if HARDWARE.has_internal_panda():
-          HARDWARE.reset_internal_panda()
-        time.sleep(3)
+          cloudlog.info(f"Panda in DFU mode found, flashing recovery {serial}")
+          PandaDFU(serial).recover()
+        time.sleep(1)
 
       panda_serials = Panda.list()
       if len(panda_serials) == 0:
