@@ -447,7 +447,8 @@ async def save_setting_api(request):
         raise web.HTTPBadRequest(text=json.dumps({"error": "invalid_json"}), content_type="application/json")
 
     params: Params = request.app["params"]
-    ctx = get_safety_context(params)
+    hud: HudBroadcaster = request.app["hud"]
+    ctx = hud.get_safety_context(params)
 
     # 查找参数定义
     pdef = None
@@ -491,7 +492,8 @@ async def save_setting_api(request):
 async def get_context_api(request):
     """GET /api/context → 车辆安全上下文"""
     params: Params = request.app["params"]
-    ctx = get_safety_context(params)
+    hud: HudBroadcaster = request.app["hud"]
+    ctx = hud.get_safety_context(params)
     return web.json_response(ctx)
 
 
