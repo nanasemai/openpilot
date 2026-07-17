@@ -63,11 +63,16 @@ class HudBroadcaster:
         self._task: asyncio.Task | None = None
         self._agg: HudAggregator | None = None
         self._idle_since: float = 0.0
+        # 持久 SubMaster：用于 get_safety_context，避免每次 API 请求新建导致读不到数据
+        self._safety_sm: messaging.SubMaster | None = None
 
     async def ensure_running(self):
         if self._task is None or self._task.done():
             self._agg = HudAggregator()
             self._task = asyncio.create_task(self._loop(), name="hud_pump")
+        # 确保安全上下文的 SubMaster 已初始化
+        if self._safety_sm is None:
+            self._safety_sm = messaging.SubMaster(["deviceState", "selfdriveState", "selfdriveStateSP"])
 
     async def register(self, ws: web.WebSocketResponse):
         self.clients.add(ws)
@@ -84,6 +89,32 @@ class HudBroadcaster:
 
     def unregister(self, ws: web.WebSocketResponse):
         self.clients.discard(ws)
+
+    def get_safety_context(self, params: Params) -> dict:
+        """获取安全上下文，以 OffroadMode（启用非上路模式）为主要判定依据
+
+        逻辑：
+          - 开启"启用非上路模式" → 始终停车，所有参数可改
+          - 关闭"启用非上路模式" → 视为上路状态，offroad 参数锁定
+          - engaged 依赖持久 SubMaster 读取 cereal，若不可用则默认 False
+        """
+        started = False
+        engaged = False
+        always_offroad = False
+        try:
+            always_offroad = params.get_bool("OffroadMode")
+            # 核心逻辑：关闭 OffroadMode 即视为上路
+            started = not always_offroad
+            # engaged 尝试从持久 SubMaster 读取（若不可用默认 False）
+            if self._safety_sm is not None:
+                self._safety_sm.update(0)
+                sd_enabled = bool(self._safety_sm["selfdriveState"].enabled) if self._safety_sm.updated["selfdriveState"] else False
+                mads_enabled = bool(self._safety_sm["selfdriveStateSP"].mads.enabled) if self._safety_sm.updated.get("selfdriveStateSP", False) else False
+                engaged = started and (sd_enabled or mads_enabled)
+        except Exception:
+            pass
+        return {"started": started, "engaged": engaged, "always_offroad": always_offroad,
+                "level": 2 if engaged else (1 if started else 0)}
 
     async def _loop(self):
         loop = asyncio.get_running_loop()
@@ -370,7 +401,8 @@ def get_safety_context(params: Params) -> dict:
 async def get_settings_api(request):
     """GET /api/settings → 返回所有参数配置 + 当前值 + 安全状态"""
     params: Params = request.app["params"]
-    ctx = get_safety_context(params)
+    hud: HudBroadcaster = request.app["hud"]
+    ctx = hud.get_safety_context(params)
     result = []
     for group in SETTINGS_DEFS:
         items = []
