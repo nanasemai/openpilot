@@ -91,26 +91,31 @@ class HudBroadcaster:
         self.clients.discard(ws)
 
     def get_safety_context(self, params: Params) -> dict:
-        """获取安全上下文，以 OffroadMode（启用非上路模式）为主要判定依据
+        """获取安全上下文
 
-        逻辑：
-          - 开启"启用非上路模式" → 始终停车，所有参数可改
-          - 关闭"启用非上路模式" → 视为上路状态，offroad 参数锁定
-          - engaged 依赖持久 SubMaster 读取 cereal，若不可用则默认 False
+        规则：
+          - 开启 OffroadMode → 始终停车，所有参数可改
+          - 关闭 OffroadMode → 从持久 SubMaster 读取真实 deviceState.started
+          - engaged = started AND (selfdriveState.enabled OR selfdriveStateSP.mads.enabled)
         """
         started = False
         engaged = False
         always_offroad = False
         try:
             always_offroad = params.get_bool("OffroadMode")
-            # 核心逻辑：关闭 OffroadMode 即视为上路
-            started = not always_offroad
-            # engaged 尝试从持久 SubMaster 读取（若不可用默认 False）
-            if self._safety_sm is not None:
-                self._safety_sm.update(0)
-                sd_enabled = bool(self._safety_sm["selfdriveState"].enabled) if self._safety_sm.updated["selfdriveState"] else False
-                mads_enabled = bool(self._safety_sm["selfdriveStateSP"].mads.enabled) if self._safety_sm.updated.get("selfdriveStateSP", False) else False
-                engaged = started and (sd_enabled or mads_enabled)
+            if always_offroad:
+                # 强制停车模式
+                started = False
+                engaged = False
+            else:
+                # 从持久 SubMaster 读取真实车辆状态
+                if self._safety_sm is not None:
+                    self._safety_sm.update(0)
+                    if self._safety_sm.updated["deviceState"]:
+                        started = self._safety_sm["deviceState"].started
+                    sd_enabled = bool(self._safety_sm["selfdriveState"].enabled) if self._safety_sm.updated["selfdriveState"] else False
+                    mads_enabled = bool(self._safety_sm["selfdriveStateSP"].mads.enabled) if self._safety_sm.updated.get("selfdriveStateSP", False) else False
+                    engaged = started and (sd_enabled or mads_enabled)
         except Exception:
             pass
         return {"started": started, "engaged": engaged, "always_offroad": always_offroad,
