@@ -335,8 +335,10 @@ def get_safety_context(params: Params) -> dict:
     """获取车辆安全上下文：started / engaged
 
     语义对齐 RAYLIB UI（selfdrive/ui/ui_state.py）：
-      engaged = started AND (selfdriveState.enabled OR selfdriveStateSP.mads.enabled)
-      is_onroad = started（这里不带 force_onroad，livestream_ws 用 OffroadMode 做反向覆盖）
+      - started = IsOnroad OR ForceOnroad
+        （manager 在 write_onroad_params() 中同步写入 IsOnroad，
+          基于 deviceState.started AND ignition，比单独查 cereal 可靠）
+      - engaged = started AND (selfdriveState.enabled OR selfdriveStateSP.mads.enabled)
     安全级别锁定条件：
       offroad(2):    started 时锁定   → locked = started
       not_engaged(1): engaged 时锁定  → locked = engaged
@@ -347,11 +349,11 @@ def get_safety_context(params: Params) -> dict:
     always_offroad = False
     try:
         always_offroad = params.get_bool("OffroadMode")
-        sm = messaging.SubMaster(["deviceState", "selfdriveState", "selfdriveStateSP"])
+        # started 优先从 Params 读取（manager 同步写入，无 cereal 时序问题）
+        started = params.get_bool("IsOnroad") or params.get_bool("ForceOnroad")
+        # engaged 仍需 cereal 数据，尝试非阻塞读取一次
+        sm = messaging.SubMaster(["selfdriveState", "selfdriveStateSP"])
         sm.update(0)
-        if sm.updated["deviceState"]:
-            started = sm["deviceState"].started
-        # 与 RAYLIB UI 一致：MADS 或 selfdrive 任一启用即视为 engaged
         sd_enabled = bool(sm["selfdriveState"].enabled) if sm.updated["selfdriveState"] else False
         mads_enabled = bool(sm["selfdriveStateSP"].mads.enabled) if sm.updated.get("selfdriveStateSP", False) else False
         engaged = started and (sd_enabled or mads_enabled)
@@ -361,7 +363,6 @@ def get_safety_context(params: Params) -> dict:
     if always_offroad:
         started = False
         engaged = False
-    # level 用于前端旧式数值比较；语义同上面注释
     return {"started": started, "engaged": engaged, "always_offroad": always_offroad,
             "level": 2 if engaged else (1 if started else 0)}
 
