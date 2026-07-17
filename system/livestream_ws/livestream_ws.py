@@ -227,10 +227,7 @@ SETTINGS_DEFS = [
     {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
     {"key": "DisengageOnAccelerator", "label": "踩下加速踏板时脱离", "type": "bool", "safety": "always"},
     {"key": "IsLdwEnabled", "label": "启用车道偏离警示", "type": "bool", "safety": "always"},
-    {"key": "AlwaysOnDM", "label": "始终启用驾驶员监控", "type": "bool", "safety": "always"},
     {"key": "DisableDriverMonitoringCamera", "label": "禁用驾驶监控摄像头", "type": "bool", "safety": "offroad", "needs_restart": True},
-    {"key": "RecordFront", "label": "录制并上传车内摄像头", "type": "bool", "safety": "not_engaged", "needs_restart": True},
-    {"key": "RecordAudio", "label": "录制并上传麦克风音频", "type": "bool", "safety": "not_engaged", "needs_restart": True},
     {"key": "IsMetric", "label": "使用公制", "type": "bool", "safety": "always"},
   ]},
   # Cruise - 巡航页面 (selfdrive/ui/sunnypilot/layouts/settings/cruise.py)
@@ -295,7 +292,6 @@ SETTINGS_DEFS = [
     {"key": "MaxTimeOffroad", "label": "最大熄火时间 (分钟)", "type": "int", "safety": "always"},
     {"key": "DeviceBootMode", "label": "启动行为", "type": "select", "safety": "offroad", "options": [{"v": 0, "l": "默认"}, {"v": 1, "l": "非上路"}]},
     {"key": "AudibleAlertMode", "label": "声音提示模式", "type": "select", "safety": "always", "options": [{"v": 0, "l": "全部"}, {"v": 1, "l": "仅警告"}, {"v": 2, "l": "静音"}]},
-    {"key": "dp_dev_disable_connect", "label": "禁用 Comma Connect", "type": "bool", "safety": "always"},
   ]},
   # Display - 显示页面 (selfdrive/ui/sunnypilot/layouts/settings/display.py)
   {"group": "Display", "params": [
@@ -306,6 +302,7 @@ SETTINGS_DEFS = [
   # Software - 软件页面 (selfdrive/ui/layouts/settings/software.py)
   {"group": "Software", "params": [
     {"key": "DisableUpdates", "label": "禁用更新", "type": "bool", "safety": "offroad"},
+    {"key": "dp_dev_disable_connect", "label": "禁用 Comma Connect", "type": "bool", "safety": "always"},
   ]},
   # Sunnylink (selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py)
   {"group": "Sunnylink", "params": [
@@ -321,12 +318,6 @@ SETTINGS_DEFS = [
     {"key": "QuickBootToggle", "label": "快速启动模式", "type": "bool", "safety": "offroad"},
     {"key": "ShowAdvancedControls", "label": "显示高级控制", "type": "bool", "safety": "always"},
     {"key": "EnableGithubRunner", "label": "GitHub Runner 服务", "type": "bool", "safety": "always"},
-    {"key": "JoystickDebugMode", "label": "摇杆调试模式", "type": "bool", "safety": "offroad"},
-    {"key": "LongitudinalManeuverMode", "label": "纵向操控模式", "type": "bool", "safety": "offroad"},
-    {"key": "LateralManeuverMode", "label": "横向操控模式", "type": "bool", "safety": "offroad"},
-    {"key": "AlphaLongitudinalEnabled", "label": "纵向控制 (Alpha)", "type": "bool", "safety": "offroad"},
-    {"key": "ShowDebugInfo", "label": "UI 调试模式", "type": "bool", "safety": "always"},
-    {"key": "ForceOnroad", "label": "强制上路视图", "type": "bool", "safety": "offroad"},
   ]},
 ]
 
