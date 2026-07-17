@@ -259,7 +259,7 @@ SETTINGS_DEFS = [
   # Toggles - 主开关页面 (selfdrive/ui/layouts/settings/toggles.py)
   {"group": "Toggles", "params": [
     {"key": "OffroadMode", "label": "启用非上路模式", "type": "bool", "safety": "always"},
-    {"key": "OpenpilotEnabledToggle", "label": "启用 sunnypilot", "type": "bool", "safety": "not_engaged", "needs_restart": True},
+    {"key": "OpenpilotEnabledToggle", "label": "启用 sunnypilot", "type": "bool", "safety": "offroad", "needs_restart": True},
     {"key": "ExperimentalMode", "label": "实验模式", "type": "bool", "safety": "not_engaged"},
     {"key": "LongitudinalPersonality", "label": "驾驶风格", "type": "select", "safety": "always", "options": [{"v": 0, "l": "激进"}, {"v": 1, "l": "标准"}, {"v": 2, "l": "放松"}]},
     {"key": "DisengageOnAccelerator", "label": "踩下加速踏板时脱离", "type": "bool", "safety": "always"},
@@ -348,7 +348,7 @@ SETTINGS_DEFS = [
   ]},
   # Developer - 开发者页面 (selfdrive/ui/sunnypilot/layouts/settings/developer.py)
   {"group": "Developer", "params": [
-    {"key": "AdbEnabled", "label": "启用 ADB", "type": "bool", "safety": "always"},
+    {"key": "AdbEnabled", "label": "启用 ADB", "type": "bool", "safety": "offroad"},
     {"key": "SshEnabled", "label": "启用 SSH", "type": "bool", "safety": "always"},
     {"key": "EnableLivestream", "label": "启用投屏", "type": "bool", "safety": "always"},
     {"key": "EnableCopyparty", "label": "copyparty 服务", "type": "bool", "safety": "offroad"},
