@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import time
-from panda import Panda, PandaDFU
+from panda_tici import Panda, PandaDFU
 
 class GPIO:
   STM_RST_N = 124

@@ -186,11 +186,11 @@ base_project_h7 = {
 
 Export('base_project_f4', 'base_project_h7', 'build_project')
 
-###### rick - get version.h from panda/ #######
-# instead of generate them, copy from panda/ so we have the same version
+###### rick - get version.h from panda_tici/ #######
+# instead of generate them, copy from panda_tici/ so we have the same version
 import os
 import shutil
-SOURCE_DIR = os.path.join("..", "panda", "board", "obj")
+SOURCE_DIR = os.path.join("board", "obj")
 if os.path.exists(SOURCE_DIR):
   DEST_DIR = os.path.join("board", "obj")
   FILES_TO_COPY = ["gitversion.h", "version", "cert.h"]
