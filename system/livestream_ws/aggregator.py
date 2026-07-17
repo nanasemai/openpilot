@@ -130,28 +130,36 @@ class HudAggregator:
     def _read_system_dev_state(self) -> dict:
         """后备读取系统状态（当 cereal deviceState 不可用时直接从系统读取）"""
         result: dict[str, Any] = {}
-        # CPU 温度 — 优先从 HARDWARE API 获取（准确）
+        # CPU 温度 — 优先从 HARDWARE API 获取（ThermalConfig.get_msg() 返回 dict）
         temps = []
         if _HAS_HW:
             try:
                 cfg = _HARDWARE.get_thermal_config()
                 msg = cfg.get_msg()
-                if hasattr(msg, 'cpuTempC') and msg.cpuTempC:
-                    temps = [t for t in list(msg.cpuTempC) if 0 < t < 120]
+                # get_msg() 返回 dict 形如 {"cpuTempC": [...], "gpuTempC": [...], ...}
+                cpu_temps = msg.get("cpuTempC") if isinstance(msg, dict) else getattr(msg, "cpuTempC", None)
+                if cpu_temps:
+                    temps = [float(t) for t in cpu_temps if 0 < t < 120]
             except Exception:
                 pass
-        # 后备：从 thermal zones 读取（不依赖 capnp）
+        # 后备：从 cpu*-usr 类 thermal zones 读取真实核心温度
+        # 注意不能 glob 全部 thermal_zone* — lmh-dcvs-* 等阈值 zone 固定 75°C 会污染 max()
         if not temps:
             import glob
             try:
-                for path in glob.glob('/sys/class/thermal/thermal_zone*/temp'):
+                for zone in glob.glob('/sys/class/thermal/thermal_zone*'):
                     try:
-                        with open(path) as f:
+                        with open(f"{zone}/type") as f:
+                            ztype = f.read().strip()
+                        # 只认 cpu 核心 zone（cpu*-silver-usr / cpu*-gold-usr / cpu*-usr 等）
+                        if not (ztype.startswith("cpu") and ztype.endswith("-usr")):
+                            continue
+                        with open(f"{zone}/temp") as f:
                             raw = f.read().strip()
-                            if raw:
-                                val = float(raw) / 1000.0 if float(raw) > 100 else float(raw)
-                                if 0 < val < 120:
-                                    temps.append(val)
+                        if raw:
+                            val = float(raw) / 1000.0 if float(raw) > 100 else float(raw)
+                            if 0 < val < 120:
+                                temps.append(val)
                     except Exception:
                         pass
             except Exception:
@@ -195,19 +203,26 @@ class HudAggregator:
         return result
 
     def _read_calibration_from_params(self) -> dict:
-        """从 Params 读取校准数据（当 cereal liveCalibration 不可用时）"""
+        """从 Params 读取校准数据（当 cereal liveCalibration 不可用时）
+
+        CalibrationParams 由 calibrationd 以 `log.Event.to_bytes()` 序列化存盘，
+        而非 JSON，因此这里用 cereal 解码而不是 json.loads。
+        """
         try:
             cp_bytes = self._ensure_params().get("CalibrationParams")
             if cp_bytes:
-                import json
-                cal = json.loads(cp_bytes)
-                rpy = cal.get("extrinsic_matrix", [])
-                # 从 Params 读取的校准数据可能没有 calPerc，默认 100%
-                return {
-                    "rpy": rpy[:3] if len(rpy) >= 3 else [0, 0, 0],
-                    "calStatus": "calibrated",
-                    "calPerc": 100,
-                }
+                from cereal import log
+                with log.Event.from_bytes(cp_bytes) as evt:
+                    lc = evt.liveCalibration
+                    rpy = list(lc.rpyCalib) if lc.rpyCalib else [0, 0, 0]
+                    # calStatus 是 cereal enum，转字符串得到 'calibrated' / 'uncalibrated'
+                    # / 'invalid' / 'recalibrating'，与前端映射对齐
+                    cal_status = str(lc.calStatus).split(".")[-1] if lc.calStatus else "uncalibrated"
+                    return {
+                        "rpy": rpy[:3] if len(rpy) >= 3 else [0, 0, 0],
+                        "calStatus": cal_status,
+                        "calPerc": int(lc.calPerc),
+                    }
         except Exception:
             pass
         return {"rpy": [0, 0, 0], "calStatus": "uncalibrated", "calPerc": 0}

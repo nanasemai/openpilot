@@ -513,7 +513,7 @@ function renderDash(changedKeys) {
 
   // ── 校准（cal） ──
   if (changed('cal')) {
-    el.calStatus.textContent = ({ calibrated:'已校准', uncalibrated:'未校准', calibrating:'校准中', invalid:'无效' })[cal.calStatus] || cal.calStatus || '--';
+    el.calStatus.textContent = ({ calibrated:'已校准', uncalibrated:'未校准', recalibrating:'校准中', invalid:'无效' })[cal.calStatus] || cal.calStatus || '--';
     const cp = cal.calPerc;
     el.calPct.textContent = cp != null ? cp + '%' : '--';
     el.calFill.style.width = (cp != null ? Math.min(cp, 100) : 0) + '%';
