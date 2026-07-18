@@ -231,11 +231,11 @@ class Panda:
     if ret == bytearray(b'\x05'):
       ret = bytearray(b'\x06')
     missing_hw_type_endpoint = self.bootstub and ret.startswith(b'\xff\x00\xc1\x3e\xde\xad\xd0\x0d')
-    if missing_hw_type_endpoint and bcd is not None:
-      self._bcd_hw_type = bcd
-
-    # For case A, we assume F4 MCU type, since all H7 pandas should be case B at worst
-    self._assume_f4_mcu = (self._bcd_hw_type is None) and missing_hw_type_endpoint
+    if missing_hw_type_endpoint:
+      # Old bootstub without HW type endpoint, assume F4 for legacy devices
+      self._assume_f4_mcu = True
+    else:
+      self._assume_f4_mcu = False
 
     self._serial = serial
     self._connect_serial = serial
@@ -244,21 +244,27 @@ class Panda:
     self.health_version, self.can_version, self.can_health_version = self.get_packets_versions()
     logger.debug("connected")
 
+    # 固件版本不匹配时跳过写入操作，避免旧固件崩溃（后续 flash_panda 会刷写）
+    version_ok = (self.health_version == self.HEALTH_PACKET_VERSION)
+
     # disable openpilot's heartbeat checks
-    if self._disable_checks:
+    if self._disable_checks and version_ok:
       self.set_heartbeat_disabled()
       self.set_power_save(0)
 
     # reset comms
-    self.can_reset_communications()
+    if version_ok:
+      self.can_reset_communications()
 
     # disable automatic CAN-FD switching
-    for bus in range(PANDA_CAN_CNT):
-      self.set_canfd_auto(bus, False)
+    if version_ok:
+      for bus in range(PANDA_CAN_CNT):
+        self.set_canfd_auto(bus, False)
 
     # set CAN speed
-    for bus in range(PANDA_CAN_CNT):
-      self.set_can_speed_kbps(bus, self._can_speed_kbps)
+    if version_ok:
+      for bus in range(PANDA_CAN_CNT):
+        self.set_can_speed_kbps(bus, self._can_speed_kbps)
 
   @property
   def spi(self) -> bool:
@@ -436,7 +442,8 @@ class Panda:
       handle.controlWrite(Panda.REQUEST_IN, 0xb2, i, 0, b'')
 
     # flash over EP2
-    STEP = 0x200
+    # F4 USB EP2 全速最大包长 64B，H7 高速可用 0x200
+    STEP = 0x40 if mcu_type.config.mcu == "STM32F4" else 0x200
     logger.info("flash: flashing")
     for i in range(0, len(code), STEP):
       handle.bulkWrite(2, code[i:i + STEP])
