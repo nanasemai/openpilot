@@ -79,12 +79,31 @@ static void black_init(void) {
   set_gpio_alternate(GPIOA, 8, GPIO_AF11_CAN3);
   set_gpio_alternate(GPIOA, 15, GPIO_AF11_CAN3);
 
+  // C0: OBD_SBU1, C3: OBD_SBU2 (orientation detection)
+  set_gpio_mode(GPIOC, 0, MODE_ANALOG);
+  set_gpio_mode(GPIOC, 3, MODE_ANALOG);
+
   // GPS OFF
   set_gpio_output(GPIOC, 5, 0);
   set_gpio_output(GPIOC, 12, 0);
 
-  // Turn on USB load switch.
+  // C10,C11: harness relay (open drain, HIGH)
+  set_gpio_mode(GPIOC, 10, MODE_OUTPUT);
+  set_gpio_mode(GPIOC, 11, MODE_OUTPUT);
+  set_gpio_output_type(GPIOC, 10, OUTPUT_TYPE_OPEN_DRAIN);
+  set_gpio_output_type(GPIOC, 11, OUTPUT_TYPE_OPEN_DRAIN);
+  set_gpio_output(GPIOC, 10, 1);
+  set_gpio_output(GPIOC, 11, 1);
+
+  // Turn on USB load switch + set power mode
   black_set_usb_load_switch(true);
+  usb_power_mode = USB_POWER_CDP;
+
+  // Initialize harness (before set_can_mode, so harness.status is correct)
+  harness_init();
+
+  // Set normal CAN mode
+  black_set_can_mode(CAN_MODE_NORMAL);
 }
 
 static void black_init_bootloader(void) {
