@@ -28,8 +28,8 @@ from openpilot.sunnypilot.system.params_migration import run_migration
 # rick - dynamically import panda
 import importlib
 
-# Pre-register panda (panda_tici supports both H7 and F4)
-target_mod = "panda_tici"
+# Pre-register panda (PC+C3 用 panda_tici 支持 F4+H7，C3X/C4 用 panda)
+target_mod = "panda_tici" if (not TICI or "TICI_DOS" in os.environ) else "panda"
 
 print(f"panda dir: {target_mod}")
 
