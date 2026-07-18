@@ -29,6 +29,8 @@
 #include "can_comms.h"
 #include "main_comms.h"
 
+int usb_power_mode = USB_POWER_NONE;
+
 
 // ********************* Serial debugging *********************
 

@@ -71,6 +71,8 @@ struct board {
 #define USB_POWER_CDP 2U
 #define USB_POWER_DCP 3U
 
+extern int usb_power_mode;
+
 // CAN modes
 #define CAN_MODE_NORMAL 0U
 #define CAN_MODE_OBD_CAN2 1U

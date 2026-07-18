@@ -97,7 +97,9 @@ static void black_init(void) {
 
   // Turn on USB load switch + set power mode
   black_set_usb_load_switch(true);
+#ifndef BOOTSTUB
   usb_power_mode = USB_POWER_CDP;
+#endif
 
   // Initialize harness (before set_can_mode, so harness.status is correct)
   harness_init();
