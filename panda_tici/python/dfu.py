@@ -118,8 +118,8 @@ class PandaDFU:
   def program_bootstub(self, code_bootstub):
     self._handle.clear_status()
 
-    # erase all sectors（与 carrotpilot_c3 一致，避免脏固件残留）
-    for i in range(len(self._mcu_type.config.sector_sizes)):
+    # erase bootstub + app sectors
+    for i in (0, 1):
       self._handle.erase_sector(i)
 
     # write bootstub

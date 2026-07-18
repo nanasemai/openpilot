@@ -137,23 +137,9 @@ std::optional<std::string> Panda::get_serial() {
 
 bool Panda::up_to_date() {
   if (auto fw_sig = get_firmware_version()) {
-    // relative path (C3: cwd = selfdrive/pandad_tici/)
-    std::string fw_dir = "../../panda_tici/board/obj/";
-    // PC: derive from executable path
-    #ifndef __TICI__
-    std::string exe = util::readlink("/proc/self/exe");
-    if (!exe.empty()) {
-      auto slash = exe.rfind('/');
-      if (slash != std::string::npos) {
-        auto pandad_dir = exe.substr(0, slash);          // selfdrive/pandad_tici
-        auto base = pandad_dir.substr(0, pandad_dir.rfind('/'));  // openpilot/
-        fw_dir = base + "/panda_tici/board/obj/";
-      }
-    }
-    #endif
     for (auto fn : { "panda.bin.signed", "panda_h7.bin.signed" }) {
       std::string content;
-      content = util::read_file(fw_dir + fn);
+      content = util::read_file(std::string("../../panda_tici/board/obj/") + fn);
       if (content.size() >= fw_sig->size() &&
           memcmp(content.data() + content.size() - fw_sig->size(), fw_sig->data(), fw_sig->size()) == 0) {
         return true;
