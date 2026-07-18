@@ -94,16 +94,16 @@ def main() -> None:
   do_exit = False
   signal.signal(signal.SIGINT, signal_handler)
 
-  # check health for lost heartbeat
-  try:
-    for s in Panda.list():
+  # check health for lost heartbeat（跳过固件版本不匹配的设备，后续会刷写）
+  for s in Panda.list():
+    try:
       with Panda(s) as p:
         health = p.health()
         if p.is_internal() and health["heartbeat_lost"]:
           Params().put_bool("PandaHeartbeatLost", True, block=True)
           cloudlog.event("heartbeat lost", deviceState=health)
-  except Exception:
-    cloudlog.exception("pandad.uncaught_exception")
+    except Exception:
+      cloudlog.exception("pandad.uncaught_exception")
 
   count = 0
   while not do_exit:
