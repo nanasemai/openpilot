@@ -37,6 +37,7 @@ class HomeLayout(Widget):
 
     self.update_alert = UpdateAlert()
     self.offroad_alert = OffroadAlert()
+    self._device_info_widget = DeviceInfoWidget()
 
     self._layout_widgets = {HomeLayoutState.UPDATE: self.update_alert, HomeLayoutState.ALERTS: self.offroad_alert, HomeLayoutState.DEVICE_INFO: self._device_info_widget}
 
