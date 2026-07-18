@@ -160,7 +160,7 @@ procs = [
   PythonProcess("deleter", "system.loggerd.deleter", always_run),
   PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", and_(driverview, dm_camera_enabled), enabled=(WEBCAM or not PC) and not LITE),
   PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", qcomgps, enabled=TICI),
-  PythonProcess("pandad", "selfdrive.pandad.pandad" if not TICI_DOS else "selfdrive.pandad_tici.pandad", always_run),
+  PythonProcess("pandad", "selfdrive.pandad_tici.pandad" if (PC or TICI_DOS) else "selfdrive.pandad.pandad", always_run),
   PythonProcess("paramsd", "selfdrive.locationd.paramsd", only_onroad),
   PythonProcess("lagd", "selfdrive.locationd.lagd", only_onroad),
   PythonProcess("ubloxd", "system.ubloxd.ubloxd", ublox, enabled=TICI),

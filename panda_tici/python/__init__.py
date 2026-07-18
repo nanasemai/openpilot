@@ -244,27 +244,21 @@ class Panda:
     self.health_version, self.can_version, self.can_health_version = self.get_packets_versions()
     logger.debug("connected")
 
-    # 固件版本不匹配时跳过写入操作，避免旧固件崩溃（后续 flash_panda 会刷写）
-    version_ok = (self.health_version == self.HEALTH_PACKET_VERSION)
-
     # disable openpilot's heartbeat checks
-    if self._disable_checks and version_ok:
+    if self._disable_checks:
       self.set_heartbeat_disabled()
       self.set_power_save(0)
 
     # reset comms
-    if version_ok:
-      self.can_reset_communications()
+    self.can_reset_communications()
 
     # disable automatic CAN-FD switching
-    if version_ok:
-      for bus in range(PANDA_CAN_CNT):
-        self.set_canfd_auto(bus, False)
+    for bus in range(PANDA_CAN_CNT):
+      self.set_canfd_auto(bus, False)
 
     # set CAN speed
-    if version_ok:
-      for bus in range(PANDA_CAN_CNT):
-        self.set_can_speed_kbps(bus, self._can_speed_kbps)
+    for bus in range(PANDA_CAN_CNT):
+      self.set_can_speed_kbps(bus, self._can_speed_kbps)
 
   @property
   def spi(self) -> bool:
