@@ -328,7 +328,7 @@ class Panda:
     else:
       context.close()
 
-    return context, usb_handle, usb_serial, bootstub, bcd
+    return context, usb_handle, usb_serial, bootstub
 
   def is_connected_spi(self):
     return isinstance(self._handle, PandaSpiHandle)
