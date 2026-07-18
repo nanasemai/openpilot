@@ -33,6 +33,25 @@ def flash_panda(panda_serial: str) -> bool:
 
   panda_version = "bootstub" if panda.bootstub else panda.get_version()
   panda_sig = b"" if panda.bootstub else panda.get_signature()
+
+  # 打印详细 panda 状态，方便刷机排查
+  hw_type_names = {
+    b'\x01': "WHITE_PANDA", b'\x02': "GREY_PANDA", b'\x03': "BLACK_PANDA",
+    b'\x04': "PEDAL", b'\x05': "UNO", b'\x06': "DOS",
+    b'\x07': "RED_PANDA", b'\x08': "RED_PANDA_V2", b'\x09': "TRES", b'\x0a': "CUATRO",
+  }
+  hw_name = hw_type_names.get(bytes(hw_type) if isinstance(hw_type, bytearray) else hw_type, f"UNKNOWN({hw_type.hex() if isinstance(hw_type, (bytes, bytearray)) else hw_type})")
+  cloudlog.warning(f"===== Panda startup info =====")
+  cloudlog.warning(f"  Serial:      {panda_serial}")
+  cloudlog.warning(f"  HW type:     {hw_name}")
+  cloudlog.warning(f"  MCU type:    {mcu_type.name}")
+  cloudlog.warning(f"  Internal:    {internal_panda}")
+  cloudlog.warning(f"  Bootstub:    {panda.bootstub}")
+  cloudlog.warning(f"  Version:     {panda_version}")
+  cloudlog.warning(f"  Signature:   {panda_sig.hex()[:16] if panda_sig else 'N/A'}")
+  cloudlog.warning(f"  Expected:    {fw_sig.hex()[:16]}")
+  cloudlog.warning(f"  Up to date:  {panda_sig == fw_sig}")
+  cloudlog.warning(f"==============================")
   cloudlog.warning(f"Panda {panda_serial} connected, version: {panda_version}, "
                    f"signature {panda_sig.hex()[:16]}, expected {fw_sig.hex()[:16]}")
 
