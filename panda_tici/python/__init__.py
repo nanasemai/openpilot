@@ -232,11 +232,10 @@ class Panda:
       ret = bytearray(b'\x06')
     missing_hw_type_endpoint = self.bootstub and ret.startswith(b'\xff\x00\xc1\x3e\xde\xad\xd0\x0d')
     if missing_hw_type_endpoint:
-      # 旧 bootstub 无法获取 USB bcd，通过 _assume_f4_mcu 路径处理
-      pass
-
-    # For case A, we assume F4 MCU type, since all H7 pandas should be case B at worst
-    self._assume_f4_mcu = (self._bcd_hw_type is None) and missing_hw_type_endpoint
+      # Old bootstub without HW type endpoint ? assume F4 for legacy devices
+      self._assume_f4_mcu = True
+    else:
+      self._assume_f4_mcu = False
 
     self._serial = serial
     self._connect_serial = serial
@@ -329,7 +328,7 @@ class Panda:
     else:
       context.close()
 
-    return context, usb_handle, usb_serial, bootstub
+    return context, usb_handle, usb_serial, bootstub, bcd
 
   def is_connected_spi(self):
     return isinstance(self._handle, PandaSpiHandle)
@@ -437,7 +436,8 @@ class Panda:
       handle.controlWrite(Panda.REQUEST_IN, 0xb2, i, 0, b'')
 
     # flash over EP2
-    STEP = 0x200
+    # F4 USB EP2 buffer is small (64B), H7 can handle 0x200
+    STEP = 0x10 if mcu_type.config.mcu == "STM32F4" else 0x200
     logger.info("flash: flashing")
     for i in range(0, len(code), STEP):
       handle.bulkWrite(2, code[i:i + STEP])

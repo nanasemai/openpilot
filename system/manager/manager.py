@@ -13,6 +13,7 @@ from openpilot.common.utils import atomic_write
 from openpilot.common.params import Params, ParamKeyFlag
 from openpilot.common.text_window import TextWindow
 from openpilot.system.hardware import HARDWARE, TICI
+
 from openpilot.system.manager.helpers import unblock_stdout, write_onroad_params, save_bootlog
 from openpilot.system.manager.process import ensure_running
 from openpilot.system.manager.process_config import managed_processes
@@ -27,8 +28,8 @@ from openpilot.sunnypilot.system.params_migration import run_migration
 # rick - dynamically import panda
 import importlib
 
-# Pre-register panda_main as panda before loading it
-target_mod = "panda_tici" if "TICI_DOS" in os.environ else "panda"
+# Pre-register panda (panda_tici supports both H7 and F4)
+target_mod = "panda_tici"
 
 print(f"panda dir: {target_mod}")
 

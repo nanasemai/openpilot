@@ -10,6 +10,7 @@
 #include "drivers/fan.h"
 #include "stm32f4/llfan.h"
 #include "drivers/clock_source.h"
+#include "boards/black.h"
 #include "boards/dos.h"
 
 // Unused functions on F4
@@ -29,12 +30,12 @@ void detect_board_type(void) {
     current_board = &board_dos;
   } else if((detect_with_pull(GPIOA, 4, PULL_DOWN)) || (detect_with_pull(GPIOA, 5, PULL_DOWN)) || (detect_with_pull(GPIOA, 6, PULL_DOWN)) || (detect_with_pull(GPIOA, 7, PULL_DOWN))){
     // white is deprecated
-  } else if(detect_with_pull(GPIOA, 13, PULL_DOWN)) { // Rev AB deprecated, so no pullup means black. In REV C, A13 is pulled up to 5V with a 10K
-    // grey is deprecated
-  } else if(!detect_with_pull(GPIOB, 15, PULL_UP)) {
-    // uno is deprecated
+  } else if(!detect_with_pull(GPIOB, 1, PULL_DOWN) && !detect_with_pull(GPIOA, 4, PULL_DOWN)) {
+    // black: PB1 pulled low = USB load switch present, PA4 pulled low = no SPI
+    hw_type = HW_TYPE_BLACK_PANDA;
+    current_board = &board_black;
   } else {
-    // black is deprecated
+    // unknown
   }
 
   // Return A13 to the alt mode to fix SWD

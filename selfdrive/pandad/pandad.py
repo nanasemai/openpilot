@@ -6,7 +6,7 @@ import time
 import signal
 import subprocess
 
-from panda import Panda, PandaDFU, PandaProtocolMismatch, McuType, FW_PATH
+from panda_tici import Panda, PandaDFU, PandaProtocolMismatch, FW_PATH, McuType
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.system.hardware import HARDWARE
@@ -15,20 +15,28 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.sunnypilot.selfdrive.pandad.rivian_long_flasher import flash_rivian_long
 
 
-def get_expected_signature() -> bytes:
-  fn = os.path.join(FW_PATH, McuType.H7.config.app_fn)
-  return Panda.get_signature_from_firmware(fn)
-
-def flash_panda(panda_serial: str):
+def flash_panda(panda_serial: str) -> bool:
+  """Flash panda if needed. Returns True if the panda is usable, False if incompatible."""
   panda = Panda(panda_serial)
-  fw_signature = get_expected_signature()
+  hw_type = panda.get_type()
+
+  try:
+    mcu_type = panda.get_mcu_type()
+  except ValueError:
+    cloudlog.warning(f"Panda {panda_serial} HW type {hw_type} unknown, skipping")
+    panda.close()
+    return False
+
+  fw_fn = os.path.join(FW_PATH, mcu_type.config.app_fn)
+  fw_sig = Panda.get_signature_from_firmware(fw_fn)
   internal_panda = panda.is_internal()
 
   panda_version = "bootstub" if panda.bootstub else panda.get_version()
-  panda_signature = b"" if panda.bootstub else panda.get_signature()
-  cloudlog.warning(f"Panda {panda_serial} connected, version: {panda_version}, signature {panda_signature.hex()[:16]}, expected {fw_signature.hex()[:16]}")
+  panda_sig = b"" if panda.bootstub else panda.get_signature()
+  cloudlog.warning(f"Panda {panda_serial} connected, version: {panda_version}, "
+                   f"signature {panda_sig.hex()[:16]}, expected {fw_sig.hex()[:16]}")
 
-  if panda.bootstub or panda_signature != fw_signature:
+  if panda.bootstub or panda_sig != fw_sig:
     cloudlog.info("Panda firmware out of date, update required")
     panda.flash()
     cloudlog.info("Done flashing")
@@ -45,28 +53,13 @@ def flash_panda(panda_serial: str):
     cloudlog.info("Panda still not booting, exiting")
     raise AssertionError
 
-  panda_signature = panda.get_signature()
-  if panda_signature != fw_signature:
+  panda_sig = panda.get_signature()
+  if panda_sig != fw_sig:
     cloudlog.info("Version mismatch after flashing, exiting")
     raise AssertionError
 
   panda.close()
-
-
-def check_panda_support(panda_serials: list[str]) -> list[str]:
-  spi_serials = set(Panda.spi_list())
-  for serial in panda_serials:
-    if serial in spi_serials:
-      return [serial]
-
-  for serial in panda_serials:
-    panda = Panda(serial)
-    is_internal = panda.is_internal()
-    panda.close()
-    if is_internal:
-      return [serial]
-
-  return []
+  return True
 
 
 def main() -> None:
@@ -110,15 +103,20 @@ def main() -> None:
         time.sleep(1)
 
       panda_serials = Panda.list()
-      if len(panda_serials):
-        # custom flasher for xnor's Rivian Longitudinal Upgrade Kit
-        flash_rivian_long(panda_serials)
-        # find the internal supported panda (e.g. skip external Black Panda)
-        panda_serials = check_panda_support(panda_serials)
+      if panda_serials:
+        cloudlog.info(f"{len(panda_serials)} panda(s) found - {panda_serials}")
 
-        assert len(panda_serials) == 1
-        cloudlog.info(f"{len(panda_serials)} panda found, connecting - {panda_serials}")
-        flash_panda(panda_serials[0])
+        serial = None
+        for s in panda_serials:
+          if flash_panda(s):
+            serial = s
+            break
+        cloudlog.warning(f"Panda {s} is not usable, trying next")
+
+        if serial is None:
+          cloudlog.error("No usable panda found, sleeping 5s")
+          time.sleep(5)
+          continue
 
         # run real pandad
         os.environ['MANAGER_DAEMON'] = 'pandad'
