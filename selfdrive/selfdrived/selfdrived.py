@@ -338,6 +338,11 @@ class SelfdriveD(CruiseHelper):
                                                     LaneChangeState.laneChangeFinishing):
       self.events.add(EventName.laneChange)
 
+    # Independent road edge detection (driver steering into edge, regardless of lane change state)
+    if self.sm.updated['modelDataV2SP'] and self.sm['carControl'].latActive and \
+       CS.steeringPressed and self.sm['modelDataV2SP'].laneChangeEdgeBlocked:
+      self.events_sp.add(custom.OnroadEventSP.EventName.laneChangeRoadEdge)
+
     # Handle lane turn
     lane_turn_direction = self.sm['modelDataV2SP'].laneTurnDirection
     if lane_turn_direction == TurnDirection.turnLeft:

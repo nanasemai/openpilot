@@ -9,6 +9,7 @@ import numpy as np
 from cereal import log
 from openpilot.common.params import Params
 from openpilot.common.realtime import DT_MDL
+from openpilot.common.swaglog import cloudlog
 
 # Threshold: minimum lateral distance (meters) from car center to road edge
 # to allow a lane change. Approx half lane width (~1.8m).
@@ -60,15 +61,18 @@ def _road_edge_distance(road_edges, direction):
 
   # Interpolate y at x=0
   if xs[0] > 0 or xs[-1] < 0:
+    cloudlog.warning(f"road_edge_distance: xs range [{xs[0]:.2f}, {xs[-1]:.2f}] doesn't span 0")
     return None  # road edge doesn't span the car's position
 
   y_at_car = float(np.interp(0.0, xs, ys))
   # For left edge (idx=0): distance = -y (since left edge y is negative)
   # For right edge (idx=1): distance = y (since right edge y is positive)
   if direction == log.LaneChangeDirection.left:
-    return -y_at_car  # positive means room to the left
+    dist = -y_at_car  # positive means room to the left
   else:
-    return y_at_car   # positive means room to the right
+    dist = y_at_car   # positive means room to the right
+  cloudlog.warning(f"road_edge_distance: direction={'left' if direction == log.LaneChangeDirection.left else 'right'} idx={idx} y_at_car={y_at_car:.3f}m dist={dist:.3f}m threshold={ROAD_EDGE_MIN_DISTANCE}m")
+  return dist
 
 
 class AutoLaneChangeController:
@@ -136,14 +140,21 @@ class AutoLaneChangeController:
 
   def _check_road_edge_blocked(self, road_edges, direction):
     """Check if road edge on the lane change side is too close."""
-    if not self.road_edge_lca_blindspot or road_edges is None:
+    if not self.road_edge_lca_blindspot:
+      cloudlog.warning("road_edge_check: disabled (RoadEdgeLcaBlindspot=False)")
+      return False
+    if road_edges is None:
+      cloudlog.warning("road_edge_check: no data (road_edges is None)")
       return False
 
     distance = _road_edge_distance(road_edges, direction)
     if distance is None:
+      cloudlog.warning("road_edge_check: distance calc returned None")
       return False
 
-    return distance < ROAD_EDGE_MIN_DISTANCE
+    blocked = distance < ROAD_EDGE_MIN_DISTANCE
+    cloudlog.warning(f"road_edge_check: distance={distance:.3f}m blocked={blocked}")
+    return blocked
 
   def update_lane_change(self, blindspot_detected: bool, brake_pressed: bool,
                          road_edges=None) -> None:
