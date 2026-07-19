@@ -1,3 +1,4 @@
+import os
 import time
 import pyray as rl
 from collections.abc import Callable
@@ -7,7 +8,6 @@ from openpilot.selfdrive.ui.widgets.offroad_alerts import UpdateAlert, OffroadAl
 from openpilot.selfdrive.ui.widgets.exp_mode_button import ExperimentalModeButton
 from openpilot.selfdrive.ui.widgets.prime import PrimeWidget
 from openpilot.selfdrive.ui.widgets.setup import SetupWidget
-from openpilot.selfdrive.ui.widgets.device_info import DeviceInfoWidget
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.lib.application import gui_app, FontWeight, MousePos
 from openpilot.system.ui.lib.multilang import tr, trn
@@ -26,7 +26,6 @@ class HomeLayoutState(IntEnum):
   HOME = 0
   UPDATE = 1
   ALERTS = 2
-  DEVICE_INFO = 3
 
 
 class HomeLayout(Widget):
@@ -36,9 +35,8 @@ class HomeLayout(Widget):
 
     self.update_alert = UpdateAlert()
     self.offroad_alert = OffroadAlert()
-    self._device_info_widget = DeviceInfoWidget()
 
-    self._layout_widgets = {HomeLayoutState.UPDATE: self.update_alert, HomeLayoutState.ALERTS: self.offroad_alert, HomeLayoutState.DEVICE_INFO: self._device_info_widget}
+    self._layout_widgets = {HomeLayoutState.UPDATE: self.update_alert, HomeLayoutState.ALERTS: self.offroad_alert}
 
     self.current_state = HomeLayoutState.HOME
     self.last_refresh = 0
@@ -47,7 +45,6 @@ class HomeLayout(Widget):
     self.update_available = False
     self.alert_count = 0
     self._version_text = ""
-    self._version_rect = rl.Rectangle(0, 0, 0, 0)
     self._prev_update_available = False
     self._prev_alerts_present = False
 
@@ -61,7 +58,6 @@ class HomeLayout(Widget):
 
     self._prime_widget = PrimeWidget()
     self._setup_widget = SetupWidget()
-    self._device_info_widget = DeviceInfoWidget()
 
     self._exp_mode_button = ExperimentalModeButton()
     self._setup_callbacks()
@@ -108,8 +104,6 @@ class HomeLayout(Widget):
       self._render_update_view()
     elif self.current_state == HomeLayoutState.ALERTS:
       self._render_alerts_view()
-    elif self.current_state == HomeLayoutState.DEVICE_INFO:
-      self._device_info_widget.render(self.content_rect)
 
   def _update_state(self):
     self.header_rect = rl.Rectangle(
@@ -145,11 +139,6 @@ class HomeLayout(Widget):
       self._set_state(HomeLayoutState.UPDATE)
     elif self.alert_count > 0 and rl.check_collision_point_rec(mouse_pos, self.alert_notif_rect):
       self._set_state(HomeLayoutState.ALERTS)
-    elif rl.check_collision_point_rec(mouse_pos, self._version_rect):
-      if self.current_state == HomeLayoutState.DEVICE_INFO:
-        self._set_state(HomeLayoutState.HOME)
-      else:
-        self._set_state(HomeLayoutState.DEVICE_INFO)
 
   def _render_header(self):
     font = gui_app.font(FontWeight.MEDIUM)
@@ -184,15 +173,13 @@ class HomeLayout(Widget):
       text_y = self.alert_notif_rect.y + (self.alert_notif_rect.height - text_size.y) // 2
       rl.draw_text_ex(font, alert_text, rl.Vector2(int(text_x), int(text_y)), HEAD_BUTTON_FONT_SIZE, 0, rl.WHITE)
 
-    # Version text (right aligned) - clickable for device info
+    # Version text (right aligned)
     if self.update_available or self.alert_count > 0:
       version_text_width -= SPACING * 1.5
 
-    self._version_rect = rl.Rectangle(self.header_rect.x + self.header_rect.width - version_text_width, self.header_rect.y,
-                                      version_text_width, self.header_rect.height)
-    # Highlight if device info panel is open
-    version_color = rl.Color(120, 200, 255, 255) if self.current_state == HomeLayoutState.DEVICE_INFO else rl.WHITE
-    gui_label(self._version_rect, self._version_text, 48, version_color, alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT)
+    version_rect = rl.Rectangle(self.header_rect.x + self.header_rect.width - version_text_width, self.header_rect.y,
+                                version_text_width, self.header_rect.height)
+    gui_label(version_rect, self._version_text, 48, rl.WHITE, alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT)
 
   def _render_home_content(self):
     self._render_left_column()
@@ -243,5 +230,36 @@ class HomeLayout(Widget):
 
   def _get_version_text(self) -> str:
     brand = "sunnypilot"
+
+    # 设备型号映射（来自设备树 model string）
+    model_map = {"tici": "C3", "tizi": "C3X", "mici": "C4"}
+    try:
+      from openpilot.system.hardware.tici.hardware import get_device_type
+      model = model_map.get(get_device_type(), "")
+    except Exception:
+      model = ""
+
+    # Panda MCU 类型（仅 C3 有 TICI_DOS/TICI_TRES 环境变量）
+    panda_type = ""
+    if "TICI_DOS" in os.environ:
+      panda_type = "F4"
+    elif "TICI_TRES" in os.environ:
+      panda_type = "H7"
+
+    # LITE 变体后缀
+    lite_suffix = ""
+    if os.getenv("LITE") is not None:
+      lite_suffix = "XLite" if "TICI_TRES" in os.environ else "Lite"
+
+    # 组合版本字符串
+    parts = [brand]
+    if model:
+      parts.append(f" - {model}")
+    if panda_type:
+      parts.append(f" ({panda_type})")
+    if lite_suffix:
+      parts.append(f" {lite_suffix}")
+
+    result = "".join(parts)
     description = self.params.get("UpdaterCurrentDescription")
-    return f"{brand} {description}" if description else brand
+    return f"{result} {description}" if description else result
