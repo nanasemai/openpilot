@@ -259,6 +259,10 @@ class HomeLayout(Widget):
       panda_info = "F4/SPI"
     elif "TICI_TRES" in os.environ:
       panda_info = "H7/SPI"
+    elif model:
+      # 环境变量未设置时，根据设备型号推断（C3X/C4 用 H7/SPI，C3 用 F4/SPI）
+      device_type_map = {"C3": "F4/SPI", "C3X": "H7/SPI", "C4": "H7/SPI"}
+      panda_info = device_type_map.get(model, "USB")
     else:
       panda_info = "USB"
 

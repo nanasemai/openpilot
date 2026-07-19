@@ -15,6 +15,7 @@ class DeviceInfoWidget(Widget):
     lines = []
 
     # ── 设备信息 ──
+    model = ""
     lines.append(("设备型号", ""))
     try:
       from openpilot.system.hardware.tici.hardware import get_device_type
@@ -34,14 +35,29 @@ class DeviceInfoWidget(Widget):
     # ── 内部 Panda ──
     lines.append(("", ""))
     lines.append(("内部 Panda", ""))
+
+    # 根据设备型号推断内部 Panda 类型
+    _internal_panda_map = {
+      "C3":  ("STM32F4 (DOS)", "SPI", "panda.bin.signed"),
+      "C3X": ("STM32H7 (TRES)", "SPI", "panda_h7.bin.signed"),
+      "C4":  ("STM32H7 (TRES)", "SPI", "panda_h7.bin.signed"),
+    }
     if "TICI_DOS" in os.environ:
-      lines.append(("· MCU", "STM32F4 (DOS)"))
-      lines.append(("· 通信", "SPI"))
-      lines.append(("· 固件", "panda.bin.signed"))
+      mcu, conn, fw = _internal_panda_map["C3"]
+      lines.append(("· MCU", mcu))
+      lines.append(("· 通信", conn))
+      lines.append(("· 固件", fw))
     elif "TICI_TRES" in os.environ:
-      lines.append(("· MCU", "STM32H7 (TRES)"))
-      lines.append(("· 通信", "SPI"))
-      lines.append(("· 固件", "panda_h7.bin.signed"))
+      mcu, conn, fw = _internal_panda_map["C3X"]
+      lines.append(("· MCU", mcu))
+      lines.append(("· 通信", conn))
+      lines.append(("· 固件", fw))
+    elif model and model in _internal_panda_map:
+      # 环境变量未设置时根据设备型号推断
+      mcu, conn, fw = _internal_panda_map[model]
+      lines.append(("· MCU", mcu))
+      lines.append(("· 通信", conn))
+      lines.append(("· 固件", fw))
     else:
       lines.append(("· 状态", "无内部 Panda"))
 
