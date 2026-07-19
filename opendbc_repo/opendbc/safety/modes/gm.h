@@ -30,7 +30,8 @@ enum {
 
 typedef enum {
   GM_ASCM,
-  GM_CAM
+  GM_CAM,
+  GM_CAM_INT
 } GmHardware;
 static GmHardware gm_hw = GM_ASCM;
 static bool gm_pcm_cruise = false;
@@ -79,7 +80,7 @@ static void gm_rx_hook(const CANPacket_t *msg) {
       brake_pressed = msg->data[1] >= 8U;
     }
 
-    if ((msg->addr == 0xC9U) && (gm_hw == GM_CAM)) {
+    if ((msg->addr == 0xC9U) && ((gm_hw == GM_CAM) || (gm_hw == GM_CAM_INT))) {
       brake_pressed = GET_BIT(msg, 40U);
     }
 
@@ -174,6 +175,7 @@ static bool gm_tx_hook(const CANPacket_t *msg) {
 static safety_config gm_init(uint16_t param) {
   const uint16_t GM_PARAM_HW_CAM = 1;
   const uint16_t GM_PARAM_EV = 4;
+  const uint16_t GM_PARAM_HW_CAM_INT = 8;  // Cadillac ATS: camera interception harness (camera mode + retains stock radar)
 
   // common safety checks assume unscaled integer values
   static const int GM_GAS_TO_CAN = 8;  // 1 / 0.125
@@ -225,7 +227,16 @@ static safety_config gm_init(uint16_t param) {
   static const CanMsg GM_CAM_TX_MSGS[] = {{0x180, 0, 4, .check_relay = true},  // pt bus
                                           {0x1E1, 2, 7, .check_relay = false}, {0x184, 2, 8, .check_relay = true}};  // camera bus
 
-  if (GET_FLAG(param, GM_PARAM_HW_CAM)) {
+  // GM_CAM_INT (Cadillac ATS): camera interception harness, keeps stock radar.
+  // LKA steering on pt bus, radar messages on obstacle bus, cruise buttons + PSCMStatus on camera bus.
+  static const CanMsg GM_CAM_INT_TX_MSGS[] = {{0x180, 0, 4, .check_relay = true},  // pt bus - LKA steering
+                                              {0xA1, 1, 7, .check_relay = false}, {0x306, 1, 8, .check_relay = false}, {0x308, 1, 7, .check_relay = false}, {0x310, 1, 2, .check_relay = false},  // obs bus - radar
+                                              {0x1E1, 2, 7, .check_relay = false}, {0x184, 2, 8, .check_relay = true}};  // camera bus
+
+  if (GET_FLAG(param, GM_PARAM_HW_CAM_INT)) {
+    gm_hw = GM_CAM_INT;
+    gm_long_limits = &GM_CAM_LONG_LIMITS;
+  } else if (GET_FLAG(param, GM_PARAM_HW_CAM)) {
     gm_hw = GM_CAM;
     gm_long_limits = &GM_CAM_LONG_LIMITS;
   } else {
@@ -239,13 +250,15 @@ static safety_config gm_init(uint16_t param) {
   const uint16_t GM_PARAM_HW_CAM_LONG = 2;
   gm_cam_long = GET_FLAG(param, GM_PARAM_HW_CAM_LONG);
 #endif
-  gm_pcm_cruise = (gm_hw == GM_CAM) && !gm_cam_long;
+  gm_pcm_cruise = ((gm_hw == GM_CAM) || (gm_hw == GM_CAM_INT)) && !gm_cam_long;
 
   const uint16_t GM_PARAM_SP_NON_ACC = 1;
   gm_non_acc = GET_FLAG(current_safety_param_sp, GM_PARAM_SP_NON_ACC);
 
   safety_config ret;
-  if (gm_hw == GM_CAM) {
+  if (gm_hw == GM_CAM_INT) {
+    ret = BUILD_SAFETY_CFG(gm_rx_checks, GM_CAM_INT_TX_MSGS);
+  } else if (gm_hw == GM_CAM) {
     // FIXME: cppcheck thinks that gm_cam_long is always false. This is not true
     // if ALLOW_DEBUG is defined but cppcheck is run without ALLOW_DEBUG
     // cppcheck-suppress knownConditionTrueFalse
