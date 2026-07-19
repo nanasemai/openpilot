@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import time
 import json
 import jwt
@@ -17,8 +16,6 @@ from openpilot.common.swaglog import cloudlog
 
 
 UNREGISTERED_DONGLE_ID = "UnregisteredDevice"
-
-LITE = os.getenv("LITE") is not None
 
 def is_registered_device() -> bool:
   dongle = Params().get("DongleId")
@@ -49,9 +46,6 @@ def register(show_spinner=False) -> str | None:
   if not public_key:
     dongle_id = UNREGISTERED_DONGLE_ID
     cloudlog.warning("missing public key")
-  elif LITE:
-    params.put("DongleId", UNREGISTERED_DONGLE_ID)
-    return UNREGISTERED_DONGLE_ID
   elif dongle_id is None:
     if show_spinner:
       spinner = Spinner()
@@ -62,17 +56,11 @@ def register(show_spinner=False) -> str | None:
     start_time = time.monotonic()
     imei1: str | None = None
     imei2: str | None = None
-    skip_imei_count = 0
     while imei1 is None and imei2 is None:
       try:
         imei1, imei2 = HARDWARE.get_imei(0), HARDWARE.get_imei(1)
       except Exception:
         cloudlog.exception("Error getting imei, trying again...")
-        # rick - no imei = can't register = skip everything
-        if skip_imei_count > 30:
-          params.put("DongleId", UNREGISTERED_DONGLE_ID)
-          return UNREGISTERED_DONGLE_ID
-        skip_imei_count += 1
         time.sleep(1)
 
       if time.monotonic() - start_time > 60 and show_spinner:
@@ -110,7 +98,7 @@ def register(show_spinner=False) -> str | None:
 
   if dongle_id:
     params.put("DongleId", dongle_id, block=True)
-    set_offroad_alert("Offroad_UnregisteredHardware", (dongle_id == UNREGISTERED_DONGLE_ID) and not PC and not LITE)
+    set_offroad_alert("Offroad_UnregisteredHardware", (dongle_id == UNREGISTERED_DONGLE_ID) and not PC)
   return dongle_id
 
 

@@ -14,8 +14,6 @@ from openpilot.sunnypilot.models.helpers import get_active_model_runner
 from openpilot.sunnypilot.sunnylink.utils import sunnylink_need_register, sunnylink_ready, use_sunnylink_uploader
 
 WEBCAM = os.getenv("USE_WEBCAM") is not None
-LITE = os.getenv("LITE") is not None
-TICI_DOS = "TICI_DOS" in os.environ
 
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started or params.get_bool("IsDriverViewEnabled") or params.get_bool("ForceOnroad")
@@ -140,15 +138,15 @@ procs = [
   PythonProcess("webcamerad", "tools.webcam.camerad", driverview, enabled=WEBCAM),
   PythonProcess("proclogd", "system.proclogd", only_onroad, enabled=platform.system() != "Darwin"),
   PythonProcess("journald", "system.journald", only_onroad, platform.system() != "Darwin"),
-  PythonProcess("micd", "system.micd", iscar, enabled=not LITE),
+  PythonProcess("micd", "system.micd", iscar),
   PythonProcess("timed", "system.timed", always_run, enabled=not PC),
 
   PythonProcess("modeld", "selfdrive.modeld.modeld", and_(only_onroad, is_stock_model)),
-  PythonProcess("dmonitoringmodeld", "selfdrive.modeld.dmonitoringmodeld", and_(driverview, dm_camera_enabled), enabled=(WEBCAM or not PC) and not LITE),
+  PythonProcess("dmonitoringmodeld", "selfdrive.modeld.dmonitoringmodeld", and_(driverview, dm_camera_enabled), enabled=(WEBCAM or not PC)),
 
   PythonProcess("sensord", "system.sensord.sensord", only_onroad, enabled=not PC),
   PythonProcess("ui", "selfdrive.ui.ui", always_run, restart_if_crash=True),
-  PythonProcess("soundd", "selfdrive.ui.soundd", driverview, enabled=not LITE),
+  PythonProcess("soundd", "selfdrive.ui.soundd", driverview),
   PythonProcess("locationd", "selfdrive.locationd.locationd", only_onroad),
   NativeProcess("_pandad", "selfdrive/pandad", ["./pandad"], always_run, enabled=False),
   PythonProcess("calibrationd", "selfdrive.locationd.calibrationd", only_onroad),
@@ -158,9 +156,9 @@ procs = [
   PythonProcess("selfdrived", "selfdrive.selfdrived.selfdrived", only_onroad),
   PythonProcess("card", "selfdrive.car.card", only_onroad),
   PythonProcess("deleter", "system.loggerd.deleter", always_run),
-  PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", and_(driverview, dm_camera_enabled), enabled=(WEBCAM or not PC) and not LITE),
+  PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", and_(driverview, dm_camera_enabled), enabled=(WEBCAM or not PC)),
   PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", qcomgps, enabled=TICI),
-  PythonProcess("pandad", "selfdrive.pandad_tici.pandad" if (PC or TICI_DOS) else "selfdrive.pandad.pandad", always_run),
+  PythonProcess("pandad", "selfdrive.pandad.pandad", always_run),
   PythonProcess("paramsd", "selfdrive.locationd.paramsd", only_onroad),
   PythonProcess("lagd", "selfdrive.locationd.lagd", only_onroad),
   PythonProcess("ubloxd", "system.ubloxd.ubloxd", ublox, enabled=TICI),
@@ -170,7 +168,7 @@ procs = [
   PythonProcess("lateral_maneuversd", "tools.lateral_maneuvers.lateral_maneuversd", lat_maneuver),
   PythonProcess("radard", "selfdrive.controls.radard", only_onroad),
   PythonProcess("hardwared", "system.hardware.hardwared", always_run),
-  PythonProcess("modem", "system.hardware.tici.modem", always_run, enabled=TICI and not LITE),
+  PythonProcess("modem", "system.hardware.tici.modem", always_run, enabled=TICI),
   PythonProcess("tombstoned", "system.tombstoned", always_run, enabled=not PC),
   PythonProcess("updated", "system.updated.updated", only_offroad, enabled=not PC),
   PythonProcess("uploader", "system.loggerd.uploader", uploader_ready),

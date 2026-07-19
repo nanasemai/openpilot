@@ -16,8 +16,6 @@ if gui_app.sunnypilot_ui():
 
 PERSONALITY_TO_INT = log.LongitudinalPersonality.schema.enumerants
 
-LITE = os.getenv("LITE") is not None
-
 # Description constants
 DESCRIPTIONS = {
   "OpenpilotEnabledToggle": tr_noop(
@@ -161,11 +159,6 @@ class TogglesLayout(Widget):
         self._toggles["LongitudinalPersonality"] = self._long_personality_setting
 
     self._update_experimental_mode_icon()
-
-    if LITE:
-      for key in ['RecordAudio']:
-        self._toggle_defs.pop(key, None)
-
     self._scroller = Scroller(list(self._toggles.values()), line_separator=True, spacing=0)
 
     ui_state.add_engaged_transition_callback(self._update_toggles)

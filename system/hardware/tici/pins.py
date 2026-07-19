@@ -25,8 +25,3 @@ class GPIO:
 
   # Sensor interrupts
   LSM_INT = 84
-
-  # rick - for c3
-  BMX055_ACCEL_INT = 21
-  BMX055_GYRO_INT = 23
-  BMX055_MAGN_INT = 87

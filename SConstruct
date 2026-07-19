@@ -59,9 +59,6 @@ allowed_system_libs = {
   "EGL", "GLESv2", "GL",
   "Qt5Charts", "Qt5Core", "Qt5Gui", "Qt5Widgets",
   "dl", "drm", "gbm", "m", "pthread",
-  # dragonpilot: comma3 multi-panda USB (selfdrive/pandad_tici) + cabana/jotpluggler need libusb.
-  # Upstream removed USB and dropped libusb from this whitelist; we keep aux-panda so re-allow it.
-  "usb-1.0",
 }
 
 def _resolve_lib(env, name):
@@ -123,7 +120,7 @@ env = Environment(
   LIBPATH=[
     "#common",
     "#msgq_repo",
-    "#selfdrive/pandad_tici" if "TICI_DOS" in os.environ else "#selfdrive/pandad",
+    "#selfdrive/pandad",
     "#rednose/helpers",
     [x.LIB_DIR for x in pkgs],
   ],
@@ -234,9 +231,6 @@ Export('messaging')
 
 # Build other submodules
 SConscript(['panda/SConscript'])
-# dragonpilot: panda_tici (C3 F4/DOS SPI panda 固件) 无条件构建，预编译发布包需含全部设备固件。
-# F4/H7 的 CAN 布局差异由 panda_tici 自带的条件化 opendbc/safety/can.h 处理（不影响主线 opendbc）。
-SConscript(['panda_tici/SConscript'])
 
 # Build rednose library
 SConscript(['rednose/SConscript'])
@@ -252,7 +246,6 @@ if arch == "larch64":
 # Build selfdrive
 SConscript([
   'selfdrive/pandad/SConscript',
-  'selfdrive/pandad_tici/SConscript',
   'selfdrive/controls/lib/lateral_mpc_lib/SConscript',
   'selfdrive/controls/lib/longitudinal_mpc_lib/SConscript',
   'selfdrive/locationd/SConscript',

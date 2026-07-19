@@ -4,7 +4,6 @@ import os
 import socket
 import subprocess
 import time
-from enum import IntEnum
 from functools import cached_property, lru_cache
 from pathlib import Path
 
@@ -18,8 +17,6 @@ from openpilot.system.hardware.tici.pins import GPIO
 from openpilot.system.hardware.tici.amplifier import Amplifier
 
 MODEM_STATE_PATH = "/dev/shm/modem"
-
-LITE = os.getenv("LITE") is not None
 
 NetworkType = log.DeviceState.NetworkType
 NetworkStrength = log.DeviceState.NetworkStrength
@@ -64,7 +61,7 @@ def get_default_route_iface():
 class Tici(HardwareBase):
   @cached_property
   def amplifier(self):
-    if self.get_device_type() == "mici" or LITE:
+    if self.get_device_type() == "mici":
       return None
     return Amplifier()
 
@@ -102,7 +99,7 @@ class Tici(HardwareBase):
       return int(f.read())
 
   def set_ir_power(self, percent: int):
-    if self.get_device_type() in ("tici", "tizi"):
+    if self.get_device_type() == "tizi":
       return
 
     value = int((percent / 100) * 300)
@@ -156,7 +153,7 @@ class Tici(HardwareBase):
     return self.get_modem_state().get('imei', '')
 
   def get_network_info(self):
-    if self.get_device_type() == "mici" or LITE:
+    if self.get_device_type() == "mici":
       return None
 
     ms = self.get_modem_state()
@@ -240,8 +237,6 @@ class Tici(HardwareBase):
     return self.get_modem_state().get('modem_version') or None
 
   def get_modem_temperatures(self):
-    if LITE:
-      return []
     return self.get_modem_state().get('temperatures', [])
 
   def get_current_power_draw(self):
@@ -339,7 +334,7 @@ class Tici(HardwareBase):
 
   def initialize_hardware(self):
     if self.amplifier is not None:
-      self.amplifier.initialize_configuration(self.get_device_type())
+      self.amplifier.initialize_configuration()
 
     # Allow hardwared to write engagement status to kmsg
     os.system("sudo chmod a+w /dev/kmsg")
@@ -356,11 +351,6 @@ class Tici(HardwareBase):
     # move these off the default core
     affine_irq(1, "msm_vidc")  # encoders
     affine_irq(1, "i2c_geni")  # sensors
-
-    # rick - for c3
-    if "tici" in self.get_device_type():
-      affine_irq(3, "xhci-hcd:usb3")  # aux panda USB (or potentially anything else on USB)
-      affine_irq(3, "xhci-hcd:usb1")  # internal panda USB (also modem)
 
     # *** GPU config ***
     # https://github.com/commaai/agnos-kernel-sdm845/blob/master/arch/arm64/boot/dts/qcom/sdm845-gpu.dtsi#L216
@@ -390,7 +380,7 @@ class Tici(HardwareBase):
       pid = subprocess.check_output(["pgrep", "-f", "spi0"], encoding='utf8').strip()
       subprocess.call(["sudo", "chrt", "-f", "-p", "1", pid])
       subprocess.call(["sudo", "taskset", "-pc", "3", pid])
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessException as e:
       print(str(e))
 
   def get_networks(self):

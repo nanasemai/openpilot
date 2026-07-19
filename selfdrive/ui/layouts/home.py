@@ -1,4 +1,3 @@
-import os
 import time
 import pyray as rl
 from collections.abc import Callable
@@ -244,42 +243,5 @@ class HomeLayout(Widget):
 
   def _get_version_text(self) -> str:
     brand = "sunnypilot"
-
-    # 设备型号映射（来自设备树 model string）
-    model_map = {"tici": "C3", "tizi": "C3X", "mici": "C4"}
-    try:
-      from openpilot.system.hardware.tici.hardware import get_device_type
-      model = model_map.get(get_device_type(), "")
-    except Exception:
-      model = ""
-
-    # Panda MCU 类型 + 通信方式
-    panda_info = ""
-    if "TICI_DOS" in os.environ:
-      panda_info = "F4/SPI"
-    elif "TICI_TRES" in os.environ:
-      panda_info = "H7/SPI"
-    elif model:
-      # 环境变量未设置时，根据设备型号推断（C3X/C4 用 H7/SPI，C3 用 F4/SPI）
-      device_type_map = {"C3": "F4/SPI", "C3X": "H7/SPI", "C4": "H7/SPI"}
-      panda_info = device_type_map.get(model, "USB")
-    else:
-      panda_info = "USB"
-
-    # LITE 变体后缀
-    lite_suffix = ""
-    if os.getenv("LITE") is not None:
-      lite_suffix = "XLite" if "TICI_TRES" in os.environ else "Lite"
-
-    # 组合版本字符串
-    parts = [brand]
-    if model:
-      parts.append(f" - {model}")
-    if panda_info:
-      parts.append(f" ({panda_info})")
-    if lite_suffix:
-      parts.append(f" {lite_suffix}")
-
-    result = "".join(parts)
     description = self.params.get("UpdaterCurrentDescription")
-    return f"{result} {description}" if description else result
+    return f"{brand} {description}" if description else brand

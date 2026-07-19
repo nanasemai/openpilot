@@ -1046,10 +1046,8 @@ bool SpectraCamera::openSensor() {
   };
 
   // Figure out which sensor we have
-  // rick - added back for c3
   if (!init_sensor_lambda(new OS04C10) &&
-      !init_sensor_lambda(new OX03C10) &&
-      !init_sensor_lambda(new AR0231)) {
+      !init_sensor_lambda(new OX03C10)) {
     LOGE("** sensor %d FAILED bringup, disabling", cc.camera_num);
     enabled = false;
     return false;

@@ -17,7 +17,7 @@ from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.params import Params
 from openpilot.common.realtime import DT_HW
 from openpilot.selfdrive.selfdrived.alertmanager import set_offroad_alert
-from openpilot.system.hardware import HARDWARE, TICI, AGNOS, PC
+from openpilot.system.hardware import HARDWARE, TICI, AGNOS
 from openpilot.system.loggerd.config import get_available_percent
 from openpilot.system.statsd import statlog
 from openpilot.common.swaglog import cloudlog
@@ -34,8 +34,6 @@ MAX_VALID_TEMP = 120.  # sanity cap for sensor readings; clamp above this
 DISCONNECT_TIMEOUT = 5.  # wait 5 seconds before going offroad after disconnect so you get an alert
 PANDA_STATES_TIMEOUT = round(1000 / SERVICE_LIST['pandaStates'].frequency * 1.5)  # 1.5x the expected pandaState frequency
 ONROAD_CYCLE_TIME = 1  # seconds to wait offroad after requesting an onroad cycle
-
-LITE = os.getenv("LITE")
 
 ThermalBand = namedtuple("ThermalBand", ['min_temp', 'max_temp'])
 HardwareState = namedtuple("HardwareState", ['network_type', 'network_info', 'network_strength', 'network_stats',

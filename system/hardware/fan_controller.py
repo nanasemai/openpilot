@@ -4,9 +4,6 @@ import numpy as np
 from openpilot.common.pid import PIDController
 from openpilot.system.hardware import HARDWARE
 
-# raise fan setpoint on tici/tizi to reduce noise
-# after raising LMH threshold in AGNOS 18.1 to prevent CPU throttling
-# (evaluates to 0 on mici, i.e. no bump)
 OFFSET = 0 if HARDWARE.get_device_type() == "mici" else 5
 
 
@@ -14,8 +11,6 @@ class FanController:
   def __init__(self, rate: int) -> None:
     self.last_ignition = False
     self.controller = PIDController(k_p=0, k_i=4e-3, rate=rate)
-    # dp: mici keeps the upstream 0.11.1 response; the older comma three / three X
-    # run hotter with the +5C bump, so they use the classic pre-0.11.1 response.
     self._mici = HARDWARE.get_device_type() == "mici"
 
   def update(self, cur_temp: float, ignition: bool) -> int:

@@ -12,7 +12,7 @@ import openpilot.system.sentry as sentry
 from openpilot.common.utils import atomic_write
 from openpilot.common.params import Params, ParamKeyFlag
 from openpilot.common.text_window import TextWindow
-from openpilot.system.hardware import HARDWARE, TICI
+from openpilot.system.hardware import HARDWARE
 from openpilot.system.manager.helpers import unblock_stdout, write_onroad_params, save_bootlog
 from openpilot.system.manager.process import ensure_running
 from openpilot.system.manager.process_config import managed_processes
@@ -23,23 +23,6 @@ from openpilot.system.hardware.hw import Paths
 from openpilot.system.hardware import PC
 
 from openpilot.sunnypilot.system.params_migration import run_migration
-
-# rick - dynamically import panda
-import importlib
-
-# Pre-register panda (C3+PC 用 panda_tici 支持 F4，C3X+C4 用新版 panda)
-target_mod = "panda_tici" if (PC or "TICI_DOS" in os.environ) else "panda"
-
-print(f"panda dir: {target_mod}")
-
-_mod = importlib.import_module(target_mod)
-
-# 👇 Insert alias so "from panda import ..." inside panda_main works
-sys.modules["panda"] = _mod
-
-# Re-export everything
-globals().update({k: v for k, v in _mod.__dict__.items() if not k.startswith("_")})
-import time
 
 
 def manager_init() -> None:
@@ -103,7 +86,7 @@ def manager_init() -> None:
   if reg_res:
     dongle_id = reg_res
   else:
-    dongle_id = UNREGISTERED_DONGLE_ID
+    raise Exception(f"Registration failed for device {serial}")
   os.environ['DONGLE_ID'] = dongle_id  # Needed for swaglog
   os.environ['GIT_ORIGIN'] = build_metadata.openpilot.git_normalized_origin # Needed for swaglog
   os.environ['GIT_BRANCH'] = build_metadata.channel # Needed for swaglog
