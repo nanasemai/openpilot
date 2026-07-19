@@ -608,7 +608,7 @@ class Panda:
 
   def get_type(self):
     #return self._handle.controlRead(Panda.REQUEST_IN, 0xc1, 0, 0, 0x40)
-    return bytearray(b'\x09')
+    return bytearray(b'\x06')
 
   def get_packets_versions(self):
     dat = self._handle.controlRead(Panda.REQUEST_IN, 0xdd, 0, 0, 8)

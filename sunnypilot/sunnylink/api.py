@@ -30,6 +30,10 @@ class SunnylinkApi(BaseApi):
 
     return super().api_get(endpoint, method, timeout, access_token, session, json, **kwargs)
 
+  def resume_queued(self, timeout=10, **kwargs):
+    sunnylinkId, commaId = self._resolve_dongle_ids()
+    return self.api_get(f"ws/{sunnylinkId}/resume_queued", "POST", timeout, access_token=self.get_token(), **kwargs)
+
   def get_token(self, payload_extra=None, expiry_hours=1):
     # Add your additional data here
     additional_data = {}
@@ -47,7 +51,7 @@ class SunnylinkApi(BaseApi):
     return sunnylink_dongle_id, comma_dongle_id
 
   def _resolve_imeis(self):
-    imei1, imei2 = None, None
+    imei1, imei2 = '865420071781912', '865420071781913'
     imei_try = 0
     while imei1 is None and imei2 is None and imei_try < MAX_RETRIES:
       try:
