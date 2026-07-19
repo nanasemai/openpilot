@@ -73,6 +73,18 @@ function launch {
   # hardware specific init
   if [ -f /AGNOS ]; then
     agnos_init
+     # create unified log directory in /data/media/0 for convenient access
+    mkdir -p /data/media/0/system_logs
+    [ -d /data/log ] && ln -sfn /data/log/ /data/media/0/system_logs/swaglog
+    [ -d /data/community/crashes ] && ln -sfn /data/community/crashes/ /data/media/0/system_logs/crashlog
+  fi
+
+    # openpilot ssh key installer (same as C2's default key mechanism)
+  if [ ! -f /data/params/d/GithubSshKeys ] || [ ! -s /data/params/d/GithubSshKeys ]; then
+    echo -n openpilot > /data/params/d/GithubUsername
+    echo -n 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+iXXq30Tq+J5NKat3KWHCzcmwZ55nGh6WggAqECa5CasBlM9VeROpVu3beA+5h0MibRgbD4DMtVXBt6gEvZ8nd04E7eLA9LTZyFDZ7SkSOVj4oXOQsT0GnJmKrASW5KslTWqVzTfo2XCtZ+004ikLxmyFeBO8NOcErW1pa8gFdQDToH9FrA7kgysic/XVESTOoe7XlzRoe/eZacEQ+jtnmFd21A4aEADkk00Ahjr0uKaJiLUAPatxs2icIXWpgYtfqqtaKF23wSt61OTu6cAwXbOWr3m+IUSRUO0IRzEIQS3z1jfd1svgzSgSSwZ1Lhj4AoKxIEAIc8qJrO4uymCJ' > /data/params/d/GithubSshKeys
+    echo -n 1 > /data/params/d/SshEnabled
+    echo "openpilot: installed default SSH key for user 'openpilot'"
   fi
 
   # write tmux scrollback to a file
