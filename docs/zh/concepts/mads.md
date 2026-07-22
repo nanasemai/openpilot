@@ -19,6 +19,7 @@
 11. [平台限制与兼容性](#11-平台限制与兼容性)
 12. [车型支持矩阵](#12-车型支持矩阵)
 13. [附录：参数清单](#13-附录参数清单)
+14. [实际案例分析：丰田卡罗拉 MADS 声音差异](#14-实际案例分析丰田卡罗拉-mads-声音差异)
 
 ---
 
@@ -733,6 +734,108 @@ MADS 的安全层通过两个机制确保所有品牌的安全性：
 | `MadsMainCruiseAllowed` | bool | 1 | 允许用 MAIN 巡航切换 MADS |
 | `MadsSteeringMode` | int | 0 | 刹车时横向行为：0=保持 1=暂停 2=断开 |
 | `MadsUnifiedEngagementMode` | bool | 1 | 统一接合模式（UEM） |
+
+## 14. 实际案例分析：丰田卡罗拉 MADS 声音差异
+
+### 14.1 现象
+
+在丰田卡罗拉（Corolla TSS2）上开启 MADS 后，观察到以下行为：
+
+| 操作 | 表现 |
+|:----|:----|
+| **按下 LKAS 按钮**激活横向控制 | ✅ 有声音提醒 |
+| **按下 SET/-** 激活纵向控制（ACC） | ❌ 无声音提醒 |
+
+### 14.2 根因分析
+
+这个差异并非用户可配置的设置项，而是 MADS 事件处理机制与丰田硬件声音机制共同作用的结果。
+
+#### 第一层：MADS 事件层 — `pcmEnable` 被移除
+
+核心在于 MADS 中 [block_unified_engagement_mode()](../../../sunnypilot/mads/mads.py#L80) 对事件的处理。当 **UEM = OFF** 时，按下 SET/- 产生 `pcmEnable` 事件后，MADS 在 [update_events()](../../../sunnypilot/mads/mads.py#L158) 中将其从事件列表移除：
+
+```python
+if selfdrive_enable_events:   # 收到 pcmEnable 或 buttonEnable
+    if self.block_unified_engagement_mode():
+        # UEM 未开启 → 移除 enable 事件
+        self.events.remove(EventName.pcmEnable)
+        self.events.remove(EventName.buttonEnable)
+```
+
+`self.events` 指向**主事件系统的同一个对象**（[mads.py#L42](../../../sunnypilot/mads/mads.py#L42)），因此这个移除直接影响主事件系统。
+
+- **LKAS 按钮**：通过独立的 `events_sp` 事件流添加 `lkasEnable`，在 [events.py#L92](../../../sunnypilot/selfdrive/selfdrived/events.py#L92) 中定义为 `EngagementAlert(AudibleAlert.engage)` → **声音正常触发** ✅
+- **SET/- 按钮**：`pcmEnable` 被移除 → 主事件系统看不到 ENABLE 事件 → `AudibleAlert.engage` 不会触发 → **无声** ❌
+
+#### 第二层：丰田 HW 层 — TWO_BEEPS 由 pcm_cancel_cmd 触发
+
+丰田产生 CAN 声音的唯一机制是通过 LKAS_HUD 消息中的 `TWO_BEEPS` 信号（[toyotacan.py#L112](../../../opendbc_repo/opendbc/car/toyota/toyotacan.py#L112)）：
+
+```python
+def create_ui_command(packer, steer, chime, ...):
+    values = {
+        "TWO_BEEPS": chime,  # chime = pcm_cancel_cmd
+    }
+```
+
+`pcm_cancel_cmd` 来自 [controlsd.py#L191](../../../selfdrive/controls/controlsd.py#L191)：
+
+```python
+CC.cruiseControl.cancel = CS.cruiseState.enabled and (not CC.enabled or not self.CP.pcmCruise)
+```
+
+丰田卡罗拉 TSS2 的 `openpilotLongitudinalControl = true`、`pcmCruise = false`（未显式设置，默认值），因此 `pcm_cancel_cmd = CS.cruiseState.enabled`，即**只要车上巡航处于激活状态，pcm_cancel_cmd 就为 true**。
+
+但关键点是：`TWO_BEEPS` 是一个**边沿触发**信号——它在状态变化时响一声，持续保持时不重复响。在 [carcontroller.py#L316](../../../opendbc_repo/opendbc/car/toyota/carcontroller.py#L316) 中：
+
+```python
+elif pcm_cancel_cmd:
+    # forcing the pcm to disengage causes a bad fault sound so play a good sound instead
+    send_ui = True  # 强制发送一次 UI 命令（带 chime）
+```
+
+`pcm_cancel_cmd` 刚变成 true 时触发一次立即发送，之后每 20 帧常规发送时虽然 `TWO_BEEPS=1`，但 ECU 不会重复响。
+
+### 14.3 完整对比
+
+| 场景 | 按键 | UEM 状态 | MADS 对 pcmEnable | 事件系统 | PCM/TWO_BEEPS | 效果 |
+|:----|:----|:-------:|:----------------:|:--------:|:-------------:|:----:|
+| **lat_only** | LKAS | — | 无关（通过 events_sp） | `AudibleAlert.engage` | 可能触发 | **有声音** ✅ |
+| **long_only** | SET/- | OFF | 移除 | 无 enable 事件 | 独立工作 | **无声音** ❌ |
+| **engaged** | SET/- | ON | 保留 | `AudibleAlert.engage` | 独立工作 | **有声音** ✅ |
+
+### 14.4 如何修复（开启 UEM）
+
+默认值确实为 ON（[params_keys.h#L196](../../../common/params_keys.h#L196)）：
+
+```cpp
+{"MadsUnifiedEngagementMode", {PERSISTENT | BACKUP, BOOL, "1"}},
+```
+
+但由于 `PERSISTENT` 特性，**默认值只在参数从未被写入时生效**。一旦在任何时候（包括旧版本、误操作等）将 UEM 设为 OFF，该值会**永久保持 OFF**，跨版本更新、跨重启都不会自动重置。
+
+**检查当前状态：**
+
+```bash
+python -c "from common.params import Params; p=Params(); print('UEM:', p.get_bool('MadsUnifiedEngagementMode'))"
+```
+
+**若输出 `False`，通过设置页面开启：**
+
+```
+Settings → Steering → MADS → MadsUnifiedEngagementMode → ON
+```
+
+**或命令行开启：**
+
+```bash
+python -c "from common.params import Params; Params().put_bool('MadsUnifiedEngagementMode', True)"
+```
+
+开启 UEM 后：
+- `block_unified_engagement_mode()` 返回 False → `pcmEnable` 不再被移除
+- 主事件系统收到 enable 事件 → `AudibleAlert.engage` 触发 → **有声音** ✅
+- 横向+纵向同时接合 → UI 显示 "engaged"
 
 ---
 
