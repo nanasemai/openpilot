@@ -17,7 +17,8 @@
 9. [UI 状态显示](#9-ui-状态显示)
 10. [横向激活决策链路](#10-横向激活决策链路)
 11. [平台限制与兼容性](#11-平台限制与兼容性)
-12. [附录：参数清单](#12-附录参数清单)
+12. [车型支持矩阵](#12-车型支持矩阵)
+13. [附录：参数清单](#13-附录参数清单)
 
 ---
 
@@ -100,7 +101,7 @@ CAN bus → 车辆执行
 
 ## 3. 状态机详解
 
-MADS 状态机实现在 [state.py](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/state.py)，管理 5 种状态。
+MADS 状态机实现在 [state.py](../../../sunnypilot/mads/state.py)，管理 5 种状态。
 
 ### 3.1 状态定义
 
@@ -153,7 +154,7 @@ ENABLED_STATES = (paused, *ACTIVE_STATES)               # MADS 处于"开"的状
                     └────────────────────┘
 ```
 
-#### 状态转换详细规则（[state.py#L45-L134](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/state.py#L45)）：
+#### 状态转换详细规则（[state.py#L45-L134](../../../sunnypilot/mads/state.py#L45)）：
 
 | 当前状态 | 触发事件 | 下一状态 | 说明 |
 |---------|---------|---------|------|
@@ -175,7 +176,7 @@ ENABLED_STATES = (paused, *ACTIVE_STATES)               # MADS 处于"开"的状
 
 ## 4. 事件处理机制
 
-MADS 的事件处理在 [mads.py#L119-L208](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L119) 的 `update_events()` 方法中。
+MADS 的事件处理在 [mads.py#L119-L208](../../../sunnypilot/mads/mads.py#L119) 的 `update_events()` 方法中。
 
 ### 4.1 事件替换机制
 
@@ -222,7 +223,7 @@ MADS.state_machine.update() 根据处理后的事件集合做状态转换
 
 ### 4.3 LKAS 按钮处理
 
-LKAS 按钮是 MADS 的核心交互方式（[mads.py#L174-L181](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L174)）：
+LKAS 按钮是 MADS 的核心交互方式（[mads.py#L174-L181](../../../sunnypilot/mads/mads.py#L174)）：
 
 ```python
 if be.type == ButtonType.lkas and be.pressed and (CS.cruiseState.available or self.allow_always):
@@ -269,7 +270,7 @@ bool heartbeat_engaged_mads;          // MADS 心跳（通过 USB 命令传入�
 
 ### 5.3 控制状态更新逻辑
 
-[mads.h#L83-L134](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/opendbc_repo/opendbc/safety/sunnypilot/mads.h#L83) 的 `m_update_control_state()` 函数：
+[mads.h#L83-L134](../../../opendbc_repo/opendbc/safety/sunnypilot/mads.h#L83) 的 `m_update_control_state()` 函数：
 
 ```
 m_update_control_state()
@@ -299,7 +300,7 @@ void mads_heartbeat_engaged_check(void) {
 
 ### 5.5 Python 侧 Mismatch 检测
 
-在 [mads.py#L108-L117](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L108) 的 `data_sample()` 中：
+在 [mads.py#L108-L117](../../../sunnypilot/mads/mads.py#L108) 的 `data_sample()` 中：
 
 ```python
 def data_sample(self):
@@ -323,7 +324,7 @@ def data_sample(self):
 
 ### 6.2 核心逻辑
 
-阻断判断在 [mads.py#L80-L91](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L80)：
+阻断判断在 [mads.py#L80-L91](../../../sunnypilot/mads/mads.py#L80)：
 
 ```python
 def block_unified_engagement_mode(self) -> bool:
@@ -336,7 +337,7 @@ def block_unified_engagement_mode(self) -> bool:
     return False          # 放行
 ```
 
-消费逻辑在 [mads.py#L158-L164](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L158)：
+消费逻辑在 [mads.py#L158-L164](../../../sunnypilot/mads/mads.py#L158)：
 
 ```python
 if selfdrive_enable_events:   # 收到 pcmEnable 或 buttonEnable
@@ -369,7 +370,7 @@ UI 显示: "engaged"（横向+纵向同时工作）
 
 ### 6.4 UEM 的持久性
 
-根据设置描述（[steering.yaml](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/sunnylink/settings_ui_src/pages/steering.yaml#L39)）：
+根据设置描述（[steering.yaml](../../../sunnypilot/sunnylink/settings_ui_src/pages/steering.yaml#L39)）：
 
 > **Once lateral control is engaged via UEM, it will remain engaged until it is manually disabled via the MADS button or car shut off.**
 
@@ -400,7 +401,7 @@ UI 显示: "engaged"（横向+纵向同时工作）
 
 ### 7.2 实现逻辑
 
-在 [mads.py#L166-L168](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L166)：
+在 [mads.py#L166-L168](../../../sunnypilot/mads/mads.py#L166)：
 
 ```python
 if self.main_enabled_toggle:
@@ -431,7 +432,7 @@ if self.CP.brand == "tesla":
 
 ### 8.1 三种模式
 
-通过 [MadsSteeringMode](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/common/params_keys.h#L195) 参数控制（默认值 0）：
+通过 [MadsSteeringMode](../../../common/params_keys.h#L195) 参数控制（默认值 0）：
 
 | 模式 | 值 | 行为 | 安全层标志 |
 |------|:--:|------|:---------:|
@@ -453,11 +454,11 @@ if self.steering_mode_on_brake == MadsSteeringModeOnBrake.PAUSE:
         self.transition_paused_state()                  # 进入暂停
 ```
 
-同时在安全层通过 [helpers.py#L40-L50](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/helpers.py#L40) 设置 alternative_experience 标志位，panda 安全层也会做对应的刹车检测。
+同时在安全层通过 [helpers.py#L40-L50](../../../sunnypilot/mads/helpers.py#L40) 设置 alternative_experience 标志位，panda 安全层也会做对应的刹车检测。
 
 ### 8.3 Pause 模式的恢复
 
-刹车释放后，[should_silent_lkas_enable()](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/mads.py#L71) 在条件满足时发送 `silentLkasEnable` 事件：
+刹车释放后，[should_silent_lkas_enable()](../../../sunnypilot/mads/mads.py#L71) 在条件满足时发送 `silentLkasEnable` 事件：
 
 ```python
 if self.should_silent_lkas_enable(CS):
@@ -471,7 +472,7 @@ if self.should_silent_lkas_enable(CS):
 
 ## 9. UI 状态显示
 
-UI 状态计算在 [ui_state.py#L105-L139](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/selfdrive/ui/sunnypilot/ui_state.py#L105)：
+UI 状态计算在 [ui_state.py#L105-L139](../../../selfdrive/ui/sunnypilot/ui_state.py#L105)：
 
 ```python
 @staticmethod
@@ -558,7 +559,7 @@ panda 安全层校验 controls_allowed_lateral
 
 ### 11.1 MADS No ACC Main Button
 
-下列品牌的车辆没有 ACC MAIN 按钮，`MadsMainCruiseAllowed` 参数不可用（[helpers.py#L15](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/helpers.py#L15)）：
+下列品牌的车辆没有 ACC MAIN 按钮，`MadsMainCruiseAllowed` 参数不可用（[helpers.py#L15](../../../sunnypilot/mads/helpers.py#L15)）：
 
 ```python
 MADS_NO_ACC_MAIN_BUTTON = ("rivian", "tesla")
@@ -568,7 +569,7 @@ MADS_NO_ACC_MAIN_BUTTON = ("rivian", "tesla")
 
 ### 11.2 部分支持平台
 
-某些平台因缺乏一致的信号来可靠切换 MADS 状态，被标记为"部分支持"（[helpers.py#L24-L30](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/helpers.py#L24)）：
+某些平台因缺乏一致的信号来可靠切换 MADS 状态，被标记为"部分支持"（[helpers.py#L24-L30](../../../sunnypilot/mads/helpers.py#L24)）：
 
 ```python
 def get_mads_limited_brands(CP, CP_SP) -> bool:
@@ -579,7 +580,7 @@ def get_mads_limited_brands(CP, CP_SP) -> bool:
     return False
 ```
 
-部分支持平台的行为（[mads_settings.py#L111-L128](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py#L111)）：
+部分支持平台的行为（[mads_settings.py#L111-L128](../../../selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/mads_settings.py#L111)）：
 
 | 设置项 | 行为 |
 |-------|------|
@@ -589,7 +590,7 @@ def get_mads_limited_brands(CP, CP_SP) -> bool:
 
 ### 11.3 自动参数强制
 
-当检测到部分支持平台时，[helpers.py#L66-L69](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/sunnypilot/mads/helpers.py#L66) 在 `set_car_specific_params()` 中强制设置参数：
+当检测到部分支持平台时，[helpers.py#L66-L69](../../../sunnypilot/mads/helpers.py#L66) 在 `set_car_specific_params()` 中强制设置参数：
 
 ```python
 mads_partial_support = get_mads_limited_brands(CP, CP_SP)
@@ -600,9 +601,131 @@ if mads_partial_support:
 
 ---
 
-## 12. 附录：参数清单
+## 12. 车型支持矩阵
 
-所有 MADS 相关参数定义在 [common/params_keys.h](file:///home/ubuntu/openpilot_c3_src/openpilot_nanasemai/common/params_keys.h)：
+### 12.1 总览
+
+MADS 的核心逻辑（状态机 + 事件处理）运行在 **controlsd** 层，与车型无关。所有 sunnypilot 兼容的车型都可获得 MADS 的基本功能。但 MADS 需要车型提供 **LKAS 按钮信号** 方能独立切换横向控制，各品牌的集成深度存在差异。
+
+| 品牌 | 类型 | 集成深度 | LKAS 按钮源 | 限制说明 |
+|:----:|:----:|:--------:|:-----------|:---------|
+| **Hyundai** | ✅ 完整支持 | MadsCarState + MadsCarController | LKAS/LDA 按钮（CAN 总线） | `allow_always` 支持（CANFD/HAS_LDA 车型 LKAS 独立于巡航），MAIN 巡航可切换 |
+| **Honda** | ✅ 完整支持 | MadsCarController | 方向盘 LKAS 按钮 | 仪表盘虚线车道显示适配 |
+| **Chrysler** | ✅ 完整支持 | MadsCarState + MadsCarController | `Center_Stack_2` / `TRACTION_BUTTON` | RAM 与非 RAM 车型按钮路径不同，自定义 LKAS 心跳 |
+| **Ford** | ✅ 完整支持 | MadsCarState | `Steering_Data_FD1.TjaButtnOnOffPress` | 安全层已适配 MADS |
+| **Subaru** | ✅ 完整支持 | MadsCarState | `ES_LKAS_State.LKAS_Dash_State` | Pre-global 车型不支持（无 LKAS_Dash_State） |
+| **Nissan** | ⚠️ 基础支持 | 无专用 MADS 模块 | 无 LKAS 按钮读取 | HUD 显示已适配 `CC_SP.mads.enabled`，MADS 核心功能通过 controlsd 层工作 |
+| **GM** | ⚠️ 基础支持 | 无专用 MADS 模块 | 无 LKAS 按钮读取 | MADS 核心功能通过 controlsd 层 + 安全层工作 |
+| **Toyota** | ⚠️ 基础支持 | 无专用 MADS 模块 | 无 LKAS 按钮读取 | MADS 核心功能通过 controlsd 层 + 安全层工作 |
+| **Mazda** | ⚠️ 基础支持 | 无专用 MADS 模块 | 无 LKAS 按钮读取 | MADS 核心功能通过 controlsd 层 + 安全层工作 |
+| **Volkswagen** | ⚠️ 基础支持 | 无专用 MADS 模块 | 无 LKAS 按钮读取 | MADS 核心功能通过 controlsd 层 + 安全层工作 |
+| **Rivian** | 🔶 部分支持 | 仅 MadsCarController | 无 LKAS 按钮 | **有限支持**：无 ACC MAIN 按钮、UEM 强制开、SteeringMode 强制 Disengage |
+| **Tesla** | 🔶 部分支持 | 无专用 MADS 模块 | `allow_always`（始终可接合） | **有限支持**：无 ACC MAIN 按钮、有车辆总线时可全支持、否则 UEM 强制开 |
+
+### 12.2 品牌详细分析
+
+#### Hyundai / Kia / Genesis — 完整支持
+
+- **MadsCarState**：集成在 [carstate.py](../../../opendbc_repo/opendbc/car/hyundai/carstate.py#L14)，支持 CANFD 和 CAN 两种平台
+- **MadsCarController**：在 [hyundai/mads.py](../../../opendbc_repo/opendbc/sunnypilot/car/hyundai/mads.py#L25) 实现，控制 LKAS/LFA 仪表盘图标状态：
+  - `lat_active`：方向盘图标绿色（横向激活）
+  - `disengaging`：方向盘图标闪烁（横向退出中）
+  - `paused`：方向盘图标灰色（横向暂停）
+- **LKAS 按钮**：通过 CAN 总线信号读取，部分车型有独立 LKAS 按钮，部分通过 LDA (Lane Departure Alert) 按钮
+- **`allow_always`**：[mads.py#L45-L49](../../../sunnypilot/mads/mads.py#L45) 中 Hyundai 的 CANFD 和 `HAS_LDA_BUTTON` 车型，LKAS 按钮不依赖巡航状态
+- **MAIN 巡航切换**：通过 `HyundaiFlagsSP.LONGITUDINAL_MAIN_CRUISE_TOGGLEABLE` 标志位支持
+- **安全层**：`hyundai.h` / `hyundai_canfd.h` 均已适配 MADS
+- **测试**：专用测试文件 [test_hyundai.py](../../../opendbc_repo/opendbc/safety/tests/test_hyundai.py)
+
+#### Honda / Acura — 完整支持
+
+- **MadsCarController**：在 [honda/mads.py](../../../opendbc_repo/opendbc/sunnypilot/car/honda/mads.py#L12) 实现，核心是仪表盘虚线车道（`dashed_lanes`）显示：
+  - MADS enabled + 横向不激活 → 虚线车道（提示驾驶员接管转向）
+  - MADS 未启用 → 回退 stock 行为
+- **LKAS 按钮**：方向盘上的 LKAS 按钮（Honda 原生支持）
+- **安全层**：`honda.h` 中引用了 `controls_allowed_lateral`
+- **测试**：专用测试文件 [test_honda.py](../../../opendbc_repo/opendbc/safety/tests/test_honda.py)
+
+#### Chrysler / Jeep / RAM / Dodge — 完整支持
+
+- **MadsCarState**：在 [chrysler/mads.py](../../../opendbc_repo/opendbc/sunnypilot/car/chrysler/mads.py#L57) 实现，初始化时从 `LKAS_HEARTBIT` 读取 `LKAS_DISABLED` 状态
+- **MadsCarController**：在 [chrysler/mads.py#L23](../../../opendbc_repo/opendbc/sunnypilot/car/chrysler/mads.py#L23) 实现，控制 `LKAS_HEARTBIT` 的 `LKAS_DISABLED` 信号
+- **LKAS 按钮**：RAM 车型通过 `Center_Stack_2.LKAS_Button`，非 RAM 车型通过 `TRACTION_BUTTON.TOGGLE_LKAS`
+- **安全层**：已适配 MADS
+
+#### Ford — 完整支持
+
+- **MadsCarState**：在 [ford/mads.py](../../../opendbc_repo/opendbc/sunnypilot/car/ford/mads.py#L16) 实现
+- **LKAS 按钮**：从 `Steering_Data_FD1` 消息的 `TjaButtnOnOffPress` 信号读取
+- **安全层**：`ford.h` 已适配 MADS
+- **测试**：专用测试文件 [test_ford.py](../../../opendbc_repo/opendbc/safety/tests/test_ford.py)
+
+#### Subaru — 完整支持
+
+- **MadsCarState**：在 [subaru/mads.py](../../../opendbc_repo/opendbc/sunnypilot/car/subaru/mads.py#L18) 实现
+- **LKAS 按钮**：从摄像头 CAN 消息 `ES_LKAS_State.LKAS_Dash_State` 读取，将 Dash_State 值映射为 `ButtonType.lkas` 事件
+- **限制**：`SubaruFlags.PREGLOBAL`（Pre-global 平台）不支持 LKAS 按钮读取
+- **安全层**：`subaru.h` 已适配 MADS
+- **测试**：专用测试文件 [test_subaru.py](../../../opendbc_repo/opendbc/safety/tests/test_subaru.py)
+
+#### Nissan — 基础支持
+
+- **无专用 MADS 模块**（无 MadsCarState / MadsCarController）
+- **HUD 适配**：[carcontroller.py#L73](../../../opendbc_repo/opendbc/car/nissan/carcontroller.py#L73) 中传递 `CC_SP.mads.enabled` 给 HUD 显示
+- **MADS 工作方式**：MADS 核心逻辑（状态机、事件处理）通过 controlsd 层运行，但无 LKAS 按钮信号读取，因此**无法通过方向盘按钮独立切换横向**，只能通过 UEM（巡航按键统一接合）或设置中开关
+
+#### GM / Toyota / Mazda / Volkswagen — 基础支持
+
+- **无专用 MADS 模块**
+- **MADS 工作方式**：与 Nissan 类似，通过 controlsd 层的 MADS 状态机获得基本功能，但缺乏 LKAS 按钮集成
+- **UEM 是主要接合方式**：由于无 LKAS 按钮信号，主要依赖 UEM 通过巡航按键同时接合横向+纵向
+
+#### Rivian — 部分支持
+
+- **MadsCarController**：在 [rivian/mads.py](../../../opendbc_repo/opendbc/sunnypilot/car/rivian/mads.py#L18) 实现，控制 LKA 图标和横向激活状态（限速 90° 转向角）
+- **无 MadsCarState**：Rivian 没有独立的 LKAS 按钮信号用于 MADS 切换
+- **强制限制**：
+  - 无 ACC MAIN 按钮 → `MadsMainCruiseAllowed` 不可用
+  - UEM 强制开启 → 只能通过巡航按键接合
+  - SteeringMode 强制 Disengage → 踩刹车横向必然退出
+- **原因**：代码注释明确说明 *"lack of consistent states to engage controls"*
+
+#### Tesla — 部分支持（有车辆总线时可全支持）
+
+- **无专用 MADS 模块**（无 MadsCarState，只有 `allow_always = True`）
+- **`allow_always`**：[mads.py#L49](../../../sunnypilot/mads/mads.py#L49) 中配置，LKAS 按钮始终可用
+- **有车辆总线**（`TeslaFlagsSP.HAS_VEHICLE_BUS`）：可通过方向盘滚轮按钮接合 MADS → **完整支持**
+- **无车辆总线**：强制 UEM，Disengage 模式 → **部分支持**
+- **安全层**：`tesla.h` 中已引用 `controls_allowed_lateral`
+
+### 12.3 MADS 工作方式分类
+
+根据集成深度，MADS 在各车型上的工作方式可分为三个层次：
+
+| 层级 | 能力 | 车型 | 用户可用的接合方式 |
+|:----:|:----|:-----|:------------------|
+| **A 级** | LKAS 按钮 + UEM + ACC MAIN | Hyundai, Honda, Chrysler, Ford, Subaru | LKAS 按钮 / 巡航按键 / MAIN 巡航 |
+| **B 级** | UEM 接合，无 LKAS 按钮 | Nissan, GM, Toyota, Mazda, Volkswagen | 巡航按键（UEM） |
+| **C 级** | 有限支持，强制 UEM + Disengage | Rivian, Tesla（无车辆总线） | 仅巡航按键（UEM 强制），踩刹车即退出 |
+
+### 12.4 安全层覆盖
+
+MADS 的安全层通过两个机制确保所有品牌的安全性：
+
+1. **通用层**（`safety/lateral.h`）：包含 `mads.h`，所有品牌的横向安全检测都使用 `controls_allowed || controls_allowed_lateral` 判断。这是**所有品牌共享的基础安全屏障**。
+2. **品牌层**（`safety/modes/*.h`）：部分品牌直接在安全模式中引用 `controls_allowed_lateral`，做品牌特定的安全检查。
+
+已确认安全层显式引用 `controls_allowed_lateral` 的品牌：
+- **Honda**：[honda.h#L299](../../../opendbc_repo/opendbc/safety/modes/honda.h#L299)
+- **Tesla**：[tesla.h#L221](../../../opendbc_repo/opendbc/safety/modes/tesla.h#L221)
+
+其他品牌的安全模式通过 `lateral.h` 的通用逻辑间接引用 `controls_allowed_lateral`。
+
+---
+
+## 13. 附录：参数清单
+
+所有 MADS 相关参数定义在 [common/params_keys.h](../../../common/params_keys.h)：
 
 | 参数名 | 类型 | 默认值 | 说明 |
 |--------|:---:|:-----:|------|
