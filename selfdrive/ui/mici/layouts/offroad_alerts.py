@@ -287,7 +287,7 @@ class MiciOffroadAlerts(Scroller):
       alert_json = self._pending_params[alert_data.key]
 
       if alert_json:
-        text = alert_json.get("text", "").replace("%1", alert_json.get("extra", ""))
+        text = tr(alert_json.get("text", "")).replace("%1", alert_json.get("extra", ""))
 
       if text and not alert_data.visible:
         # Bump newly visible alerts to the top, severity sort keeps it at the top of its category
