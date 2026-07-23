@@ -20,6 +20,16 @@
 12. [车型支持矩阵](#12-车型支持矩阵)
 13. [附录：参数清单](#13-附录参数清单)
 14. [实际案例分析：丰田卡罗拉 MADS 声音差异](#14-实际案例分析丰田卡罗拉-mads-声音差异)
+15. [丰田 TSS2 纵向控制架构：视觉纯控 vs 雷达融合](#15-丰田-tss2-纵向控制架构视觉纯控-vs-雷达融合)
+    - [15.5 CAN 总线拓扑](#155-can-总线拓扑)
+    - [15.6 ACC_TYPE 信号](#156-acc_type--决定纵向能力的核心信号)
+    - [15.7 PERMIT_BRAKING 刹车控制](#157-permit_braking--刹车许可精细控制)
+    - [15.8 雷达数据流](#158-雷达数据流)
+    - [15.9 DISABLE_RADAR 与 SmartDSU](#159-disable_radar-与-smartdsu)
+    - [15.10 完整控制流对比](#1510-完整控制流对比)
+16. [案例分析：丰田卡罗拉 TSS2 最佳配置](#16-案例分析丰田卡罗拉-tss2-最佳配置)
+    - [16.5 硬件兼容性注意事项](#165-硬件兼容性注意事项)
+    - [16.6 启动后检查](#166-启动后检查)
 
 ---
 
@@ -838,5 +848,446 @@ python -c "from common.params import Params; Params().put_bool('MadsUnifiedEngag
 - 横向+纵向同时接合 → UI 显示 "engaged"
 
 ---
+
+## 15. 丰田 TSS2 纵向控制架构：视觉纯控 vs 雷达融合
+
+### 15.1 背景
+
+在了解 MADS 在丰田车上的行为后，有必要理解丰田 TSS2 平台的纵向控制架构。这直接关系到 MADS 启用后纵向控制的真实工作方式。
+
+丰田 TSS2 车型根据纵向控制方式分为两类：
+
+| 分组 | 含义 | 代码条件 |
+|:----|:-----|:--------|
+| **RADAR_ACC_CAR** | 保留原厂雷达 ACC | `candidate in RADAR_ACC_CAR` |
+| **TSS2_CAR - RADAR_ACC_CAR** | 摄像头直接发送 ACC_CONTROL | `candidate in (TSS2_CAR - RADAR_ACC_CAR)` |
+
+代码定义在 [interface.py#L107-L108](../../../opendbc_repo/opendbc/car/toyota/interface.py#L107)：
+
+```python
+ret.openpilotLongitudinalControl = (candidate in (TSS2_CAR - RADAR_ACC_CAR) or
+                                    bool(ret.flags & ToyotaFlags.DISABLE_RADAR.value))
+```
+
+### 15.2 丰田卡罗拉 TSS2 的架构
+
+卡罗拉 TSS2 属于 **TSS2_CAR** 但不属于 **RADAR_ACC_CAR**，因此其纵向控制架构为：
+
+**视觉纯控模式**（非融合模式）：
+
+```
+摄像机 ──→ openpilot ──→ ACC_CONTROL（直接控制油门/刹车）
+                        [视觉模型计算加速度]
+
+雷达 ──→ CAN 总线 ──→ 可读但不参与纵向控制
+```
+
+关键证据在 [carstate.py#L65](../../../opendbc_repo/opendbc/car/toyota/carstate.py#L65)：
+
+```python
+cp_acc = cp_cam if self.CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR) else cp
+```
+
+ACC 信号来源是**摄像机 CAN 总线**，而非雷达总线。完整的解析路径：
+
+| 车型分类 | ACC 信号来源 | 纵向控制 | 雷达作用 |
+|:--------|:-----------:|:--------:|:--------|
+| RADAR_ACC_CAR | 雷达 CAN 总线 | 通过 PCM 间接调 ACC | 主动参与 ACC |
+| TSS2_CAR - RADAR_ACC_CAR（含 Corolla） | 摄像机 CAN 总线 | 视觉纯控，直接发 accel | 解析 → 规划层融合 |
+
+### 15.3 工作流程
+
+完整链路分为两层：
+
+#### 规划层（plannerd）— 融合层
+
+```
+视觉模型 (modelV2) → desiredAcceleration
+                              ↓
+雷达 (radarState) → leadOne/leadTwo (dRel, vRel, aLeadK)
+                              ↓
+                    LongitudinalPlanner.update()
+                      ├── 读 radarState.leadOne（雷达前车数据）
+                      ├── 读 modelV2.action.desiredAcceleration（视觉加速度）
+                      └── mpc.update(radarState) → MPC 计算最优轨迹
+                              ↓
+                    output = min(e2e_desiredAccel, mpc_plan_accel)
+                              ↓
+                    longitudinalPlan.aTarget（最终统一输出）
+```
+
+关键融合点在 [longitudinal_planner.py#L176-L199](../../../selfdrive/controls/lib/longitudinal_planner.py#L176)：
+
+```python
+# MPC 使用雷达数据（long_mpc.py#L316）
+self.mpc.update(sm['radarState'], v_cruise, personality=personality)
+
+# 视觉模型输出（line 195）
+output_a_target_e2e = sm['modelV2'].action.desiredAcceleration
+output_a_target_mpc = ...  # MPC 规划加速度（含雷达数据）
+
+# 融合：取两者最小值（更保守，更安全）
+if self.is_e2e(sm):
+    output_a_target = min(output_a_target_e2e, output_a_target_mpc)
+```
+
+#### 执行层（carcontroller）— 单一路径
+
+```
+longitudinalPlan.aTarget
+    ↓
+CarController → PID → pcm_accel_cmd
+    ↓
+create_accel_command(ACCEL_CMD, ACC_TYPE=1, PERMIT_BRAKING, ...)
+    ↓
+camera CAN bus (bus 2)
+    ↓
+PCM → 执行油门/刹车
+```
+
+注意 [interface.py#L97-L99](../../../opendbc_repo/opendbc/car/toyota/interface.py#L97) 的注释：
+
+```python
+# Disabling radar is only supported on TSS2 radar-ACC cars
+# 禁用雷达仅支持 TSS2 雷达-ACC 车型
+```
+
+——只有 **RADAR_ACC_CAR** 才有"禁用雷达"的选项。卡罗拉 TSS2 不在此列，雷达本就处于**被动旁观**状态，openpilot 的纵向目标加速度完全由视觉模型决定，雷达数据不参与融合。
+
+### 15.4 对 MADS 行为的影响
+
+这一架构解释了为什么之前分析的**声音差异**场景中，即使 UEM=OFF 导致 `pcmEnable` 被 MADS 移除，纵向控制仍然可以工作：
+
+1. 按下 SET/- 后，车辆 PCM **独立检测到巡航按键信号**，自行启用 ACC
+2. MADS 移除了 `pcmEnable` 事件 → openpilot 事件系统未收到 enable
+3. 但 **PCM 已独立接管 ACC 控制** → 纵向控制仍然有效
+4. MADS 仅控制了横向（不激活）→ UI 显示 "long_only"
+
+对于 **RADAR_ACC_CAR** 车型（如部分 TSS2 丰田），pcmCruise 模式下纵向由 PCM 和原车雷达管理，MADS 移除 `pcmEnable` 后同样会出现类似行为。
+
+### 15.5 CAN 总线拓扑
+
+丰田 TSS2 车型有 **3 条 CAN 总线**：
+
+| 总线 | ID | 设备 | 关键信号 |
+|:----|:--:|:-----|:---------|
+| **PT bus** | 0 | PCM、EPS、ABS、BCM | 车速、转向扭矩、刹车/油门、巡航状态 |
+| **Radar bus** | 1 | 毫米波雷达 | 障碍物点云 (0x180-0x19F) |
+| **Cam bus** | 2 | 前视摄像头 | ACC_CONTROL、LKAS_HUD、车道线 |
+
+`ACC_CONTROL` 消息的来源在 [carstate.py#L65](../../../opendbc_repo/opendbc/car/toyota/carstate.py#L65) 决定：
+
+```python
+cp_acc = cp_cam if self.CP.carFingerprint in (TSS2_CAR - RADAR_ACC_CAR) else cp
+```
+
+- **Corolla TSS2（非 RADAR_ACC）**：`cp_acc = cp_cam` → ACC 信号从 **cam bus（总线 2）** 获取
+- **RADAR_ACC_CAR（如 RAV4）**：`cp_acc = cp` → ACC 信号从 **PT bus（总线 0）** 获取
+
+### 15.6 ACC_TYPE — 决定纵向能力的核心信号
+
+在 [carstate.py#L160](../../../opendbc_repo/opendbc/car/toyota/carstate.py#L160) 中有一个极易被忽略但非常重要的参数：
+
+```python
+self.acc_type = cp_acc.vl["ACC_CONTROL"]["ACC_TYPE"]
+```
+
+| ACC_TYPE | 含义 |
+|:--------:|:-----|
+| **1** | 全速范围 ACC（支持 Stop & Go） |
+| **2** | 低速锁定 — 需要车速 > ~30km/h 才能启用 |
+
+当 openpilot 接管纵向控制后，通过 `create_accel_command()` 持续发送 `ACC_TYPE=1`，让 PCM 保持在"全速 ACC"模式。如果 `ACC_TYPE` 变成 2，PCM 会认为车辆不支持低速 ACC，触发 `LOW_SPEED_LOCKOUT`（[carstate.py#L167-L170](../../../opendbc_repo/opendbc/car/toyota/carstate.py#L167)）：
+
+```python
+if (self.CP.carFingerprint in TSS2_CAR and self.acc_type == 1):
+    if self.CP.openpilotLongitudinalControl:
+        ret.accFaulted = ret.accFaulted or cp.vl["PCM_CRUISE_2"]["LOW_SPEED_LOCKOUT"] == 2
+```
+
+**这是 openpilot 能实现 Stop & Go 的关键** — 持续注入 `ACC_TYPE=1`，让 PCM 认为 ACC 始终是"全速可用"状态，从而允许低速跟车和自动起步。
+
+### 15.7 PERMIT_BRAKING — 刹车许可精细控制
+
+在 [carcontroller.py#L278-L281](../../../opendbc_repo/opendbc/car/toyota/carcontroller.py#L278) 中有一个精细的刹车许可逻辑：
+
+```python
+if net_acceleration_request_min < 0.2 or stopping or not CC.longActive:
+    self.permit_braking = True       # 允许刹车
+elif net_acceleration_request_min > 0.3:
+    self.permit_braking = False      # 禁止刹车（只在需要加速时）
+```
+
+`net_acceleration_request` 考虑了**坡度补偿**（[carcontroller.py#L239](../../../opendbc_repo/opendbc/car/toyota/carcontroller.py#L239)）：
+
+```python
+accel_due_to_pitch = math.sin(min(self.pitch.x, 0.0)) * ACCELERATION_DUE_TO_GRAVITY
+net_acceleration_request = pcm_accel_cmd + accel_due_to_pitch
+```
+
+下坡时计算重力分量并叠加到加速度请求中，避免在需要减速时意外解除刹车许可。
+
+### 15.8 雷达数据流 — 规划层融合详解
+
+雷达数据在 Corolla TSS2 上**并非旁观者**，而是经过完整的解析链路后参与到规划层的融合决策中。
+
+#### 数据链路
+
+```
+CAN bus 1 (Radar)
+  → RadarInterface (radar_interface.py)
+    → 解析 0x180-0x19F 共 16 个点云消息
+    → 输出 RadarPoint[] (dRel, yRel, vRel, measured)
+  → radard 进程
+    → 聚合点云、跟踪前车
+    → 输出 radarState (leadOne/leadTwo)
+  → plannerd (LongitudinalPlanner)
+    → mpc.update(radarState)  ← 雷达数据进入 MPC
+```
+
+#### MPC 内部如何使用雷达
+
+在 [long_mpc.py#L316-L351](../../../selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py#L316) 中：
+
+```python
+def update(self, radarstate, v_cruise, ...):
+    # 从雷达数据提取前车状态
+    lead_xv_0 = self.process_lead(radarstate.leadOne)
+    lead_xv_1 = self.process_lead(radarstate.leadTwo)
+
+    # 计算前车等效静止障碍物距离
+    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1])
+    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1])
+
+    # 计算巡航虚拟障碍物（无前车时使用）
+    cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, t_follow)
+
+    # 融合决策：取最近障碍物
+    x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
+    self.source = MPC_SOURCES[np.argmin(x_obstacles[0])]
+
+    # 将最近障碍物距离作为 MPC 参数
+    self.params[:,2] = np.min(x_obstacles, axis=1)
+```
+
+MPC 的决策来源（[long_mpc.py#L339](../../../selfdrive/controls/lib/longitudinal_mpc_lib/long_mpc.py#L339)）：
+
+| `self.source` | 含义 | 触发条件 |
+|:-------------|:-----|:--------|
+| `lead0` | 跟随最近前车 | 雷达 leadOne 障碍物最近 |
+| `lead1` | 跟随次近前车 | 雷达 leadTwo 障碍物最近 |
+| `cruise` | 巡航到设定速度 | 无前车或前车很远 |
+
+#### 真正的融合发生在 plannerd
+
+最终输出在 [longitudinal_planner.py#L195-L205](../../../selfdrive/controls/lib/longitudinal_planner.py#L195)：
+
+```python
+output_a_target_e2e = sm['modelV2'].action.desiredAcceleration  # 视觉模型
+output_a_target_mpc = ...   # MPC 规划（含雷达数据）
+
+if self.is_e2e(sm):
+    output_a_target = min(output_a_target_e2e, output_a_target_mpc)
+    # ^ 取更保守的值：视觉说"加速"，雷达说"刹车" → 选刹车
+else:
+    output_a_target = output_a_target_mpc
+    # ^ 非 E2E 模式：仅 MPC（基于雷达）
+```
+
+融合策略：**`min()` 取最小值**，即视觉模型和 MPC（雷达）中更保守的那个胜出。这确保了：
+- 视觉漏检前车 → 雷达检测到 → MPC 输出低加速度 → 安全
+- 雷达误报障碍物 → 视觉正常 → E2E 输出高加速度 → MPC 限制 → 平缓
+
+#### 与老款车型的差异
+
+雷达消息 ID 不同（[radar_interface.py#L29-L34](../../../opendbc_repo/opendbc/car/toyota/radar_interface.py#L29)）：
+
+```python
+if CP.carFingerprint in TSS2_CAR:
+    self.RADAR_A_MSGS = list(range(0x180, 0x190))  # TSS2: 0x180-0x18F
+    self.RADAR_B_MSGS = list(range(0x190, 0x1a0))  # TSS2: 0x190-0x19F
+else:
+    self.RADAR_A_MSGS = list(range(0x210, 0x220))  # 老款: 0x210-0x21F
+    self.RADAR_B_MSGS = list(range(0x220, 0x230))  # 老款: 0x220-0x22F
+```
+
+但解析逻辑完全相同，最终都是 `RadarPoint[]` → `radarState` → `plannerd`。
+
+### 15.9 DISABLE_RADAR 与 SmartDSU
+
+#### DISABLE_RADAR — 仅对 RADAR_ACC_CAR 生效
+
+[interface.py#L97-L99](../../../opendbc_repo/opendbc/car/toyota/interface.py#L97) 的注释说得很清楚：
+
+```python
+# Disabling radar is only supported on TSS2 radar-ACC cars
+if alpha_long and candidate in RADAR_ACC_CAR:
+    ret.flags |= ToyotaFlags.DISABLE_RADAR.value
+```
+
+当 RADAR_ACC_CAR 车型开启实验性纵向控制（`alpha_long`）后：
+
+1. 设置 `DISABLE_RADAR` 标志位
+2. [init()#L206-L209](../../../opendbc_repo/opendbc/car/toyota/interface.py#L206) 通过 UDS 协议**物理禁用雷达的发送**：
+   ```python
+   if CP.flags & ToyotaFlags.DISABLE_RADAR.value:
+       communication_control = bytes([uds.SERVICE_TYPE.COMMUNICATION_CONTROL,
+                                      uds.CONTROL_TYPE.ENABLE_RX_DISABLE_TX,
+                                      uds.MESSAGE_TYPE.NORMAL])
+       disable_ecu(can_recv, can_send, bus=0, addr=0x750, sub_addr=0xf, com_cont_req=communication_control)
+   ```
+3. [carcontroller.py#L334](../../../opendbc_repo/opendbc/car/toyota/carcontroller.py#L334) 持续发送 tester present 消息保持雷达静默：
+   ```python
+   if self.frame % 20 == 0 and self.CP.flags & ToyotaFlags.DISABLE_RADAR.value:
+       can_sends.append(make_tester_present_msg(0x750, 0, 0xF))
+   ```
+
+这是为了保证雷达不会与 openpilot 发送的 `ACC_CONTROL` 指令冲突。Corolla TSS2 不在此列 — 它本就**不依赖雷达做 ACC**，无需禁用。
+
+#### SmartDSU — 第三方硬件桥接
+
+[interface.py#L139-L144](../../../opendbc_repo/opendbc/car/toyota/interface.py#L139) 检测 smartDSU 硬件：
+
+```python
+if 0x2FF in fingerprint[0] or (0x2AA in fingerprint[0] and candidate in NO_DSU_CAR):
+    ret.flags |= ToyotaFlagsSP.SMART_DSU.value
+
+    if 0x2AA in fingerprint[0] and candidate in NO_DSU_CAR:
+        ret.flags |= ToyotaFlagsSP.RADAR_CAN_FILTER.value
+```
+
+smartDSU 是一个**第三方硬件**，插在 DSU（或雷达）和摄像头之间，**拦截 PCM/DSU 的 ACC 消息**，让 openpilot 的 `ACC_CONTROL` 能通过。它允许原本使用 DSU/PCM 控制纵向的车型（如部分 RADAR_ACC_CAR）切换到 openpilot 纵向控制，且无需禁用雷达。
+
+### 15.10 完整控制流对比
+
+```
+Corolla TSS2（视觉+雷达规划层融合）:
+  视觉模型 → desiredAcceleration ─┐
+                                   ├──→ min() ─→ aTarget → PID → ACC_CONTROL → PCM → 执行
+  雷达 → radarState → MPC ─────────┘     ^ 取更保守值
+
+RADAR_ACC_CAR + alpha_long（禁用雷达）:
+  视觉模型 → desiredAcceleration ─┐
+                                   ├──→ min() ─→ aTarget → PID → ACC_CONTROL → PCM → 执行
+  雷达 → [物理禁用] ───→ MPC(无雷达) ┘
+
+RADAR_ACC_CAR + SmartDSU（第三方桥接）:
+  视觉模型 → desiredAcceleration ─┐
+                                   ├──→ min() ─→ aTarget → PID → ACC_CONTROL → SmartDSU → PCM → 执行
+  雷达 → radarState → MPC ─────────┘
+
+RADAR_ACC_CAR + pcmCruise（纯原厂）:
+  openpilot → 仅提供转向辅助，不发送 ACC_CONTROL
+  雷达 → PCM → 原厂 ACC [完全由车辆独立控制]
+```
+
+---
+
+## 16. 案例分析：丰田卡罗拉 TSS2 最佳配置
+
+基于前文对 Corolla TSS2 架构的全面分析（CAN 拓扑、ACC_TYPE、视觉+雷达 MPC 融合、PERMIT_BRAKING、SmartDSU 等），以下是最佳配置建议。
+
+### 16.1 NNLC — 建议启用
+
+Corolla TSS2 有专门的 NNLC 模型文件（[TOYOTA_COROLLA_TSS2.json](../../../sunnypilot/neural_network_data/neural_network_lateral_control/TOYOTA_COROLLA_TSS2.json)），模型匹配逻辑（[helpers.py#L23-L68](../../../sunnypilot/selfdrive/controls/lib/nnlc/helpers.py#L23)）会按车型指纹 + EPS 固件版本做模糊匹配，Corolla TSS2 各变体都会命中该模型。
+
+NNLC 的架构（[nnlc.py#L34-L164](../../../sunnypilot/selfdrive/controls/lib/nnlc/nnlc.py#L34)）：
+
+```python
+class NeuralNetworkLateralControl(LatControlTorqueExtBase):
+    def update_neural_network_feedforward(self, CS, params, calibrated_pose):
+        # 输入：vEgo, desired/actual lateral_accel, jerk, roll, pitch
+        #      + 过去 3 帧历史数据（-0.3s, -0.2s, -0.1s）
+        #      + 未来 4 个时间点（0.3s, 0.6s, 1.0s, 1.5s）的规划数据
+        nnff_setpoint_input = [CS.vEgo, self._setpoint, self.lateral_jerk_setpoint, roll] \
+                              + [self._setpoint] * self.past_future_len + past_rolls + future_rolls
+        torque_from_setpoint = self.model.evaluate(nnff_setpoint_input)
+
+        # 前馈也经 NN 计算
+        nn_input = [CS.vEgo, self._desired_lateral_accel, friction_input, roll] \
+                   + past_lateral_accels_desired + future_planned_lateral_accels \
+                   + past_rolls + future_rolls
+        self._ff = self.model.evaluate(nn_input)
+```
+
+与传统 PID 扭矩控制不同的是：
+
+| 维度 | Stock LQR/Torque | NNLC |
+|:----|:----------------|:-----|
+| **转向模型** | 线性前馈表（基于车速查表） | 神经网络（考虑侧倾、侧向加速度、历史轨迹） |
+| **弯道补偿** | 固定增益 | 根据曲率+侧倾动态调整 |
+| **高速直线** | 可能微调抖动 | 更平滑（NN 学习到直行不应有扭矩输出） |
+| **启用条件** | 始终可用 | 需要车型有 `.json` 训练模型 |
+
+### 16.2 最佳配置清单
+
+| 设置项 | 推荐值 | 理由 |
+|:------|:------:|:-----|
+| **Mads** | ON | 核心功能，横向/纵向解耦 |
+| **MadsUnifiedEngagementMode (UEM)** | ON | 一次按键接合所有控制，解决之前讨论的声音缺失问题 |
+| **MadsMainCruiseAllowed** | ON | 允许 MAIN 按钮切换 MADS 开关 |
+| **MadsSteeringMode** | 1 (Pause) | 刹车时横向暂停，松脚恢复，最自然 |
+| **NeuralNetworkLateralControl (NNLC)** | ON | 神经网络扭矩控制，转向手感更平滑 |
+| **EnforceTorqueControl** | 可选 | 开启后强制使用扭矩控制而非角度控制（需要 NNLC 时推荐） |
+| **ExperimentalLongitudinalControl** | N/A | Corolla TSS2 不是 RADAR_ACC_CAR，此选项无效 |
+
+### 16.3 纵向控制架构总结
+
+```
+视觉模型 (modelV2.action.desiredAcceleration) ──┐
+                                                  ├── min() → aTarget → PID → ACC_CONTROL
+雷达 (radarState → MPC lead 检测) ────────────────┘
+
+ACC_TYPE=1（全速范围）持续注入 → 支持 Stop & Go
+PERMIT_BRAKING 根据 net_acceleration_request 动态切换
+```
+
+Corolla TSS2 是 openpilot 视觉纯控 + 雷达 MPC 辅助校验模式。雷达数据经 `0x180-0x19F` 点云解析 → `radarState` → `LongitudinalMPC` → 与视觉 `desiredAcceleration` 取最小值。无需启用 `alpha_long` 或 SmartDSU。
+
+### 16.4 横向控制架构总结
+
+```
+NNLC = ON:
+  vEgo, latAccel, roll, pitch, 历史数据, 未来规划
+    → TOYOTA_COROLLA_TSS2 NN 模型 → 扭矩前馈 (self._ff)
+    → PID 误差修正 → 最终输出扭矩
+
+NNLC = OFF:
+  扭矩前馈表 (torque_data) → PID 误差修正 → 最终输出扭矩
+```
+
+### 16.5 硬件兼容性注意事项
+
+以下是与 Corolla TSS2 相关的硬件兼容性事项，理解这些有助于排查问题：
+
+| 项目 | 说明 | Corolla TSS2 是否适用 |
+|:----|:-----|:--------------------|
+| **EPS 扭矩比例 (EPS_SCALE)** | 部分车型 EPS 的扭矩缩放因子非标准值。Corolla TSS2 为 **88**（默认 73）。[values.py#L591-L592](../../../opendbc_repo/opendbc/car/toyota/values.py#L591) | **适用** — `eps_torque_scale = 0.88` |
+| **DSU (Driver Support Unit)** | 老款丰田有独立 DSU 模块处理 ACC 逻辑。TSS2 车型无 DSU（`NO_DSU`），摄像头直连 CAN | **无需关注** — TSS2 天生无 DSU |
+| **不支持的 DSU 车型** | 部分车型（如 Mirai、RAV4 Prime）DSU 使用 AEB 消息控制纵向，openpilot 无法接管纵向 | **不适用** — Corolla TSS2 不在此列 |
+| **SmartDSU 硬件桥接** | 第三方硬件，拦截 DSU/雷达 ACC 消息，允许 openpilot 发 ACC_CONTROL | **不适用** — Corolla TSS2 无 DSU |
+| **CAN 过滤器** | 配合 Radar CAN Filter 的第三方设备，发送 0x2AA 消息拦截雷达 ACC 信号 | **不适用** — Corolla TSS2 无需拦截雷达 |
+| **ZSS 角度传感器** | 第三方硬件，[zorrobyte/betterToyotaAngleSensorForOP](https://github.com/zorrobyte/betterToyotaAngleSensorForOP)，提供更精确的方向盘角度。检测条件：CAN 总线 0x23 消息存在且非 SECOC 车型 | **可选安装** — 可提升横向控制精度 |
+| **Gas Interceptor** | 油门拦截器硬件（检测条件：总线 0x201 消息 + openpilotLongitudinalControl + 非 SECOC）。启用后 `minEnableSpeed = -1` 且无需 PCM 巡航 | **可选安装** — 用于绕过原车 PCM 限速 |
+| **SECOC（安全车载通信）** | 新型丰田/雷克萨斯（2023+）使用的 CAN 消息加密机制。`SECOC_CAR` 车型需要额外密钥处理，发送 LKA/LTA 命令需计算 MAC 校验 | **不适用** — Corolla TSS2 2020-22 不使用 SECOC |
+| **LTA vs LKAS 转向控制** | `ANGLE_CONTROL_CAR`（如 RAV4 Prime、Mirai）使用 LTA 角度控制消息，其他车型使用 EPS 扭矩控制 | **扭矩控制** — Corolla TSS2 使用标准 EPS 扭矩控制 |
+| **Alt Brake** | `toyota_new_mc_pt_generated` DBC 车型使用替代刹车信号（[interface.py#L33-L34](../../../opendbc_repo/opendbc/car/toyota/interface.py#L33)） | **不适用** — Corolla TSS2 使用 `toyota_nodsu_pt_generated` |
+
+关键结论：
+
+- Corolla TSS2 硬件兼容性**非常简单**——它不需要 SmartDSU、CAN 过滤器或任何桥接硬件
+- 所有 TSS2 车型都是 `NO_DSU`，摄像头通过 `toyota_nodsu_pt_generated` DBC 直连 CAN PT 总线
+- **只需一根标准 OBD-II 到 Panda 线缆**，无需其他改装即可使用 MADS
+- ZSS 和 Gas Interceptor 是**可选**的第三方改装，能提升体验但不必须
+
+### 16.6 启动后检查
+
+如果遇到之前讨论的 UEM 不生效问题，在终端运行：
+
+```bash
+python -c "from common.params import Params; p=Params(); print('UEM:', p.get_bool('MadsUnifiedEngagementMode')); print('NNLC:', p.get_bool('NeuralNetworkLateralControl')); print('Mads:', p.get_bool('Mads'))"
+```
+
+如果输出 `UEM: False`，说明参数是 PERSISTENT 的旧值覆盖了代码默认值，手动设为 True 即可。
 
 > 本文档基于 sunnypilot 分支源码编写。MADS 为第三方分支功能，非 comma.ai 官方 openpilot 的一部分。
