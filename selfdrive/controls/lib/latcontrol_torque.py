@@ -7,6 +7,7 @@ from opendbc.car.lateral import FRICTION_THRESHOLD, get_friction
 from openpilot.common.constants import ACCELERATION_DUE_TO_GRAVITY
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.selfdrive.controls.lib.latcontrol import LatControl
+from openpilot.selfdrive.modeld.constants import ModelConstants
 from openpilot.common.pid import PIDController
 
 from openpilot.sunnypilot.selfdrive.controls.lib.latcontrol_torque_ext import LatControlTorqueExt
@@ -58,6 +59,22 @@ class LatControlTorque(LatControl):
 
     self.extension = LatControlTorqueExt(self, CP, CP_SP, CI)
 
+  def get_predicted_velocity(self, CS, lat_delay):
+    # When decelerating into a corner, the model's planned velocity at the actuation
+    # horizon is lower than the current vEgo. Anchoring lateral acceleration requests
+    # (feedforward, latency buffer, jerk lookahead) on vEgo^2 over-estimates the needed
+    # lateral acceleration and causes over-rotation / line crossing. Interpolate the
+    # planned vehicle speed instead, falling back to vEgo when the model is unavailable.
+    if not self.extension.model_valid:
+      return CS.vEgo
+    model_v2 = self.extension.model_v2
+    if model_v2 is None or len(model_v2.velocity.x) < 2:
+      return CS.vEgo
+    v_pred = float(np.interp(lat_delay, ModelConstants.T_IDXS, model_v2.velocity.x))
+    if not math.isfinite(v_pred) or v_pred <= 0.0:
+      return CS.vEgo
+    return v_pred
+
   def update_live_torque_params(self, latAccelFactor, latAccelOffset, friction):
     self.torque_params.latAccelFactor = latAccelFactor
     self.torque_params.latAccelOffset = latAccelOffset
@@ -77,7 +94,8 @@ class LatControlTorque(LatControl):
     pid_log.version = VERSION
     measured_curvature = -VM.calc_curvature(math.radians(CS.steeringAngleDeg - params.angleOffsetDeg), CS.vEgo, params.roll)
     measurement = measured_curvature * CS.vEgo ** 2
-    future_desired_lateral_accel = desired_curvature * CS.vEgo ** 2
+    v_pred = self.get_predicted_velocity(CS, lat_delay)
+    future_desired_lateral_accel = desired_curvature * v_pred ** 2
     self.lat_accel_request_buffer.append(future_desired_lateral_accel)
 
     roll_compensation = params.roll * ACCELERATION_DUE_TO_GRAVITY
