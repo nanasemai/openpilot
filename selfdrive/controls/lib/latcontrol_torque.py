@@ -31,15 +31,23 @@ KP_INTERP = [250, 120, 65, 30, 11.5, 5.5, 3.5, 2.0, KP]
 
 LP_FILTER_CUTOFF_HZ = 1.2
 JERK_LOOKAHEAD_SECONDS = 0.19
-JERK_GAIN = 0.3
+# Jerk feedforward is mixed into the friction term, amplifying the extra steering
+# torque at curve entry / direction reversal. On continuous curves (short arc, no
+# steady state) this pushes the nose toward the apex and presses the inside line,
+# while single curves mask it. Reduced to 0.25 to ease apex-cutting; ~0 impact on
+# straight/steady-state where lateral jerk is near zero.
+JERK_GAIN = 0.25
 LAT_ACCEL_REQUEST_BUFFER_SECONDS = 1.0
 
 # The friction term adds friction/latAccelFactor of extra proportional gain on the
 # error. On high-speed straights this amplifies small tracking errors and, combined
 # with steering latency, excites a slow lateral weave. The rack needs less static
 # friction compensation as speed rises, so taper the friction gain off with speed.
-FRICTION_INTERP_SPEEDS = [1.0, 5.0, 10.0, 15.0, 30.0]
-FRICTION_INTERP_GAIN = [1.0, 1.0, 1.0, 0.8, 0.5]
+# Per China's legal limits, cornering/sweeper scenarios (continuous curves up to
+# ~20 m/s = 72 km/h city or 60-80 km/h arterial) must keep the original full gain,
+# so the taper starts at 30 m/s (>=100 km/h freeway) and only eases to 0.8.
+FRICTION_INTERP_SPEEDS = [1.0, 5.0, 15.0, 20.0, 30.0, 34.0]
+FRICTION_INTERP_GAIN = [1.0, 1.0, 1.0, 1.0, 0.9, 0.8]
 
 VERSION = 1
 
