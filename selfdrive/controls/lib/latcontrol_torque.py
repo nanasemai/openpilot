@@ -32,6 +32,14 @@ LP_FILTER_CUTOFF_HZ = 1.2
 JERK_LOOKAHEAD_SECONDS = 0.19
 JERK_GAIN = 0.3
 LAT_ACCEL_REQUEST_BUFFER_SECONDS = 1.0
+
+# The friction term adds friction/latAccelFactor of extra proportional gain on the
+# error. On high-speed straights this amplifies small tracking errors and, combined
+# with steering latency, excites a slow lateral weave. The rack needs less static
+# friction compensation as speed rises, so taper the friction gain off with speed.
+FRICTION_INTERP_SPEEDS = [1.0, 5.0, 10.0, 15.0, 30.0]
+FRICTION_INTERP_GAIN = [1.0, 1.0, 1.0, 0.8, 0.5]
+
 VERSION = 1
 
 class LatControlTorque(LatControl):
@@ -88,7 +96,8 @@ class LatControlTorque(LatControl):
     ff = gravity_adjusted_future_lateral_accel
     # latAccelOffset corrects roll compensation bias from device roll misalignment relative to car roll
     ff -= self.torque_params.latAccelOffset
-    ff += get_friction(error + JERK_GAIN * desired_lateral_jerk, lateral_accel_deadzone, FRICTION_THRESHOLD, self.torque_params)
+    friction_gain = float(np.interp(CS.vEgo, FRICTION_INTERP_SPEEDS, FRICTION_INTERP_GAIN))
+    ff += friction_gain * get_friction(error + JERK_GAIN * desired_lateral_jerk, lateral_accel_deadzone, FRICTION_THRESHOLD, self.torque_params)
 
     if not active:
       output_torque = 0.0
