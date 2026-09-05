@@ -49,6 +49,8 @@ selfdrive/modeld/models/tg_input_devices.json
 # build artifacts
 docs_site/
 selfdrive/pandad/pandad
+panda_tici/
+selfdrive/pandad_tici/
 cereal/services.h
 cereal/gen
 cereal/messaging/bridge
@@ -84,6 +86,7 @@ build/
 !.vscode/*.code-snippets
 
 # agents
+.opencode/
 .claude/
 .context/
 PLAN.md
