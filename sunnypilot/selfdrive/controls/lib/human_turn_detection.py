@@ -42,7 +42,10 @@ class HumanTurnDetection:
         self._angle_release_deg = 20.0
         self._torque_start_nm = 2.0
         self._torque_release_nm = 0.6
-        self._resume_angle_lock_deg = 40.0   # Safety angle lock: refuse resume above this
+        # Safety angle lock: used only for soft resume priority, not a hard block
+        self._resume_angle_lock_deg = 40.0
+        # Max additional wait before forced resume when driver still holds wheel
+        self._ramping_max_multiplier = 2.0
 
         # --- 3. State and Timers ---
         self._state: HTDState = HTDState.INACTIVE
@@ -102,12 +105,22 @@ class HumanTurnDetection:
         self._last_pressed = steering_pressed
 
         # --- Guard Clauses ---
-        is_invalid_condition = (
-            not self._enabled or
-            cruise_enabled or
-            not lat_active or
-            not (MIN_SPEED_MS <= v_ego <= MAX_SPEED_MS)
-        )
+        # Skip lat_active check when HTD is already in an active state to avoid
+        # feedback loop: HTD disables lat -> get_lat_active() returns False ->
+        # guard clause fires -> HTD resets but lat still disabled.
+        if self._state in (HTDState.MANUAL_TURN, HTDState.RAMPING):
+            is_invalid_condition = (
+                not self._enabled or
+                cruise_enabled or
+                not (MIN_SPEED_MS <= v_ego <= MAX_SPEED_MS)
+            )
+        else:
+            is_invalid_condition = (
+                not self._enabled or
+                cruise_enabled or
+                not lat_active or
+                not (MIN_SPEED_MS <= v_ego <= MAX_SPEED_MS)
+            )
 
         if is_invalid_condition:
             if self._state != HTDState.INACTIVE:
@@ -140,14 +153,18 @@ class HumanTurnDetection:
 
             elapsed = time.monotonic() - self._state_change_time
             if elapsed >= self._dynamic_delay:
-                # Not yet straightened out
-                if self._last_angle > self._resume_angle_lock_deg:
-                    return False, self._state
+                # Driver released wheel -> resume immediately regardless of angle
+                if not self._last_pressed or self._last_angle <= self._resume_angle_lock_deg:
+                    self._max_turn_angle = 0.0
+                    self._transition(HTDState.INACTIVE, "resume")
+                    return True, self._state
 
-                # Resume condition met
-                self._max_turn_angle = 0.0
-                self._transition(HTDState.INACTIVE, "resume")
-                return True, self._state
+                # Driver still holding wheel and angle high -> wait one more
+                # dynamic_delay cycle, then force resume to avoid indefinite lock
+                if elapsed >= self._dynamic_delay * self._ramping_max_multiplier:
+                    self._max_turn_angle = 0.0
+                    self._transition(HTDState.INACTIVE, "resume_forced")
+                    return True, self._state
 
             return False, self._state
 
