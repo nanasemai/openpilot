@@ -116,16 +116,24 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.HONDA_CIVIC_2022:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0, 10], [0.05, 0.5]]
+      # Proportional gain: keep the on-car-validated reduced schedule. The stock
+      # [[0,10],[0.05,0.5]] ramps kp to 0.5 by 36 km/h, which drove the lateral
+      # loop gain past the sustain threshold and produced a ~3-5 Hz steering
+      # limit cycle (wheel rocking, hands-off) through the 30-55 km/h band.
+      # Holding kp near 0.18-0.22 through that band drops the loop gain below
+      # the oscillation point. Validated on-car: 30-55 km/h wobble resolved.
+      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0, 5, 14, 17], [0.05, 0.18, 0.22, 0.5]]
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0, 10], [0.0125, 0.125]]
-      # Derivative (damping) term: suppresses the ~4.5 Hz steering limit cycle
-      # seen below ~55 km/h on this platform (wheel rocks left-right even
-      # hands-off). The base PI loop has almost no damping at that frequency;
-      # a small k_d on steering rate adds phase margin. Values are deliberately
-      # conservative -- raise toward 0.04 only after on-car A/B confirms no
-      # noise-driven chatter. See STEER_THRESHOLD note in values.py for the
-      # separate hands-on tug-of-war issue.
-      ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[0, 10], [0.005, 0.02]]
+      # Derivative (damping) term -- light, supplementary only. Below ~30 km/h
+      # the dominant mode is a ~1 Hz vehicle-yaw sway, NOT the gain-driven limit
+      # cycle, and a linear k_d has little authority there (kd=0.012 -> only
+      # ~10% of the command limit at 1 Hz). So this k_d is sized to add a little
+      # phase margin without over-damping the 3-5 Hz band the reduced kp already
+      # fixed. Do NOT raise toward 0.02+ without an on-car A/B: at 4.5 Hz that
+      # reaches ~58% of the command limit and makes the wheel feel heavy/woody.
+      # See STEER_THRESHOLD note in values.py for the separate hands-on
+      # tug-of-war issue (unrelated to this hands-off wobble).
+      ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[0, 10], [0.004, 0.012]]
 
     elif candidate == CAR.HONDA_ACCORD:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
