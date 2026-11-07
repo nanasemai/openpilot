@@ -84,6 +84,10 @@ class CarInterface(CarInterfaceBase):
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0], [0]]
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kf = 0.00006  # conservative feed-forward
+    # Default derivative (damping) gain to zero for all Honda. Must be a valid
+    # (non-empty) breakpoint table or PIDController's np.interp on k_d raises
+    # "array of sample points is empty". Only Civic 2022 overrides this below.
+    ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[0.], [0.]]
     ret.steerActuatorDelay = 0.1
 
     if candidate in HONDA_BOSCH:
@@ -114,6 +118,14 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
       ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0, 10], [0.05, 0.5]]
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0, 10], [0.0125, 0.125]]
+      # Derivative (damping) term: suppresses the ~4.5 Hz steering limit cycle
+      # seen below ~55 km/h on this platform (wheel rocks left-right even
+      # hands-off). The base PI loop has almost no damping at that frequency;
+      # a small k_d on steering rate adds phase margin. Values are deliberately
+      # conservative -- raise toward 0.04 only after on-car A/B confirms no
+      # noise-driven chatter. See STEER_THRESHOLD note in values.py for the
+      # separate hands-on tug-of-war issue.
+      ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[0, 10], [0.005, 0.02]]
 
     elif candidate == CAR.HONDA_ACCORD:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
