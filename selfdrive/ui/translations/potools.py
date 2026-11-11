@@ -202,8 +202,8 @@ def _resolve_str(node: ast.AST) -> str | None:
   return None
 
 
-def extract_strings(files: list[str], basedir: str) -> list[POEntry]:
-  """Extract tr/trn/tr_noop calls from Python source files."""
+def extract_strings(files: list[str], basedir: str, extra_markers: tuple[str, ...] = ()) -> list[POEntry]:
+  """Extract translation calls and optional backend message constructors."""
   seen: dict[str, POEntry] = {}
 
   for filepath in files:
@@ -227,13 +227,13 @@ def extract_strings(files: list[str], basedir: str) -> list[POEntry]:
       else:
         continue
 
-      if name not in ('tr', 'trn', 'tr_noop'):
+      if name not in ('tr', 'trn', 'tr_noop', *extra_markers):
         continue
 
       ref = f'{filepath}:{node.lineno}'
-      is_flagged = name in ('tr', 'trn')
+      is_flagged = name in ('tr', 'trn', *extra_markers)
 
-      if name in ('tr', 'tr_noop'):
+      if name in ('tr', 'tr_noop', *extra_markers):
         msgid = _resolve_str(node.args[0]) if node.args else None
         if msgid is None:
           continue

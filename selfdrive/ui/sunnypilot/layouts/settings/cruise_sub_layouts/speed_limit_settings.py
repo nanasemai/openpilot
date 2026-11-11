@@ -78,7 +78,7 @@ class SpeedLimitSettingsLayout(Widget):
     )
 
     self._speed_limit_value_offset = option_item_sp(
-      title="",
+      title=lambda: tr("Speed Limit Offset Value"),
       param="SpeedLimitValueOffset",
       min_value=-30,
       max_value=30,

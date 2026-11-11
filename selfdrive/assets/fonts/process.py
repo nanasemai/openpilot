@@ -10,7 +10,7 @@ TRANSLATIONS_DIR = SELFDRIVE_DIR / "ui" / "translations"
 LANGUAGES_FILE = TRANSLATIONS_DIR / "languages.json"
 
 GLYPH_PADDING = 6
-EXTRA_CHARS = "–‑✓×°§•X⚙✕◀▶✔⌫⇧␣○●↳çêüñ–‑✓×°§•€£¥"
+EXTRA_CHARS = "–‑✓×°§•X⚙✕◀▶✔⌫⇧␣○●↳çêüñ–‑✓×°§•€£¥‹›★☆−·²"
 UNIFONT_LANGUAGES = {"th", "zh-CHT", "zh-CHS", "ko", "ja"}
 
 
@@ -121,10 +121,29 @@ def _process_font(font_path: Path, codepoints: tuple[int, ...], output_name: str
   # Surface them here -- regenerating the atlas cannot fix a glyph the font lacks.
   rendered = {glyphs[i].value for i in range(glyph_count[0])}
   missing = sorted(set(codepoints) - rendered)
+  # OpFont is a subset. Fill newly translated characters from the bundled full
+  # Unicode font, so adding a setting cannot leave Chinese labels unreadable.
+  if missing and font_path.stem.lower().startswith("opfont"):
+    fallback_data = (FONT_DIR / "unifont.otf").read_bytes()
+    fallback_buf = rl.ffi.new("unsigned char[]", fallback_data)
+    fallback_cp = rl.ffi.new("int[]", missing)
+    fallback_count = rl.ffi.new("int *", len(missing))
+    fallback_glyphs = rl.load_font_data(rl.ffi.cast("unsigned char *", fallback_buf), len(fallback_data), font_size,
+                                       rl.ffi.cast("int *", fallback_cp), len(missing),
+                                       rl.FontType.FONT_DEFAULT, fallback_count)
+    if fallback_glyphs != rl.ffi.NULL:
+      combined = rl.ffi.new("GlyphInfo[]", glyph_count[0] + fallback_count[0])
+      for i in range(glyph_count[0]):
+        combined[i] = glyphs[i]
+      for i in range(fallback_count[0]):
+        combined[glyph_count[0] + i] = fallback_glyphs[i]
+      glyph_count[0] += fallback_count[0]
+      glyphs = rl.ffi.cast("GlyphInfo *", combined)
+      rendered = {glyphs[i].value for i in range(glyph_count[0])}
+      missing = sorted(set(codepoints) - rendered)
   if missing:
-    print("WARNING: %s has no glyph for %d requested codepoints (will draw as ?): %s" % (
-      font_path.name, len(missing),
-      " ".join("U+%04X '%s'" % (cp, chr(cp)) for cp in missing)))
+    characters = " ".join(f"U+{cp:04X} '{chr(cp)}'" for cp in missing)
+    print(f"WARNING: {font_path.name} has no glyph for {len(missing)} requested codepoints (will draw as ?): {characters}")
 
   rects_ptr = rl.ffi.new("Rectangle **")
   image = rl.gen_image_font_atlas(glyphs, rects_ptr, glyph_count[0], font_size, GLYPH_PADDING, 0)

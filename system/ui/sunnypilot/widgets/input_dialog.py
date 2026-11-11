@@ -25,6 +25,19 @@ class InputDialogSP:
     self.title = title
 
   def show(self):
+    if not gui_app.big_ui():
+      from openpilot.selfdrive.ui.mici.widgets.dialog import BigInputDialog
+
+      def submit(text):
+        if self.param:
+          self._params.put(self.param, text)
+        if self.callback:
+          self.callback(DialogResult.CONFIRM, text)
+
+      gui_app.push_widget(BigInputDialog(self.title, self.current_text, self.keyboard._min_text_size,
+                                         confirm_callback=submit,
+                                         cancel_callback=lambda: self.callback(DialogResult.CANCEL, "") if self.callback else None))
+      return
     self.keyboard.reset(min_text_size=self.keyboard._min_text_size)
     if self.sub_title:
       self.keyboard.set_title(self.title, self.sub_title)

@@ -90,7 +90,7 @@ class BookmarkIcon(Widget):
         self._interacting = False
 
   def _handle_mouse_event(self, mouse_event: MouseEvent):
-    if not ui_state.started:
+    if not ui_state.is_onroad():
       return
 
     if mouse_event.left_pressed:
@@ -185,7 +185,7 @@ class AugmentedRoadView(CameraView):
 
   def _render(self, _):
     # Draw text if not onroad
-    if not ui_state.started:
+    if not ui_state.is_onroad():
       rl.draw_rectangle_rec(self.rect, rl.BLACK)
       self._offroad_label.render(self._rect)
       return

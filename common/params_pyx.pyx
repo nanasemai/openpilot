@@ -35,6 +35,8 @@ cdef extern from "common/params.h":
     string get(string, bool) nogil
     bool getBool(string, bool) nogil
     int remove(string) nogil
+    int removeIfUnchanged(string, int) nogil
+    int putIfUnchanged(string, string, string, int) nogil
     int put(string, string) nogil
     void putNonBlocking(string, string) nogil
     void putBoolNonBlocking(string, bool) nogil
@@ -169,6 +171,32 @@ cdef class Params:
     cdef string k = self.check_key(key)
     with nogil:
       self.p.remove(k)
+
+  def remove_if_unchanged(self, key, int guard_fd):
+    """Remove only the file held open by guard_fd, preserving a later put."""
+    cdef string k = self.check_key(key)
+    cdef int result
+    with nogil:
+      result = self.p.removeIfUnchanged(k, guard_fd)
+    if result < 0:
+      raise OSError("Failed to conditionally remove parameter")
+    return result == 0
+
+  def put_if_unchanged(self, key, dat, guard_key, int guard_fd):
+    """Save only while guard_key still names the file held open by guard_fd.
+
+    Params writes replace files atomically. Keep the snapshot open throughout
+    the operation so its inode cannot be reused after cancellation or retry.
+    """
+    cdef string k = self.check_key(key)
+    cdef string guard = self.check_key(guard_key)
+    cdef string dat_bytes = self._put_cast(key, dat)
+    cdef int result
+    with nogil:
+      result = self.p.putIfUnchanged(k, dat_bytes, guard, guard_fd)
+    if result < 0:
+      raise OSError("Failed to conditionally write parameter")
+    return result == 0
 
   def get_param_path(self, key=""):
     cdef string key_bytes = ensure_bytes(key)

@@ -15,9 +15,9 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.system.timezone_list import get_timezone_from_params
 
 
-def set_timezone(timezone: str) -> None:
+def set_timezone(timezone: str) -> bool:
   if not timezone:
-    return
+    return False
   cloudlog.debug(f"Setting timezone to {timezone}")
   try:
     if AGNOS:
@@ -27,19 +27,20 @@ def set_timezone(timezone: str) -> None:
       subprocess.check_call(["sudo", "bash", "-c", f"echo '{timezone}' > /data/etc/timezone"])
     else:
       subprocess.check_call(["sudo", "timedatectl", "set-timezone", timezone])
-  except subprocess.CalledProcessError:
+    return True
+  except (subprocess.CalledProcessError, OSError):
     cloudlog.exception(f"Error setting timezone to {timezone}")
+    return False
 
 
 def main() -> NoReturn:
   params = Params()
   current_tz = ""
   while True:
-    time.sleep(60)
     tz = get_timezone_from_params(params)
-    if tz and tz != current_tz:
-      set_timezone(tz)
+    if tz and tz != current_tz and set_timezone(tz):
       current_tz = tz
+    time.sleep(60)
 
 
 if __name__ == "__main__":

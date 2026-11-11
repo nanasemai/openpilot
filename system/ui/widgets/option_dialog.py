@@ -18,6 +18,14 @@ LIST_ITEM_SPACING = 25
 
 
 class MultiOptionDialog(Widget):
+  @property
+  def title(self):
+    return self._title() if callable(self._title) else self._title
+
+  @title.setter
+  def title(self, value):
+    self._title = value
+
   def __init__(self, title, options, current="", option_font_weight=FontWeight.MEDIUM, callback: Callable[[DialogResult], None] | None = None):
     super().__init__()
     self.title = title
@@ -25,6 +33,9 @@ class MultiOptionDialog(Widget):
     self.current = current
     self.selection = current
     self._callback = callback
+    self._compact_page = None
+    self._focus_current = True
+    self._option_font_weight = option_font_weight
 
     # Create scroller with option buttons
     self.option_buttons = [Button(option, click_callback=lambda opt=option: self._on_option_clicked(opt),
@@ -45,6 +56,22 @@ class MultiOptionDialog(Widget):
     self.selection = option
 
   def _render(self, rect):
+    if not gui_app.big_ui():
+      from openpilot.system.ui.widgets.compact import CompactPage, CompactRow
+      if self._compact_page is None:
+        self._compact_page = CompactPage(lambda: tr(self.title), lambda: self._set_result(DialogResult.CANCEL))
+        self._compact_page._list.set_items([
+          CompactRow(lambda option=option: tr(option), lambda option=option: "✓" if option == self.selection else "",
+                     lambda option=option: self._compact_select(option), font_weight=self._option_font_weight) for option in self.options
+        ])
+      self._compact_page.set_enabled(self.enabled)
+      self._compact_page._render(rect)
+      if self._focus_current:
+        self._focus_current = False
+        index = next((index for index, option in enumerate(self.options) if option == self.selection), None)
+        if index is not None:
+          self._compact_page._list.focus_item(self._compact_page._list._scroller.items[index])
+      return
     dialog_rect = rl.Rectangle(rect.x + MARGIN, rect.y + MARGIN, rect.width - 2 * MARGIN, rect.height - 2 * MARGIN)
     rl.draw_rectangle_rounded(dialog_rect, 0.02, 20, rl.Color(30, 30, 30, 255))
 
@@ -77,3 +104,7 @@ class MultiOptionDialog(Widget):
     select_rect = rl.Rectangle(content_rect.x + button_w + BUTTON_SPACING, button_y, button_w, BUTTON_HEIGHT)
     self.select_button.set_enabled(self.selection != self.current)
     self.select_button.render(select_rect)
+
+  def _compact_select(self, option):
+    self._on_option_clicked(option)
+    self._set_result(DialogResult.CONFIRM)

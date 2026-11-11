@@ -5,12 +5,15 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 import pyray as rl
+import re
+import time
+from html import escape, unescape
 from cereal import custom
 from openpilot.selfdrive.ui.sunnypilot.layouts.onboarding import SunnylinkConsentPage
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.sunnypilot.sunnylink.api import UNREGISTERED_SUNNYLINK_DONGLE_ID
 from openpilot.system.ui.lib.application import gui_app, FontWeight
-from openpilot.system.ui.lib.multilang import tr
+from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.sunnypilot.widgets.list_view import button_item_sp
 from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp
 from openpilot.system.ui.sunnypilot.widgets.sunnylink_pairing_dialog import SunnylinkPairingDialog
@@ -21,6 +24,13 @@ from openpilot.system.ui.widgets.label import UnifiedLabel
 from openpilot.system.ui.widgets.list_view import dual_button_item
 from openpilot.system.ui.widgets.scroller_tici import Scroller, LineSeparator
 from openpilot.system.version import sunnylink_consent_version
+
+SPONSOR_TIERS = {
+  "FREE": tr_noop("Free"), "NOVICE": tr_noop("Novice"), "SUPPORTER": tr_noop("Supporter"),
+  "CONTRIBUTOR": tr_noop("Contributor"), "BENEFACTOR": tr_noop("Benefactor"), "GUARDIAN": tr_noop("Guardian"),
+}
+TRANSFER_ERRORS = (tr_noop("Failed to upload backup"), tr_noop("Empty backup configuration"),
+                   tr_noop("Failed to decrypt backup configuration"))
 
 
 class SunnylinkHeader(Widget):
@@ -138,6 +148,8 @@ class SunnylinkDescriptionItem(Widget):
 
 
 class SunnylinkLayout(Widget):
+  TRANSFER_WAIT_TIMEOUT = 30
+
   def __init__(self):
     super().__init__()
 
@@ -145,6 +157,15 @@ class SunnylinkLayout(Widget):
     self._restore_in_progress = False
     self._backup_in_progress = False
     self._sunnylink_enabled = ui_state.params.get("SunnylinkEnabled")
+    self._transfer_kind = None
+    self._transfer_message = tr_noop("Ready")
+    self._transfer_progress = 0
+    self._transfer_error = ""
+    self._transfer_wait_started = None
+    self._transfer_seen_running = False
+    self._transfer_baseline = None
+    self._transfer_frame = None
+    self._restore_restart_pending = False
 
     items = self._initialize_items()
     self._scroller = Scroller(items, line_separator=False, spacing=0)
@@ -223,85 +244,173 @@ class SunnylinkLayout(Widget):
       gui_app.push_widget(self._sunnylink_pairing_dialog)
 
   def _handle_backup_btn(self):
+    if not self._can_start_transfer("backup"):
+      return
     backup_dialog = ConfirmDialog(text=tr("Are you sure you want to backup your current sunnypilot settings?"), confirm_text=tr("Backup"),
                                   callback=self._backup_handler)
     gui_app.push_widget(backup_dialog)
 
   def _handle_restore_btn(self):
-    self._restore_btn.set_enabled(False)
+    if self._restore_restart_pending:
+      self._show_restore_restart()
+      return
+    if not self._can_start_transfer("restore"):
+      return
     restore_dialog = ConfirmDialog(text=tr("Are you sure you want to restore the last backed up sunnypilot settings?"),
                                    confirm_text=tr("Restore"), callback=self._restore_handler)
     gui_app.push_widget(restore_dialog)
 
   def _backup_handler(self, dialog_result: int):
     if dialog_result == DialogResult.CONFIRM:
-      self._backup_in_progress = True
-      self._backup_btn.set_enabled(False)
-      ui_state.params.put_bool("BackupManager_CreateBackup", True)
+      self._start_transfer("backup")
 
   def _restore_handler(self, dialog_result: int):
     if dialog_result == DialogResult.CONFIRM:
-      self._restore_in_progress = True
-      self._restore_btn.set_enabled(False)
-      ui_state.params.put("BackupManager_RestoreVersion", "latest")
+      self._start_transfer("restore")
+
+  @staticmethod
+  def _transfer_snapshot(kind):
+    manager = ui_state.sm["backupManagerSP"]
+    return (getattr(manager, kind + "Status"), getattr(manager, kind + "Progress"), manager.lastError)
+
+  @staticmethod
+  def _transfer_service_alive():
+    return getattr(ui_state.sm, "alive", {}).get("backupManagerSP", True)
+
+  @staticmethod
+  def _backend_busy():
+    manager = ui_state.sm["backupManagerSP"]
+    return SunnylinkLayout._transfer_service_alive() and (manager.backupStatus == custom.BackupManagerSP.Status.inProgress or
+                                                         manager.restoreStatus == custom.BackupManagerSP.Status.inProgress)
+
+  @staticmethod
+  def _transfer_pending(kind):
+    return (ui_state.params.get_bool("BackupManager_CreateBackup") if kind == "backup" else
+            bool(ui_state.params.get("BackupManager_RestoreVersion")))
+
+  def _waiting_timed_out(self):
+    return (self._transfer_wait_started is not None and not self._transfer_seen_running and
+            time.monotonic() - self._transfer_wait_started >= self.TRANSFER_WAIT_TIMEOUT)
+
+  def _can_start_transfer(self, kind):
+    if not ui_state.is_offroad() or not ui_state.params.get_bool("SunnylinkEnabled") or self._restore_restart_pending:
+      return False
+    if self._backend_busy():
+      return False
+    if self._backup_in_progress or self._restore_in_progress:
+      return self._transfer_kind == kind and self._waiting_timed_out()
+    return not (self._transfer_pending("backup") or self._transfer_pending("restore"))
+
+  def _start_transfer(self, kind):
+    if not self._can_start_transfer(kind):
+      return
+    self._transfer_kind = kind
+    self._transfer_baseline = self._transfer_snapshot(kind)
+    self._transfer_frame = getattr(ui_state.sm, "recv_frame", {}).get("backupManagerSP")
+    self._transfer_wait_started = time.monotonic()
+    self._transfer_seen_running = False
+    self._transfer_progress = 0
+    self._transfer_error = ""
+    self._transfer_message = tr_noop("Waiting for backup service") if kind == "backup" else tr_noop("Waiting for restore service")
+    self._sunnylink_description.set_visible(False)
+    self._backup_in_progress = kind == "backup"
+    self._restore_in_progress = kind == "restore"
+    self._backup_btn.set_enabled(False)
+    self._restore_btn.set_enabled(False)
+    if kind == "backup":
+      ui_state.params.put_bool("BackupManager_CreateBackup", True, block=True)
+    else:
+      ui_state.params.put("BackupManager_RestoreVersion", "latest", block=True)
+
+  def _transfer_status(self):
+    return tr(self._transfer_message).format(progress=int(self._transfer_progress))
+
+  def _transfer_detail(self):
+    error = self._transfer_error
+    if not error:
+      return tr("Backup and restore run in the background. If the service does not respond, retry after the waiting timeout.")
+    if match := re.fullmatch(r"Failed to restore (\d+) settings", error):
+      error = tr("Failed to restore {count} settings").format(count=match[1])
+    elif match := re.fullmatch(r"No backup found for device (.+)", error):
+      error = tr("No backup found for device {device}").format(device=match[1])
+    else:
+      error = tr(error)
+    return escape(tr("Error: {error}").format(error=error))
+
+  def _show_restore_restart(self):
+    def restart(result):
+      if result == DialogResult.CONFIRM and ui_state.is_offroad():
+        gui_app.request_close()
+    gui_app.push_widget(ConfirmDialog(tr("Settings restored. Confirm to restart the interface."), tr("Restart Interface"), callback=restart))
 
   def handle_backup_restore_progress(self):
-    sunnylink_backup_manager = ui_state.sm["backupManagerSP"]
-
-    backup_status = sunnylink_backup_manager.backupStatus
-    restore_status = sunnylink_backup_manager.restoreStatus
-    backup_progress = sunnylink_backup_manager.backupProgress
-    restore_progress = sunnylink_backup_manager.restoreProgress
-
-    if self._backup_in_progress:
-      self._restore_btn.set_enabled(False)
-      self._backup_btn.set_enabled(False)
-
-      if backup_status == custom.BackupManagerSP.Status.inProgress:
-        self._backup_in_progress = True
-        text = tr(f"Backing up {backup_progress}%")
-        self._backup_btn.set_text(text)
-
-      elif backup_status == custom.BackupManagerSP.Status.failed:
-        self._backup_in_progress = False
-        self._backup_btn.set_enabled(not ui_state.is_onroad())
-        self._backup_btn.set_text(tr("Backup Failed"))
-
-      elif (backup_status == custom.BackupManagerSP.Status.completed or
-            (backup_status == custom.BackupManagerSP.Status.idle and backup_progress == 100.0)):
-        self._backup_in_progress = False
-        dialog = alert_dialog(tr("Settings backup completed."))
-        gui_app.push_widget(dialog)
-        self._backup_btn.set_enabled(not ui_state.is_onroad())
-
-    elif self._restore_in_progress:
-      self._restore_btn.set_enabled(False)
-      self._backup_btn.set_enabled(False)
-
-      if restore_status == custom.BackupManagerSP.Status.inProgress:
-        self._restore_in_progress = True
-        text = tr(f"Restoring {restore_progress}%")
-        self._restore_btn.set_text(text)
-
-      elif restore_status == custom.BackupManagerSP.Status.failed:
-        self._restore_in_progress = False
-        self._restore_btn.set_enabled(not ui_state.is_onroad())
-        self._restore_btn.set_text(tr("Restore Failed"))
-        dialog = alert_dialog(tr("Unable to restore the settings, try again later."))
-        gui_app.push_widget(dialog)
-
-      elif (restore_status == custom.BackupManagerSP.Status.completed or
-            (restore_status == custom.BackupManagerSP.Status.idle and restore_progress == 100.0)):
-        self._restore_in_progress = False
-        dialog = ConfirmDialog(tr("Settings restored. Confirm to restart the interface."), tr("OK"), cancel_text="", callback=lambda _: gui_app.request_close())
-        gui_app.push_widget(dialog)
-
-    else:
-      can_enable = self._sunnylink_enabled and not ui_state.is_onroad()
-      self._backup_btn.set_enabled(can_enable)
-      self._backup_btn.set_text(tr("Backup Settings"))
-      self._restore_btn.set_enabled(can_enable)
-      self._restore_btn.set_text(tr("Restore Settings"))
+    # Requests remain set until the backend finishes. Ignore old terminal messages
+    # while waiting for a new operation; both progress fields share one value.
+    if not (self._backup_in_progress or self._restore_in_progress or self._restore_restart_pending):
+      if self._transfer_pending("backup") or self._transfer_pending("restore") or self._backend_busy():
+        manager = ui_state.sm["backupManagerSP"]
+        kind = "backup" if (self._transfer_pending("backup") or
+                            (not self._transfer_pending("restore") and manager.backupStatus == custom.BackupManagerSP.Status.inProgress)) else "restore"
+        self._transfer_kind = kind
+        self._backup_in_progress, self._restore_in_progress = kind == "backup", kind == "restore"
+        self._transfer_wait_started = time.monotonic()
+        self._transfer_seen_running = False
+        self._transfer_baseline = self._transfer_snapshot(kind)
+        self._transfer_frame = getattr(ui_state.sm, "recv_frame", {}).get("backupManagerSP")
+        self._transfer_message = tr_noop("Waiting for backup service") if kind == "backup" else tr_noop("Waiting for restore service")
+    if self._backup_in_progress or self._restore_in_progress:
+      kind = self._transfer_kind or ("backup" if self._backup_in_progress else "restore")
+      status, progress, error = snapshot = self._transfer_snapshot(kind)
+      frame = getattr(ui_state.sm, "recv_frame", {}).get("backupManagerSP")
+      pending = self._transfer_pending(kind)
+      live = self._transfer_service_alive()
+      running = status == custom.BackupManagerSP.Status.inProgress and live
+      fresh = live and (snapshot != self._transfer_baseline or (frame is not None and frame != self._transfer_frame))
+      if not live and self._transfer_seen_running:
+        self._transfer_seen_running = False
+        self._transfer_wait_started = time.monotonic()
+        self._transfer_message = tr_noop("Waiting for backup service") if kind == "backup" else tr_noop("Waiting for restore service")
+      if running:
+        self._transfer_seen_running = True
+        self._transfer_progress = max(0, min(100, progress))
+        self._transfer_message = tr_noop("Backing up {progress}%") if kind == "backup" else tr_noop("Restoring {progress}%")
+      elif live and not pending and (self._transfer_seen_running or fresh):
+        failed = status == custom.BackupManagerSP.Status.failed
+        completed = (status == custom.BackupManagerSP.Status.completed or
+                     (status == custom.BackupManagerSP.Status.idle and progress == 100))
+        if failed or completed:
+          self._backup_in_progress = self._restore_in_progress = False
+          self._transfer_kind = None
+          self._transfer_wait_started = None
+          self._transfer_progress = max(0, min(100, progress))
+          self._transfer_error = error if failed else ""
+          if failed:
+            self._transfer_message = tr_noop("Backup Failed") if kind == "backup" else tr_noop("Restore Failed")
+          elif kind == "backup":
+            self._transfer_message = tr_noop("Settings backup completed.")
+            gui_app.push_widget(alert_dialog(tr(self._transfer_message)))
+          else:
+            self._transfer_message = tr_noop("Settings restored. Confirm to restart the interface.")
+            self._restore_restart_pending = True
+            self._show_restore_restart()
+      if not self._transfer_seen_running and pending:
+        self._transfer_baseline, self._transfer_frame = snapshot, frame
+      if self._waiting_timed_out():
+        self._transfer_message = tr_noop("Backup service did not respond. Retry available.") if kind == "backup" else \
+                                 tr_noop("Restore service did not respond. Retry available.")
+    self._backup_btn.set_enabled(self._can_start_transfer("backup"))
+    self._restore_btn.set_enabled(self._can_start_transfer("restore") or (self._restore_restart_pending and ui_state.is_offroad()))
+    self._backup_btn.set_text(tr("Retry Backup") if self._transfer_message == "Backup Failed" or
+                              (self._transfer_kind == "backup" and self._waiting_timed_out()) else
+                              self._transfer_status() if self._backup_in_progress else tr("Backup Settings"))
+    self._restore_btn.set_text(tr("Restart Interface") if self._restore_restart_pending else
+                               tr("Retry Restore") if self._transfer_message == "Restore Failed" or
+                               (self._transfer_kind == "restore" and self._waiting_timed_out()) else
+                               self._transfer_status() if self._restore_in_progress else tr("Restore Settings"))
+    if self._transfer_message in ("Backup Failed", "Restore Failed"):
+      self._sunnylink_description.set_text(self._transfer_status() + "\n" + unescape(self._transfer_detail()))
+      self._sunnylink_description.set_color(rl.Color(255, 165, 0, 255))
+      self._sunnylink_description.set_visible(True)
 
   def _sunnylink_toggle_callback(self, state: bool):
     sl_consent: bool = ui_state.params.get("CompletedSunnylinkConsentVersion") == sunnylink_consent_version
@@ -343,7 +452,8 @@ class SunnylinkLayout(Widget):
     self.handle_backup_restore_progress()
 
     sponsor_btn_text = tr("THANKS ♥") if ui_state.sunnylink_state.is_sponsor() else tr("SPONSOR")
-    tier_name = ui_state.sunnylink_state.get_sponsor_tier().name.capitalize() or tr("Not Sponsor")
+    tier = ui_state.sunnylink_state.get_sponsor_tier().name
+    tier_name = tr(SPONSOR_TIERS.get(tier, tier))
     self._sponsor_btn.action_item.set_text(sponsor_btn_text)
     self._sponsor_btn.action_item.set_value(tier_name, ui_state.sunnylink_state.get_sponsor_tier_color())
     self._sponsor_btn.action_item.set_enabled(self._sunnylink_enabled)

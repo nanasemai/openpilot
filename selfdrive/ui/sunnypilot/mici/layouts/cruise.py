@@ -1,30 +1,16 @@
-"""
-Copyright (c) 2021-, Haibin Wen, sunnypilot, and a number of other contributors.
-
-This file is part of sunnypilot and is licensed under the MIT License.
-See the LICENSE.md file in the root directory for more details.
-"""
-from openpilot.system.ui.widgets.scroller import NavScroller
-from openpilot.selfdrive.ui.mici.widgets.button import BigParamControl
-from openpilot.system.ui.lib.multilang import tr
+"""Complete small-display cruise settings, sharing policy with the large display."""
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_controllers import CruiseController
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_panel import SettingsPanel
+from openpilot.system.ui.lib.application import gui_app
 
 
-class CruiseLayoutMici(NavScroller):
+class CruiseLayoutMici(SettingsPanel):
   def __init__(self, back_callback=None):
-    super().__init__()
-    self._back_callback = back_callback
-    # Switch to vertical layout after init (bypasses NavWidget MRO issue)
-    self._scroller._horizontal = False
-    self._scroller.scroll_panel._horizontal = False
+    super().__init__('Cruise', CruiseController())
+    self._return_callback = back_callback or gui_app.pop_widget
 
-    self._scc_v_toggle = BigParamControl(tr("smart cruise control - vision"), "SmartCruiseControlVision")
-    self._scc_m_toggle = BigParamControl(tr("smart cruise control - map"), "SmartCruiseControlMap")
-    self._htd_toggle = BigParamControl(tr("human turn detection (HTD)"), "dp_htd_enabled")
-    self._auto_aggressive_toggle = BigParamControl(tr("auto aggressive mode"), "SPAccelProfileModeEnabled")
-
-    self._scroller.add_widgets([
-      self._scc_v_toggle,
-      self._scc_m_toggle,
-      self._htd_toggle,
-      self._auto_aggressive_toggle,
-    ])
+  def go_back(self):
+    if len(self._chain()) > 1:
+      super().go_back()
+    else:
+      self._return_callback()

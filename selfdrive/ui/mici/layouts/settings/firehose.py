@@ -1,6 +1,5 @@
 import requests
 import threading
-import time
 import pyray as rl
 
 from openpilot.common.api import api_get
@@ -48,6 +47,10 @@ class FirehoseLayoutBase(Widget):
     super().__init__()
     self._params = Params()
     self._session = requests.Session()  # reuse session to reduce SSL handshake overhead
+    self._stats_available = False
+    self._stats_loading = False
+    self._stats_status = tr_noop("Training statistics unavailable")
+    self._refresh_event = threading.Event()
     self._segment_count = self._get_segment_count()
 
     self._scroll_panel = GuiScrollPanel2(horizontal=False)
@@ -59,6 +62,7 @@ class FirehoseLayoutBase(Widget):
 
   def __del__(self):
     self._running = False
+    self._refresh_event.set()
     try:
       if self._update_thread and self._update_thread.is_alive():
         self._update_thread.join(timeout=1.0)
@@ -70,14 +74,38 @@ class FirehoseLayoutBase(Widget):
     self._scroll_panel.set_offset(0)
 
   def _get_segment_count(self) -> int:
-    stats = self._params.get(self.PARAM_KEY)
-    if not stats:
-      return 0
     try:
-      return int(stats.get("firehose", 0))
-    except Exception:
-      cloudlog.exception(f"Failed to decode firehose stats: {stats}")
+      stats = self._params.get(self.PARAM_KEY)
+      if stats is None:
+        return 0
+      count = self._validate_stats(stats)
+      self._stats_available = True
+      self._stats_status = tr_noop("Cached training statistics")
+      return count
+    except ValueError:
+      self._stats_status = tr_noop("Invalid training statistics data")
+      cloudlog.exception("Failed to decode firehose stats")
       return 0
+
+  @staticmethod
+  def _validate_stats(stats) -> int:
+    count = stats.get("firehose") if isinstance(stats, dict) else None
+    if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+      raise ValueError("Invalid training segment count")
+    return count
+
+  def request_refresh(self):
+    if not self._stats_loading and ui_state.is_offroad():
+      self._refresh_event.set()
+
+  def statistics_status(self):
+    return tr(self._stats_status)
+
+  def contribution_text(self):
+    if not self._stats_available:
+      return tr("N/A")
+    return trn("{} segment of your driving is in the training dataset so far.",
+               "{} segments of your driving is in the training dataset so far.", self._segment_count).format(self._segment_count)
 
   def _render(self, rect: rl.Rectangle):
     # compute total content height for scrolling
@@ -202,25 +230,40 @@ class FirehoseLayoutBase(Widget):
       return tr("INACTIVE: connect to an unmetered network"), self.RED
 
   def _fetch_firehose_stats(self):
+    self._stats_loading = True
     try:
       dongle_id = self._params.get("DongleId")
       if not dongle_id or dongle_id == UNREGISTERED_DONGLE_ID:
+        self._stats_status = tr_noop("Device is not registered")
         return
+      self._stats_status = tr_noop("Fetching training statistics")
       identity_token = get_token(dongle_id)
       response = api_get(f"v1/devices/{dongle_id}/firehose_stats", access_token=identity_token, session=self._session)
       if response.status_code == 200:
         data = response.json()
-        self._segment_count = data.get("firehose", 0)
-        self._params.put(self.PARAM_KEY, data)
+        count = self._validate_stats(data)
+        self._params.put(self.PARAM_KEY, data, block=True)
+        self._segment_count = count
+        self._stats_available = True
+        self._stats_status = tr_noop("Training statistics updated")
+      else:
+        self._stats_status = tr_noop("Unable to fetch training statistics")
+    except ValueError:
+      self._stats_status = tr_noop("Invalid training statistics data")
+      cloudlog.exception("Invalid firehose statistics response")
     except Exception as e:
+      self._stats_status = tr_noop("Unable to fetch training statistics")
       cloudlog.error(f"Failed to fetch firehose stats: {e}")
+    finally:
+      self._stats_loading = False
 
   def _update_loop(self):
     drop_realtime()
     while self._running:
-      if not ui_state.started and device._awake:
+      self._refresh_event.clear()
+      if ui_state.is_offroad() and device._awake:
         self._fetch_firehose_stats()
-      time.sleep(self.UPDATE_INTERVAL)
+      self._refresh_event.wait(self.UPDATE_INTERVAL)
 
 
 class FirehoseLayout(NavRawScrollPanel, FirehoseLayoutBase):

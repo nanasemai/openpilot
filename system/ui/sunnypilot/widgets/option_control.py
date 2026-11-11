@@ -38,6 +38,7 @@ class OptionControlSP(ItemAction):
     self.use_float_scaling = use_float_scaling
     self.current_value = min_value
     self.label_callback = label_callback
+    self.step_label_callback: Callable[[int], str] | None = None
     if self.value_map:
       for key in self.value_map:
         if self.value_map[key] == self.params.get(self.param_key, return_default=True):
@@ -70,17 +71,27 @@ class OptionControlSP(ItemAction):
       return
     self.current_value = value
     if self.value_map:
-      self.params.put(self.param_key, self.value_map[value])
+      self.params.put(self.param_key, self.value_map[value], block=True)
     elif self.use_float_scaling:
-      self.params.put(self.param_key, value / 100.0)
+      self.params.put(self.param_key, value / 100.0, block=True)
     else:
-      self.params.put(self.param_key, value)
+      self.params.put(self.param_key, value, block=True)
     if self.on_value_changed:
       self.on_value_changed(value)
 
   def get_displayed_value(self) -> str:
     """Get the displayed value, handling value mapping if present"""
-    value = self.current_value
+    return self.format_value(self.current_value)
+
+  def format_step(self) -> str:
+    if self.step_label_callback is not None:
+      return self.step_label_callback(self.value_change_step)
+    if self.label_callback is not None and not self.value_map:
+      return self.format_value(self.value_change_step)
+    return str(self.value_change_step / 100 if self.use_float_scaling else self.value_change_step)
+
+  def format_value(self, value: int) -> str:
+    """Format a legal control value without changing the setting or its parameter."""
 
     if callable(self.label_callback):
       if self.value_map:

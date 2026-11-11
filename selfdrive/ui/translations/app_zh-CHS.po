@@ -18,7 +18,7 @@ msgstr " 转向扭矩响应校准已完成 {}%。"
 
 #: selfdrive/ui/layouts/settings/device.py
 msgid " Your device is pointed {:.1f}° {} and {:.1f}° {}."
-msgstr " 您的设备朝向为 {:.1f}° {} 和 {:.1f}° {}。"
+msgstr " 设备上下倾斜 {:.1f}°（{}），左右偏转 {:.1f}°（{}）。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise_sub_layouts/speed_limit_settings.py
 msgid "%"
@@ -79,7 +79,9 @@ msgstr "2G"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "3. You must be ready to take over at any time."
-msgstr "3. 您必须随时准备接管车辆。"
+msgstr ""
+"3. 您必须随时准备\n"
+"接管车辆。"
 
 #: selfdrive/ui/layouts/sidebar.py
 #: selfdrive/ui/mici/layouts/home.py
@@ -88,7 +90,9 @@ msgstr "3G"
 
 #: selfdrive/ui/mici/layouts/onboarding.py
 msgid "4. You are fully responsible for driving the car."
-msgstr "4. 您对驾驶车辆负全部责任。"
+msgstr ""
+"4. 您须承担全部\n"
+"驾驶责任。"
 
 #: selfdrive/ui/layouts/sidebar.py
 #: selfdrive/ui/mici/layouts/home.py
@@ -620,7 +624,7 @@ msgstr "国家/地区"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Cruise"
-msgstr "巡航"
+msgstr "巡航控制"
 
 #: selfdrive/selfdrived/events.py
 msgid "Cruise Fault: Restart the Car"
@@ -820,7 +824,7 @@ msgstr "显示"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Display Metrics Below Chevron"
-msgstr "在前车追踪标记（Chevron）下方显示指标"
+msgstr "前车标记下方数据"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Display Road Name"
@@ -844,7 +848,7 @@ msgstr "启用横向控制时，在行车画面上显示转向弧线。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Display useful metrics below the chevron that tracks the lead car only applicable to cars with sunnypilot longitudinal control."
-msgstr "在追踪前车的标记（Chevron）下方显示实用指标，仅适用于支持 sunnypilot 纵向控制的车辆。"
+msgstr "在前车追踪标记下方显示距离、速度和时间数据，仅适用于支持 sunnypilot 纵向控制的车辆。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Displays the name of the road the car is traveling on.<br>The OpenStreetMap database of the location must be downloaded from the OSM panel to fetch the road name."
@@ -1362,11 +1366,11 @@ msgstr "在手机上前往 https://connect.comma.ai"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Green Traffic Light Alert (Beta)"
-msgstr "红绿灯提醒（测试版）"
+msgstr "绿灯提醒（测试版）"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise.py
 msgid "HTD Turn Angle Threshold"
-msgstr "HTD 转角触发角度"
+msgstr "HTD 转弯角度阈值"
 
 #: selfdrive/selfdrived/events.py
 msgid "Harness Relay Malfunction"
@@ -1442,7 +1446,7 @@ msgstr "智能巡航按钮管理当前在此平台上不可用。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/display.py
 msgid "Interactivity Timeout"
-msgstr "交互超时"
+msgstr "设置界面无操作超时"
 
 #: selfdrive/selfdrived/events.py
 msgid "Invalid LKAS setting"
@@ -1573,7 +1577,9 @@ msgid "Posenet Speed Invalid"
 msgstr "Posenet 速度无效"
 
 #: selfdrive/selfdrived/events.py
-msgid "Reverse\nGear"
+msgid ""
+"Reverse\n"
+"Gear"
 msgstr "倒档"
 
 #: selfdrive/selfdrived/events.py
@@ -2513,6 +2519,10 @@ msgstr "限速"
 msgid "Speed Limit Offset"
 msgstr "限速偏移量"
 
+#: selfdrive/ui/sunnypilot/layouts/settings/cruise_sub_layouts/speed_limit_settings.py
+msgid "Speed Limit Offset Value"
+msgstr "限速偏移数值"
+
 #: selfdrive/ui/sunnypilot/layouts/settings/cruise_sub_layouts/speed_limit_policy.py
 msgid "Speed Limit Source"
 msgstr "限速数据源"
@@ -2527,11 +2537,11 @@ msgstr "速度过低"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Speedometer: Always Display True Speed"
-msgstr "速度表：始终显示真实速度"
+msgstr "车速表：始终显示真实车速"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Speedometer: Hide from Onroad Screen"
-msgstr "速度表：从行车画面中隐藏"
+msgstr "隐藏行驶车速"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Sponsor Status"
@@ -2588,7 +2598,7 @@ msgstr "安全后向右转向开始变道"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Steering"
-msgstr "转向"
+msgstr "转向控制"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/visuals.py
 msgid "Steering Arc"
@@ -2779,7 +2789,7 @@ msgstr "随主巡航开关切换"
 #: selfdrive/ui/layouts/settings/settings.py
 #: selfdrive/ui/sunnypilot/layouts/settings/settings.py
 msgid "Toggles"
-msgstr "切换"
+msgstr "基础开关"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/steering_sub_layouts/torque_settings.py
 msgid "Torque Control Tune Version"
@@ -2856,6 +2866,10 @@ msgstr "统一启用模式（UEM）"
 #: selfdrive/ui/layouts/settings/software.py
 msgid "Uninstall"
 msgstr "卸载"
+
+#: selfdrive/ui/layouts/settings/software.py
+msgid "Uninstalling is only available while the vehicle is off."
+msgstr "仅可在车辆熄火后卸载。"
 
 #: selfdrive/ui/layouts/sidebar.py
 msgid "Unknown"
@@ -4176,7 +4190,6 @@ msgstr "🔥 Firehose 模式 🔥"
 msgid "🚀 sunnylink 🚀"
 msgstr "🚀 sunnylink 🚀"
 
-
 #: selfdrive/ui/mici/layouts/settings/toggles.py
 msgid "disengage on accelerator pedal"
 msgstr "踩油门时断开 sunnypilot"
@@ -4510,16 +4523,34 @@ msgid "USB mount operations are only available when offroad."
 msgstr "U盘挂载操作仅在熄火时可用。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/screenrecorder.py
-msgid "Only FAT32 USB drives are supported.\nCurrent: {fs}\n\nPlease format to FAT32 first."
-msgstr "仅支持FAT32格式的U盘。\n当前格式: {fs}\n\n请先格式化为FAT32。"
+msgid ""
+"Only FAT32 USB drives are supported.\n"
+"Current: {fs}\n"
+"\n"
+"Please format to FAT32 first."
+msgstr ""
+"仅支持FAT32格式的U盘。\n"
+"当前格式: {fs}\n"
+"\n"
+"请先格式化为FAT32。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/screenrecorder.py
-msgid "Formatting will erase ALL data on the USB drive.\nThis action cannot be undone."
-msgstr "格式化将擦除U盘上的所有数据。\n此操作无法撤销。"
+msgid ""
+"Formatting will erase ALL data on the USB drive.\n"
+"This action cannot be undone."
+msgstr ""
+"格式化将擦除U盘上的所有数据。\n"
+"此操作无法撤销。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/screenrecorder.py
-msgid "Are you sure you want to format {device} to FAT32?\n\nAll data will be permanently deleted."
-msgstr "确定要将 {device} 格式化为FAT32吗？\n\n所有数据将被永久删除。"
+msgid ""
+"Are you sure you want to format {device} to FAT32?\n"
+"\n"
+"All data will be permanently deleted."
+msgstr ""
+"确定要将 {device} 格式化为FAT32吗？\n"
+"\n"
+"所有数据将被永久删除。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "USB Drive"
@@ -4598,8 +4629,16 @@ msgid "USB is not mounted. Please mount it first."
 msgstr "U盘未挂载，请先挂载。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
-msgid "Only FAT32 USB drives are supported.\nCurrent: {fs}\n\nPlease format to FAT32 first."
-msgstr "仅支持FAT32格式的U盘。\n当前格式: {fs}\n\n请先格式化为FAT32。"
+msgid ""
+"Only FAT32 USB drives are supported.\n"
+"Current: {fs}\n"
+"\n"
+"Please format to FAT32 first."
+msgstr ""
+"仅支持FAT32格式的U盘。\n"
+"当前格式: {fs}\n"
+"\n"
+"请先格式化为FAT32。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/developer.py
 msgid "Exporting logs to USB...<br>This may take a minute."
@@ -4632,3 +4671,1775 @@ msgstr "{msg}"
 #: selfdrive/ui/sunnypilot/layouts/settings/screenrecorder.py
 msgid "Continue"
 msgstr "继续"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid " (not mounted)"
+msgstr "（未挂载）"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "APN changed. Reopen the editor and try again."
+msgstr "APN 已变更。请重新打开编辑页面后重试。"
+
+#: selfdrive/ui/sunnypilot/mici/onroad/hud_renderer.py
+msgid "Acceleration"
+msgstr "加速度"
+
+#: system/usb_mount.py
+msgid "Already mounted at {path}"
+msgstr "已挂载到 {path}"
+
+#: system/timezone_list.py
+msgid "America/Los_Angeles"
+msgstr "美洲／洛杉矶"
+
+#: system/timezone_list.py
+msgid "America/New_York"
+msgstr "美洲／纽约"
+
+#: system/timezone_list.py
+msgid "Asia/Hong_Kong"
+msgstr "亚洲／香港"
+
+#: system/timezone_list.py
+msgid "Asia/Seoul"
+msgstr "亚洲／首尔"
+
+#: system/timezone_list.py
+msgid "Asia/Shanghai"
+msgstr "亚洲／上海"
+
+#: system/timezone_list.py
+msgid "Asia/Singapore"
+msgstr "亚洲／新加坡"
+
+#: system/timezone_list.py
+msgid "Asia/Taipei"
+msgstr "亚洲／台北"
+
+#: system/timezone_list.py
+msgid "Asia/Tokyo"
+msgstr "亚洲／东京"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/network.py
+msgid "Automatic"
+msgstr "自动"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Backing up {progress}%"
+msgstr "备份中 {progress}%"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Backup & Restore Status"
+msgstr "备份与恢复状态"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Backup and restore run in the background. If the service does not respond, retry after the waiting timeout."
+msgstr "备份和恢复在后台执行。若服务未响应，等待超时后可重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Backup service did not respond. Retry available."
+msgstr "备份服务未响应，可重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Benefactor"
+msgstr "资助者"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Cache size unavailable"
+msgstr "无法读取缓存体积"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Cached drive statistics"
+msgstr "显示缓存的行程统计"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "Cached training statistics"
+msgstr "显示缓存的训练统计"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "Choose automatic brightness, a darker automatic mode, screen off, or a fixed brightness. Touching a dimmed screen restores normal brightness; the first touch only wakes the screen. Alerts also restore normal brightness. Dark automatic mode returns after 15 seconds without interaction."
+msgstr "可选择自动亮度、暗色自动亮度、息屏或固定亮度。屏幕变暗后，首次触摸仅恢复正常亮度，不执行其他操作。出现警报时也会恢复正常亮度。暗色自动模式在停止操作 15 秒后重新变暗。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "Choose automatic brightness, a darker automatic mode, screen off, or a fixed brightness. Touching the screen temporarily restores normal brightness."
+msgstr "选择自动亮度、偏暗的自动亮度、息屏或固定亮度。触摸屏幕后，亮度会暂时恢复正常。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Cleared {deleted}/{total} system log files."
+msgstr "已清理 {deleted}/{total} 个系统日志文件。"
+
+#: system/ui/widgets/compact.py
+msgid "Connections"
+msgstr "连接"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Contributor"
+msgstr "贡献者"
+
+#: system/usb_mount.py
+msgid "Copied {count} files"
+msgstr "已复制 {count} 个文件"
+
+#: system/usb_mount.py
+msgid "Copied {filename}"
+msgstr "已复制 {filename}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Could not delete all maps: {error}"
+msgstr "未能删除全部地图：{error}"
+
+#: system/usb_mount.py
+msgid "Crash logs: {filename}"
+msgstr "错误日志：{filename}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "Delay before applying the selected brightness after the last screen interaction. The countdown pauses outside the driving view and restarts when you return. This delay is unavailable in automatic brightness modes."
+msgstr "最后一次触摸屏幕后，等待指定时间再应用所选亮度。离开驾驶界面时暂停倒计时，返回后重新计时。自动亮度模式不使用此延迟设置。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "Delay before applying the selected brightness after the last screen interaction. This delay is unavailable in automatic brightness modes."
+msgstr "最后一次触摸屏幕后，等待这段时间再应用所选亮度。自动亮度模式下不可设置此延迟。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Deleting system logs"
+msgstr "正在删除系统日志"
+
+msgid "Description"
+msgstr "说明"
+
+#: system/usb_mount.py
+msgid "Destination not mounted: {path}"
+msgstr "目标目录未挂载：{path}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Detected: {device} ({size})"
+msgstr "已检测：{device}（{size}）"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Device is not registered"
+msgstr "设备尚未注册"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid "Disengage to {action}"
+msgstr "请先退出接管再{action}"
+
+#: system/ui/widgets/compact.py
+msgid "Display the current date and time at the top center of the onroad screen."
+msgstr "在行驶界面顶部中央显示当前日期和时间。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Downloaded maps deleted."
+msgstr "已删除下载的地图。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Downloaded {done}/{total} map files."
+msgstr "已下载 {done}/{total} 个地图文件。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Downloaded {done}/{total} map files. Retry the download to complete it."
+msgstr "已下载 {done}/{total} 个地图文件。请重试下载以补齐。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Drive statistics unavailable"
+msgstr "行程统计暂无数据"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Drive statistics updated"
+msgstr "行程统计已更新"
+
+#: system/ui/widgets/compact.py
+msgid "Driving"
+msgstr "驾驶"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Empty backup configuration"
+msgstr "备份中的设置为空"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Empty map region data"
+msgstr "地图地区列表为空"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "English name or code"
+msgstr "英文名或代码"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Enter a GitHub username using letters, numbers, or hyphens."
+msgstr "请输入 GitHub 用户名，仅使用字母、数字或连字符。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Error log deleted."
+msgstr "错误日志已删除。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Error: {error}"
+msgstr "错误：{error}"
+
+#: system/timezone_list.py
+msgid "Europe/London"
+msgstr "欧洲／伦敦"
+
+#: system/timezone_list.py
+msgid "Europe/Paris"
+msgstr "欧洲／巴黎"
+
+#: system/ui/widgets/compact.py
+msgid "Exit Offroad"
+msgstr "退出离线"
+
+#: system/usb_mount.py
+msgid ""
+"Export incomplete: {count}/{total} sources copied.\n"
+"{details}"
+msgstr ""
+"导出未完成：已复制 {count}/{total} 个来源。\n"
+"{details}"
+
+#: system/usb_mount.py
+msgid "Exported {count}/{total} sources"
+msgstr "已导出 {count}/{total} 个来源"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Failed to decrypt backup configuration"
+msgstr "备份设置解密失败"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Failed to fetch map regions. Check the network and retry."
+msgstr "无法获取地图地区列表，请检查网络后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Failed to restore {count} settings"
+msgstr "{count} 项设置恢复失败"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Failed to upload backup"
+msgstr "备份上传失败"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Favorites"
+msgstr "收藏"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Fetching SSH keys..."
+msgstr "正在获取 SSH 密钥…"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Fetching drive statistics"
+msgstr "正在获取行程统计"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Fetching map regions. Please wait."
+msgstr "正在获取地图地区，请稍候。"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "Fetching training statistics"
+msgstr "正在获取训练统计"
+
+#: system/usb_mount.py
+msgid "Formatted {device} as FAT32"
+msgstr "已将 {device} 格式化为 FAT32"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Formatting result"
+msgstr "日志整理结果"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Formatting system logs"
+msgstr "正在整理系统日志"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Free"
+msgstr "免费用户"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Guardian"
+msgstr "守护者"
+
+#: selfdrive/ui/mici/layouts/settings/network/network_layout.py
+msgid "Hotspot password changed. Reopen the editor and try again."
+msgstr "热点密码已变更。请重新打开编辑页面后重试。"
+
+#: system/ui/widgets/compact.py
+msgid "Information"
+msgstr "信息"
+
+msgid "Instructions"
+msgstr "使用说明"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Invalid drive statistics data"
+msgstr "行程统计数据无效"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Invalid manual vehicle selection"
+msgstr "手动选择的车型无效"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Invalid map region data"
+msgstr "地图地区数据无效"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "Invalid training statistics data"
+msgstr "训练统计数据无效"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Last requested {time}"
+msgstr "上次请求：{time}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Log cleanup cancelled"
+msgstr "已取消日志清理"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Log cleanup completed"
+msgstr "日志清理已完成"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Log cleanup incomplete"
+msgstr "日志清理未完成"
+
+#: system/ui/widgets/compact.py
+msgid "Maintenance"
+msgstr "维护"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Map Download Status"
+msgstr "地图下载状态"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Afghanistan"
+msgstr "阿富汗"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Albania"
+msgstr "阿尔巴尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Algeria"
+msgstr "阿尔及利亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Angola"
+msgstr "安哥拉"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Antarctica"
+msgstr "南极洲"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Argentina"
+msgstr "阿根廷"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Armenia"
+msgstr "亚美尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Australia"
+msgstr "澳大利亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Austria"
+msgstr "奥地利"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Azerbaijan"
+msgstr "阿塞拜疆"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Bahamas"
+msgstr "巴哈马"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Bangladesh"
+msgstr "孟加拉"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Belarus"
+msgstr "白俄罗斯"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Belgium"
+msgstr "比利时"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Belize"
+msgstr "伯利兹"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Benin"
+msgstr "贝宁"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Bhutan"
+msgstr "不丹"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Bolivia"
+msgstr "波利维亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Bosnia and Herzegovina"
+msgstr "波斯尼亚和黑塞哥维那"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Botswana"
+msgstr "博兹瓦那"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Brazil"
+msgstr "巴西"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Brunei"
+msgstr "文莱"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Bulgaria"
+msgstr "保加利亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Burkina Faso"
+msgstr "布基纳法索"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Burundi"
+msgstr "布隆迪"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Cambodia"
+msgstr "柬埔塞"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Cameroon"
+msgstr "喀麦隆"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Canada"
+msgstr "加拿大"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Central African Republic"
+msgstr "中非"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Chad"
+msgstr "乍得"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Chile"
+msgstr "智利"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: China"
+msgstr "中国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Colombia"
+msgstr "哥伦比亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Congo (Brazzaville)"
+msgstr "刚果"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Congo (Kinshasa)"
+msgstr "刚果民主共和国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Costa Rica"
+msgstr "哥斯达黎加"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Croatia"
+msgstr "克罗地亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Cuba"
+msgstr "古巴"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Cyprus"
+msgstr "塞浦路斯"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Czech Republic"
+msgstr "捷克"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Denmark"
+msgstr "丹麦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Djibouti"
+msgstr "吉布提"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Dominican Republic"
+msgstr "多米尼加共和国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: East Timor"
+msgstr "东帝汶"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Ecuador"
+msgstr "厄瓜多尔"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Egypt"
+msgstr "埃及"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: El Salvador"
+msgstr "萨尔瓦多"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Equatorial Guinea"
+msgstr "赤道几内亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Eritrea"
+msgstr "厄立特里亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Estonia"
+msgstr "爱沙尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Ethiopia"
+msgstr "埃塞俄比亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Falkland Islands"
+msgstr "福克兰群岛(马尔维纳斯)"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Fiji"
+msgstr "斐济"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Finland"
+msgstr "芬兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: France"
+msgstr "法国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: French Southern Territories"
+msgstr "法属南半球领地"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Gabon"
+msgstr "加蓬"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Gambia"
+msgstr "冈比亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Georgia"
+msgstr "格鲁吉亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Germany"
+msgstr "德国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Ghana"
+msgstr "加纳"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Greece"
+msgstr "希腊"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Greenland"
+msgstr "格陵兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Guatemala"
+msgstr "瓜地马拉"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Guinea"
+msgstr "几内亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Guinea Bissau"
+msgstr "几内亚比绍"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Guyana"
+msgstr "圭亚那"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Haiti"
+msgstr "海地"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Honduras"
+msgstr "洪都拉斯"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Hungary"
+msgstr "匈牙利"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Iceland"
+msgstr "冰岛"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: India"
+msgstr "印度"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Indonesia"
+msgstr "印度尼西亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Iran"
+msgstr "伊朗"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Iraq"
+msgstr "伊拉克"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Ireland"
+msgstr "爱尔兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Israel"
+msgstr "以色列"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Italy"
+msgstr "意大利"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Ivory Coast"
+msgstr "科特迪瓦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Jamaica"
+msgstr "牙买加"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Japan"
+msgstr "日本"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Jordan"
+msgstr "约旦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Kazakhstan"
+msgstr "哈萨克斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Kenya"
+msgstr "肯尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Kuwait"
+msgstr "科威特"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Kyrgyzstan"
+msgstr "吉尔吉斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Laos"
+msgstr "老挝"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Latvia"
+msgstr "拉脱维亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Lebanon"
+msgstr "黎巴嫩"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Lesotho"
+msgstr "莱索托"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Liberia"
+msgstr "利比里亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Libya"
+msgstr "利比亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Lithuania"
+msgstr "立陶宛"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Luxembourg"
+msgstr "卢森堡"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Macedonia"
+msgstr "北马其顿"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Madagascar"
+msgstr "马达加斯加"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Malawi"
+msgstr "马拉维"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Malaysia"
+msgstr "马来西亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Mali"
+msgstr "马里"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Mauritania"
+msgstr "毛里塔尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Mexico"
+msgstr "墨西哥"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Moldova"
+msgstr "摩尔多瓦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Mongolia"
+msgstr "蒙古"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Montenegro"
+msgstr "黑山"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Morocco"
+msgstr "摩洛哥"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Mozambique"
+msgstr "莫桑比克"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Myanmar"
+msgstr "缅甸"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Namibia"
+msgstr "纳米比亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Nepal"
+msgstr "尼泊尔"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Netherlands"
+msgstr "荷兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: New Caledonia"
+msgstr "新喀里多尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: New Zealand"
+msgstr "新西兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Nicaragua"
+msgstr "尼加拉瓜"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Niger"
+msgstr "尼日尔"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Nigeria"
+msgstr "尼日利亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: North Korea"
+msgstr "朝鲜"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Norway"
+msgstr "挪威"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Oman"
+msgstr "阿曼"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Pakistan"
+msgstr "巴基斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Panama"
+msgstr "巴拿马"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Papua New Guinea"
+msgstr "巴布亚新几内亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Paraguay"
+msgstr "巴拉圭"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Peru"
+msgstr "秘鲁"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Philippines"
+msgstr "菲律宾"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Poland"
+msgstr "波兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Portugal"
+msgstr "葡萄牙"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Puerto Rico"
+msgstr "波多黎各"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Qatar"
+msgstr "卡塔尔"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Romania"
+msgstr "罗马尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Russia"
+msgstr "俄罗斯"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Rwanda"
+msgstr "卢旺达"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Saudi Arabia"
+msgstr "沙特阿拉伯"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Senegal"
+msgstr "塞内加尔"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Serbia"
+msgstr "塞尔维亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Sierra Leone"
+msgstr "塞拉利昂"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Slovakia"
+msgstr "斯洛伐克"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Slovenia"
+msgstr "斯洛文尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Solomon Islands"
+msgstr "所罗门群岛"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Somalia"
+msgstr "索马里"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: South Africa"
+msgstr "南非"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: South Korea"
+msgstr "韩国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: South Sudan"
+msgstr "南苏丹"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Spain"
+msgstr "西班牙"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Sri Lanka"
+msgstr "斯里兰卡"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Sudan"
+msgstr "苏丹"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Suriname"
+msgstr "苏里南"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Swaziland"
+msgstr "斯威士兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Sweden"
+msgstr "瑞典"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Switzerland"
+msgstr "瑞士"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Syria"
+msgstr "叙利亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Taiwan"
+msgstr "台湾"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Tajikistan"
+msgstr "塔吉克斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Tanzania"
+msgstr "坦桑尼亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Thailand"
+msgstr "泰国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Togo"
+msgstr "多哥"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Trinidad and Tobago"
+msgstr "特里尼达和多巴哥"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Tunisia"
+msgstr "突尼斯"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Turkey"
+msgstr "土耳其"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Turkmenistan"
+msgstr "土库曼斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Uganda"
+msgstr "乌干达"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Ukraine"
+msgstr "乌克兰"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: United Arab Emirates"
+msgstr "阿联酋"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: United Kingdom"
+msgstr "英国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: United States"
+msgstr "美国"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Uruguay"
+msgstr "乌拉圭"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Uzbekistan"
+msgstr "乌兹别克斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Vanuatu"
+msgstr "瓦努阿图"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Venezuela"
+msgstr "委内瑞拉"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Vietnam"
+msgstr "越南"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: West Bank"
+msgstr "巴勒斯坦"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Yemen"
+msgstr "也门"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Zambia"
+msgstr "赞比亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map country: Zimbabwe"
+msgstr "津巴布韦"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Map download completed."
+msgstr "地图下载完成。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Map download incomplete. Retry."
+msgstr "地图下载未完成，请重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Map service has not started the download. Retry the request."
+msgstr "地图服务尚未开始下载，请重试请求。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Map size unavailable"
+msgstr "无法读取地图体积"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Alabama"
+msgstr "亚拉巴马州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Alaska"
+msgstr "阿拉斯加州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: American Samoa"
+msgstr "美属萨摩亚"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Arizona"
+msgstr "亚利桑那州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Arkansas"
+msgstr "阿肯色州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: California"
+msgstr "加利福尼亚州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Colorado"
+msgstr "科罗拉多州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Connecticut"
+msgstr "康涅狄格州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Delaware"
+msgstr "特拉华州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: District of Columbia"
+msgstr "华盛顿哥伦比亚特区"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Florida"
+msgstr "佛罗里达州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Georgia"
+msgstr "佐治亚州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Guam"
+msgstr "关岛"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Hawaii"
+msgstr "夏威夷州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Idaho"
+msgstr "爱达荷州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Illinois"
+msgstr "伊利诺伊州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Indiana"
+msgstr "印第安纳州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Iowa"
+msgstr "艾奥瓦州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Kansas"
+msgstr "堪萨斯州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Kentucky"
+msgstr "肯塔基州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Louisiana"
+msgstr "路易斯安那州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Maine"
+msgstr "缅因州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Maryland"
+msgstr "马里兰州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Massachusetts"
+msgstr "马萨诸塞州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Michigan"
+msgstr "密歇根州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Minnesota"
+msgstr "明尼苏达州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Mississippi"
+msgstr "密西西比州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Missouri"
+msgstr "密苏里州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Montana"
+msgstr "蒙塔纳"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Nebraska"
+msgstr "内布拉斯加州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Nevada"
+msgstr "内华达州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: New Hampshire"
+msgstr "新罕布什尔州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: New Jersey"
+msgstr "新泽西州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: New Mexico"
+msgstr "新墨西哥州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: New York"
+msgstr "纽约州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: North Carolina"
+msgstr "北卡罗来纳州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: North Dakota"
+msgstr "北达科他州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Northern Mariana Islands"
+msgstr "北马里亚纳群岛"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Ohio"
+msgstr "俄亥俄州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Oklahoma"
+msgstr "俄克拉何马州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Oregon"
+msgstr "俄勒冈州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Pennsylvania"
+msgstr "宾夕法尼亚州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Puerto Rico"
+msgstr "波多黎各"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Rhode Island"
+msgstr "罗德岛州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: South Carolina"
+msgstr "南卡罗莱那州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: South Dakota"
+msgstr "南达科他州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Tennessee"
+msgstr "田纳西州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Texas"
+msgstr "得克萨斯州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Utah"
+msgstr "犹他州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Vermont"
+msgstr "佛蒙特州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Virgin Islands"
+msgstr "美属维尔京群岛"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Virginia"
+msgstr "弗吉尼亚州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Washington"
+msgstr "华盛顿州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: West Virginia"
+msgstr "西维吉尼亚州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Wisconsin"
+msgstr "威斯康星州"
+
+#: selfdrive/ui/translations/map_regions.json
+msgid "Map state: Wyoming"
+msgstr "怀俄明州"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Master Models"
+msgstr "主线模型"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model list refresh has not completed. Check the network and retry."
+msgstr "模型列表尚未刷新，请检查网络后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model list refreshed."
+msgstr "模型列表已刷新。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model service has not completed the cache request. Retry."
+msgstr "模型服务尚未完成缓存清理，请重试。"
+
+#: system/usb_mount.py
+msgid "Mounted {device} at {path}"
+msgstr "已将 {device} 挂载到 {path}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Mounted: {device}"
+msgstr "已挂载：{device}"
+
+#: selfdrive/ui/sunnypilot/mici/onroad/hud_renderer.py
+msgid "No Lead Vehicle"
+msgstr "无前车"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "No backup found for device {device}"
+msgstr "找不到设备 {device} 的备份"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "No error log found."
+msgstr "没有错误日志。"
+
+#: system/usb_mount.py
+msgid "No log sources found"
+msgstr "未找到可导出的日志"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "No map files were reported as downloaded. Check the network and retry."
+msgstr "未收到任何地图文件下载成功的记录，请检查网络后重试。"
+
+#: system/ui/widgets/compact.py system/ui/sunnypilot/widgets/tree_dialog.py
+msgid "No matching options"
+msgstr "没有匹配的选项"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/software.py
+msgid "Non-Prebuilt Branches"
+msgstr "源码分支"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Novice"
+msgstr "入门赞助者"
+
+#: system/ui/widgets/compact.py
+msgid "Offline Maps"
+msgstr "离线地图"
+
+#: selfdrive/ui/sunnypilot/mici/onroad/hud_renderer.py
+msgid "Offroad Mode"
+msgstr "离线模式"
+
+msgid "On"
+msgstr "开启"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "On the small display, settings stay open while the vehicle is at standstill."
+msgstr "小屏幕在车辆静止时保留设置页面。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Only unchanged log files shown in the confirmation will be deleted. New or modified logs are kept."
+msgstr "只删除确认页中列出且未被修改的日志文件。新生成或已修改的日志将保留。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/software.py
+msgid "Prebuilt Branches"
+msgstr "预编译分支"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Preparing map download..."
+msgstr "正在准备地图下载…"
+
+#: system/ui/widgets/compact.py
+msgid "Range: {minimum}–{maximum}"
+msgstr "范围：{minimum}–{maximum}"
+
+#: system/ui/widgets/compact.py
+msgid "Range: {minimum}–{maximum}; step: {step}"
+msgstr "范围：{minimum}–{maximum}；步进：{step}"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Ready"
+msgstr "就绪"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Refresh Training Statistics"
+msgstr "刷新训练统计"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Refresh Trip Statistics"
+msgstr "刷新行程统计"
+
+#: selfdrive/ui/sunnypilot/mici/onroad/hud_renderer.py
+msgid "Relative Speed"
+msgstr "相对速度"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Release Models"
+msgstr "发布模型"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
+msgid "Remove"
+msgstr "移除"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Remove SSH keys for {username}?"
+msgstr "移除用户 {username} 的 SSH 密钥？"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
+msgid "Remove the manually selected vehicle {vehicle} and return to automatic recognition?"
+msgstr "移除手动选择的车型 {vehicle}，恢复自动识别？"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Restart Interface"
+msgstr "重启界面"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Restore service did not respond. Retry available."
+msgstr "恢复服务未响应，可重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Restoring {progress}%"
+msgstr "恢复中 {progress}%"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Retry"
+msgstr "重试"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Retry Backup"
+msgstr "重试备份"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Retry Download"
+msgstr "重新下载"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Retry Model Download"
+msgstr "重试模型下载"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Retry Restore"
+msgstr "重试恢复"
+
+#: system/usb_mount.py
+msgid "Route data source not found: {path}"
+msgstr "未找到行程数据：{path}"
+
+#: system/usb_mount.py
+msgid "Route data: {filename}"
+msgstr "行程数据：{filename}"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "SSH keys changed. Reopen the settings and try again."
+msgstr "SSH 密钥已变更。请重新打开设置后重试。"
+
+#: selfdrive/ui/mici/widgets/pairing_dialog.py
+msgid "Scan with your phone"
+msgstr "用手机扫描二维码"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Scanning system logs"
+msgstr "正在扫描系统日志"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Select a map region before downloading."
+msgstr "请先选择地图地区，再开始下载。"
+
+#: system/ui/widgets/compact.py
+msgid "Setting Description"
+msgstr "设置说明"
+
+#: system/ui/widgets/compact.py
+msgid "Settings"
+msgstr "设置"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Some files could not be deleted. Retry after checking the error details."
+msgstr "部分文件无法删除。请查看错误详情后重试。"
+
+#: system/usb_mount.py
+msgid "Source not found: {path}"
+msgstr "未找到源文件：{path}"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Status"
+msgstr "状态"
+
+#: selfdrive/ui/sunnypilot/mici/onroad/hud_renderer.py
+msgid "Steering Angle"
+msgstr "转向角"
+
+#: system/ui/widgets/compact.py
+msgid "Step: {step}"
+msgstr "步进：{step}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Supporter"
+msgstr "支持者"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "System Log Status"
+msgstr "系统日志状态"
+
+#: system/usb_mount.py
+msgid "System logs: {filename}"
+msgstr "系统日志：{filename}"
+
+#: system/ui/widgets/compact.py
+msgid "Terms & Conditions"
+msgstr "条款与条件"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "The error log changed. Open it again before deleting."
+msgstr "错误日志已变化，请重新查看后再删除。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "The onroad clock uses the selected timezone immediately. The system timezone is updated within one minute. Daylight saving time is applied automatically where available."
+msgstr "行驶界面的时钟立即采用所选时区，系统时区将在一分钟内更新。适用地区会自动采用夏令时。"
+
+#: system/ui/widgets/compact.py
+msgid "This setting is currently unavailable. Check vehicle compatibility and device state."
+msgstr "此设置当前不可用，请检查车辆兼容性及设备状态。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
+msgid "This vehicle is no longer in the vehicle list. Search again before selecting it."
+msgstr "此车型已不在车辆列表中。请重新搜索后选择。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "Time without screen interaction before leaving settings, or turning off the screen while parked. Changes apply immediately and restart the timeout."
+msgstr "停止操作屏幕多长时间后退出设置；停车时则关闭屏幕。更改后立即生效，并重新计时。"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/settings_controllers.py
+msgid "Training Data Contributions"
+msgstr "训练数据贡献"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "Training statistics unavailable"
+msgstr "训练统计暂无数据"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "Training statistics updated"
+msgstr "训练统计已更新"
+
+#: system/usb_mount.py
+msgid "USB copy failed: {error}"
+msgstr "USB 复制失败：{error}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "USB export failed: {error}"
+msgstr "USB 导出失败：{error}"
+
+#: system/usb_mount.py
+msgid "USB operation failed (exit code {code}): {error}"
+msgstr "USB 操作失败（退出码 {code}）：{error}"
+
+#: system/usb_mount.py selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "USB operation failed: {error}"
+msgstr "USB 操作失败：{error}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "USB scan failed: {error}"
+msgstr "USB 扫描失败：{error}"
+
+#: system/timezone_list.py
+msgid "UTC"
+msgstr "协调世界时（UTC）"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Unable to change quickboot mode: {error}"
+msgstr "无法更改快速启动模式：{error}"
+
+#: selfdrive/ui/mici/widgets/pairing_dialog.py
+msgid "Unable to create QR code"
+msgstr "无法生成二维码"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Unable to delete error log: {error}"
+msgstr "无法删除错误日志：{error}"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Unable to fetch SSH keys for user '{}'. Check the username and try again."
+msgstr "无法获取用户 '{}' 的 SSH 密钥。请检查用户名后重试。"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Unable to fetch SSH keys. Check your internet connection and try again."
+msgstr "无法获取 SSH 密钥。请检查网络连接后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/trips.py selfdrive/ui/sunnypilot/layouts/settings/trips.py
+msgid "Unable to fetch drive statistics"
+msgstr "无法获取行程统计"
+
+#: selfdrive/ui/mici/layouts/settings/firehose.py
+msgid "Unable to fetch training statistics"
+msgstr "无法获取训练统计"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
+msgid "Unable to load the vehicle list. Check the installation and try again."
+msgstr "无法加载车辆列表。请检查安装文件后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Unable to read error log: {error}"
+msgstr "无法读取错误日志：{error}"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Unable to remove SSH keys. Try again."
+msgstr "无法移除 SSH 密钥。请重试。"
+
+#: selfdrive/ui/widgets/ssh_key.py
+msgid "Unable to save SSH keys. Try again."
+msgstr "无法保存 SSH 密钥。请重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Unable to scan system logs"
+msgstr "无法扫描系统日志"
+
+msgid "Unavailable"
+msgstr "不可用"
+
+#: system/ui/widgets/compact.py
+msgid "Unavailable; tap for details"
+msgstr "当前不可用，点击查看原因"
+
+#: system/usb_mount.py
+msgid "Unmounted {path}"
+msgstr "已卸载 {path}"
+
+#: selfdrive/ui/layouts/settings/software.py
+msgid "Update service did not respond. Retry."
+msgstr "更新服务未响应，请重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Updated: {date}"
+msgstr "更新于：{date}"
+
+#: system/ui/widgets/compact.py
+msgid "Vehicle fingerprint status"
+msgstr "车辆识别状态"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/vehicle/platform_selector.py
+msgid "Vehicle selection changed. Reopen the vehicle settings and try again."
+msgstr "车型选择已变更。请重新打开车辆设置后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Wait for map deletion to finish."
+msgstr "请等待地图删除完成。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Wait for the current map download to finish."
+msgstr "请等待当前地图下载完成。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Wait for the current model download to finish, or cancel it first."
+msgstr "请等待当前模型下载完成，或先取消下载。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Waiting for backup service"
+msgstr "等待备份服务"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "Waiting for log cleanup confirmation"
+msgstr "等待确认日志清理"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Waiting for map service..."
+msgstr "正在等待地图服务…"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Waiting for model cache cleanup..."
+msgstr "等待模型缓存清理……"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "Waiting for restore service"
+msgstr "等待恢复服务"
+
+#: selfdrive/ui/layouts/settings/software.py
+msgid "Waiting for update service..."
+msgstr "等待更新服务……"
+
+#: selfdrive/ui/sunnypilot/mici/layouts/network.py
+msgid "Wi-Fi Networks"
+msgstr "无线网络"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/software.py
+msgid "master models"
+msgstr "主线模型"
+
+#: selfdrive/ui/mici/layouts/onboarding.py
+msgid "or visit sunnypilot.ai/terms"
+msgstr ""
+"或访问\n"
+"sunnypilot.ai/terms"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/software.py
+msgid "release models"
+msgstr "发布模型"
+
+#: selfdrive/ui/mici/layouts/settings/device.py
+msgid ""
+"slide to\n"
+"{action}"
+msgstr ""
+"滑动以\n"
+"{action}"
+
+#: selfdrive/ui/mici/onroad/driver_camera_dialog.py
+msgid "{action} - Level {level}"
+msgstr "{action} - 等级 {level}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{count} changed or missing files were skipped."
+msgstr "已跳过 {count} 个被修改或已不存在的文件。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{device} {filesystem} (needs FAT32)"
+msgstr "{device} {filesystem}（需要 FAT32）"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "{minutes} min"
+msgstr "{minutes} 分钟"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "{minutes} min {seconds} s"
+msgstr "{minutes} 分 {seconds} 秒"
+
+#: system/usb_mount.py
+msgid "{path} -> {message}"
+msgstr "{path} → {message}"
+
+#: system/usb_mount.py
+msgid "{path} is already in use by {device}"
+msgstr "{path} 已被 {device} 使用"
+
+#: system/usb_mount.py
+msgid "{path} is not mounted"
+msgstr "{path} 未挂载"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
+msgid "{progress}% - Downloading Maps"
+msgstr "{progress}% - 正在下载地图"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/display.py
+msgid "{seconds} s"
+msgstr "{seconds} 秒"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/developer.py
+msgid "{status}: {message}"
+msgstr "{status}：{message}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "{value} cm"
+msgstr "{value} 厘米"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model Download Status"
+msgstr "模型下载状态"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Waiting for model service: {model}"
+msgstr "等待模型服务：{model}"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Waiting for model service..."
+msgstr "等待模型服务……"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model service has not started the download. Cancel and retry."
+msgstr "模型服务尚未开始下载，请取消后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "The model download request is saved. You can cancel it while waiting for the model service."
+msgstr "模型下载请求已保存。等待模型服务期间，可以取消此请求。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model list changed or the service is unavailable. Reopen the model selector and try again."
+msgstr "模型列表已变化或服务暂不可用，请重新打开模型选择器后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/models.py
+msgid "Model service is unavailable. Please try again."
+msgstr "模型服务暂不可用，请重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/software.py
+msgid "Branch settings changed. Reopen the branch selector and try again."
+msgstr "分支设置已变化，请重新打开分支选择器后重试。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Download maps for {region}? This may take a while to complete."
+msgstr "要下载{region}的地图吗？下载可能需要一段时间。"
+
+#: selfdrive/ui/sunnypilot/layouts/settings/osm.py
+msgid "Map settings changed. Reopen the map page and try again."
+msgstr "地图设置已变化，请重新打开地图页面后重试。"

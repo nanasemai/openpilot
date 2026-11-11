@@ -27,6 +27,8 @@ class OnroadTimerStatus(Enum):
 class UIStateSP:
   def __init__(self):
     self.params = Params()
+    self.always_offroad = self.params.get_bool("OffroadMode")
+    self.boot_offroad_mode = self.params.get("DeviceBootMode", return_default=True)
     self.CP_SP: custom.CarParamsSP | None = None
     self.has_icbm: bool = False
     self.is_sp_release: bool = self.params.get_bool("IsReleaseSpBranch")
@@ -53,6 +55,8 @@ class UIStateSP:
     self.standstill_timer: bool = False
     self.sunnylink_enabled: bool = False
     self.torque_bar: bool = False
+    self.true_v_ego_ui: bool = False
+    self.turn_signals: bool = False
     self.enforce_torque_control: bool = False
     self.custom_torque_params: bool = False
     self.torque_override_enabled: bool = False
@@ -139,6 +143,7 @@ class UIStateSP:
     return "disengaged"
 
   def update_params(self) -> None:
+    previous_brightness_settings = (self.onroad_brightness, self.onroad_brightness_timer_param)
     CP_SP_bytes = self.params.get("CarParamsSPPersistent")
     if CP_SP_bytes is not None:
       self.CP_SP = messaging.log_from_bytes(CP_SP_bytes, custom.CarParamsSP)
@@ -147,9 +152,11 @@ class UIStateSP:
     self._enforce_constraints()
     self.active_bundle = self.params.get("ModelManager_ActiveBundle")
     self.blindspot = self.params.get_bool("BlindSpot")
-    self.chevron_metrics = self.params.get("ChevronInfo")
+    chevron_mode = self.params.get("ChevronInfo", return_default=True)
+    self.chevron_metrics = chevron_mode if self.has_longitudinal_control and chevron_mode in range(5) else 0
     self.custom_interactive_timeout = self.params.get("InteractivityTimeout", return_default=True)
-    self.developer_ui = self.params.get("DevUIInfo")
+    dev_mode = self.params.get("DevUIInfo", return_default=True)
+    self.developer_ui = dev_mode if dev_mode in range(4) else 0
     self.hide_v_ego_ui = self.params.get_bool("HideVEgoUI")
     _b = self.params.get("OnroadScreenOffBrightness", return_default=True)
     self.onroad_brightness = int(float(_b)) if _b is not None else 0
@@ -173,7 +180,7 @@ class UIStateSP:
     self.boot_offroad_mode = self.params.get("DeviceBootMode", return_default=True)
     self.always_offroad = self.params.get_bool("OffroadMode")
 
-    if not self._sp_initialized:
+    if not self._sp_initialized or previous_brightness_settings != (self.onroad_brightness, self.onroad_brightness_timer_param):
       self._sp_initialized = True
       self.reset_onroad_sleep_timer()
 
@@ -260,9 +267,6 @@ class DeviceSP:
     return min_brightness
 
   @staticmethod
-  def wake_from_dimmed_onroad_brightness(_ui_state, evs) -> None:
-    if _ui_state.started and (_ui_state.onroad_brightness_timer_expired or _ui_state.onroad_brightness == OnroadBrightness.AUTO_DARK):
-      if any(ev.left_down for ev in evs):
-        if _ui_state.onroad_brightness_timer_expired:
-          gui_app.mouse_events.clear()
-        _ui_state.reset_onroad_sleep_timer()
+  def wake_from_dimmed_onroad_brightness(_ui_state, touching: bool) -> None:
+    if touching and _ui_state.started and _ui_state.onroad_brightness != OnroadBrightness.AUTO:
+      _ui_state.reset_onroad_sleep_timer()

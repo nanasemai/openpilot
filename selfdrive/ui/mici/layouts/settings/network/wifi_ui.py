@@ -215,16 +215,16 @@ class WifiButton(BigButton):
       self._sub_label.set_font_weight(FontWeight.ROMAN)
 
       if self._network_forgetting:
-        self.set_value(tr("forgetting..."))
+        self.set_value(lambda: tr("forgetting..."))
       elif self._is_connecting:
         self.set_value(tr("starting...") if self._network.is_tethering else tr("connecting..."))
       elif self._is_connected:
         self.set_value(tr("tethering") if self._network.is_tethering else tr("connected"))
       elif self._network_missing:
         # after connecting/connected since NM will still attempt to connect/stay connected for a while
-        self.set_value(tr("not in range"))
+        self.set_value(lambda: tr("not in range"))
       else:
-        self.set_value(tr("unsupported"))
+        self.set_value(lambda: tr("unsupported"))
 
     else:  # saved, wrong password, or unknown
       self.set_value(tr("wrong password") if self._wrong_password else tr("connect"))
@@ -247,7 +247,8 @@ class ForgetButton(Widget):
 
   def _handle_mouse_release(self, mouse_pos: MousePos):
     super()._handle_mouse_release(mouse_pos)
-    dlg = BigConfirmationDialog(tr("slide to forget"), gui_app.texture("icons_mici/settings/network/new/trash.png", 54, 64), self._forget_network, red=True)
+    dlg = BigConfirmationDialog(lambda: tr("slide to forget"), gui_app.texture("icons_mici/settings/network/new/trash.png", 54, 64),
+                                self._forget_network, red=True)
     gui_app.push_widget(dlg)
 
   def _render(self, _):
@@ -262,7 +263,7 @@ class ForgetButton(Widget):
 
 class ScanningButton(BigButton):
   def __init__(self):
-    super().__init__("", tr("searching for networks"))
+    super().__init__("", lambda: tr("searching for networks"))
     self.set_enabled(False)
     self._loading_animation = LoadingAnimation()
 
@@ -363,7 +364,7 @@ class WifiUIMici(NavScroller):
           break
       return
 
-    dlg = BigInputDialog(tr("enter password..."), "", minimum_length=8,
+    dlg = BigInputDialog(lambda: tr("enter password..."), "", minimum_length=8,
                          confirm_callback=lambda _password: self._connect_with_password(ssid, _password))
     gui_app.push_widget(dlg)
 

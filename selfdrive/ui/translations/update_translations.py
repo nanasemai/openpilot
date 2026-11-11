@@ -5,6 +5,7 @@ import os
 from openpilot.common.basedir import BASEDIR
 from openpilot.system.ui.lib.multilang import SYSTEM_UI_DIR, UI_DIR, TRANSLATIONS_DIR, multilang
 from openpilot.selfdrive.ui.translations.potools import extract_strings, generate_pot, merge_po, init_po, POEntry
+from openpilot.system.timezone_list import TZ_LIST
 
 LANGUAGES_FILE = os.path.join(str(TRANSLATIONS_DIR), "languages.json")
 POT_FILE = os.path.join(str(TRANSLATIONS_DIR), "app.pot")
@@ -16,7 +17,7 @@ def extract_json_strings(json_path: str) -> list[POEntry]:
   try:
     with open(json_path, encoding='utf-8') as f:
       data = json.load(f)
-    for key, value in data.items():
+    for _key, value in data.items():
       if isinstance(value, dict) and 'text' in value:
         text = value['text']
         if isinstance(text, str) and text:
@@ -28,6 +29,11 @@ def extract_json_strings(json_path: str) -> list[POEntry]:
   except (FileNotFoundError, json.JSONDecodeError):
     pass
   return entries
+
+
+def extract_timezone_strings() -> list[POEntry]:
+  # These identifiers are also system values; translating must never change TZ_LIST.
+  return [POEntry(msgid=timezone, source_refs=["system/timezone_list.py"]) for timezone in TZ_LIST]
 
 
 ALERT_CLASSES = {
@@ -92,11 +98,15 @@ def update_translations():
           files.append(rel_path)
 
   # Extract translatable strings from Python files
-  entries = extract_strings(files, BASEDIR)
+  # USB helpers retain English messages for CLI callers; the UI translates their templates.
+  files.append("system/usb_mount.py")
+  entries = extract_strings(files, BASEDIR, extra_markers=("UsbMessage",))
 
   # Extract translatable strings from alerts_offroad.json
   alerts_offroad_path = os.path.join(BASEDIR, "selfdrive", "selfdrived", "alerts_offroad.json")
   json_entries = extract_json_strings(alerts_offroad_path)
+  json_entries.extend(extract_json_strings(os.path.join(TRANSLATIONS_DIR, "map_regions.json")))
+  json_entries.extend(extract_timezone_strings())
 
   # Extract translatable strings from all events.py / events_base.py files.
   # Alert texts are bare string literals wrapped by the Alert base class at runtime

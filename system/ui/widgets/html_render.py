@@ -9,6 +9,7 @@ from openpilot.system.ui.lib.scroll_panel import GuiScrollPanel
 from openpilot.system.ui.lib.wrap_text import wrap_text
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
+from html import unescape
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 
 LIST_INDENT_PX = 40
@@ -103,6 +104,7 @@ class HtmlRenderer(Widget):
     self.parse_html_content(content)
 
   def parse_html_content(self, html_content: str) -> None:
+    self.raw_text = html_content
     self.elements.clear()
     self._cached_height = None
     self._cached_width = -1
@@ -164,9 +166,10 @@ class HtmlRenderer(Widget):
   def _add_element(self, element_type: ElementType, content: str) -> None:
     style = self.styles[element_type]
 
+    # Decode entities only after recognizing tags, so escaped input stays literal text.
     element = HtmlElement(
       type=element_type,
-      content=content,
+      content=unescape(content),
       font_size=style["size"],
       font_weight=style["weight"],
       margin_top=style["margin_top"],
@@ -256,13 +259,31 @@ class HtmlRenderer(Widget):
 
 
 class HtmlModal(Widget):
-  def __init__(self, file_path: str | None = None, text: str | None = None):
+  def __init__(self, file_path: str | None = None, text=None):
     super().__init__()
-    self._content = HtmlRenderer(file_path=file_path, text=text)
+    self._text_source = text
+    self._content = HtmlRenderer(file_path=file_path, text=text() if callable(text) else text)
     self._scroll_panel = GuiScrollPanel()
     self._ok_button = Button(tr("OK"), click_callback=gui_app.pop_widget, button_style=ButtonStyle.PRIMARY)
+    self._compact_view = None
+
+  def _update_state(self):
+    if callable(self._text_source):
+      text = self._text_source()
+      if text != self._content.raw_text:
+        self._content.parse_html_content(text)
 
   def _render(self, rect: rl.Rectangle):
+    if not gui_app.big_ui():
+      from openpilot.system.ui.widgets.compact import CompactConfirmView
+      if self._compact_view is None:
+        self._compact_view = CompactConfirmView(
+          lambda: tr("Information"), lambda: self._content.raw_text, lambda: tr("OK"), "",
+          lambda: self._ok_button._click_callback(), lambda: self._ok_button._click_callback(), rich=True,
+        )
+      self._compact_view.set_enabled(self.enabled)
+      self._compact_view.render(rect)
+      return
     margin = 50
     content_rect = rl.Rectangle(rect.x + margin, rect.y + margin, rect.width - (margin * 2), rect.height - (margin * 2))
 

@@ -258,6 +258,7 @@ class GuiApplication(GuiApplicationExt):
     self._window_close_requested = False
     self._nav_stack: list[object] = []
     self._nav_stack_ticks: list[Callable[[], None]] = []
+    self._input_callbacks: list[Callable[[], None]] = []
     self._post_render_callbacks: list[Callable] = []
     self._nav_stack_widgets_to_render = 1 if self.big_ui() else 2
 
@@ -480,6 +481,11 @@ class GuiApplication(GuiApplicationExt):
     if tick_function not in self._nav_stack_ticks:
       self._nav_stack_ticks.append(tick_function)
 
+  def add_input_callback(self, callback: Callable[[], None]):
+    """Process or consume input before dispatching it to widgets, including while the display sleeps."""
+    if callback not in self._input_callbacks:
+      self._input_callbacks.append(callback)
+
   def remove_nav_stack_tick(self, tick_function: Callable[[], None]):
     if tick_function in self._nav_stack_ticks:
       self._nav_stack_ticks.remove(tick_function)
@@ -614,6 +620,7 @@ class GuiApplication(GuiApplicationExt):
     self.close_ffmpeg()
 
     self._post_render_callbacks.clear()
+    self._input_callbacks.clear()
 
     rl.close_window()
 
@@ -659,8 +666,14 @@ class GuiApplication(GuiApplicationExt):
 
         # Store all mouse events for the current frame
         self._mouse_events = self._mouse.get_events()
-        if len(self._mouse_events) > 0:
+        last_event = self._mouse_events[-1] if self._mouse_events else None
+
+        for callback in self._input_callbacks:
+          callback()
+        if self._mouse_events:
           self._last_mouse_event = self._mouse_events[-1]
+        elif last_event is not None:
+          self._last_mouse_event = last_event._replace(left_pressed=False, left_released=False, left_down=False)
 
         # Skip rendering when screen is off
         if not self._should_render:
@@ -801,7 +814,7 @@ class GuiApplication(GuiApplicationExt):
     for weight in old_weight_by_texture.values():
       self.font(weight)
     # Carry forward existing remap + add new entries (weights are stable across switches)
-    self._font_remap = dict(self._font_remap) | {tid: w for tid, w in old_weight_by_texture.items()}
+    self._font_remap = self._font_remap | old_weight_by_texture
     # Now safe to unload old fonts
     for f in old_fonts:
       rl.unload_font(f)

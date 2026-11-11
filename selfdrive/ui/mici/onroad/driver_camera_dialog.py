@@ -41,15 +41,19 @@ class BaseDriverCameraDialog(Widget):
 
   def show_event(self):
     super().show_event()
-    ui_state.params.put_bool("IsDriverViewEnabled", True)
-    self._publish_alert_sound(None)
+    if self._camera_view is None:
+      self._camera_view = DriverCameraView("camerad", VisionStreamType.VISION_STREAM_DRIVER)
+    ui_state.params.put_bool("IsDriverViewEnabled", True, block=True)
     device.set_override_interactive_timeout(300)
     ui_state.params.remove("DriverTooDistracted")
     self._pm = messaging.PubMaster(['selfdriveState'])
+    self._publish_alert_sound(None)
 
   def hide_event(self):
     super().hide_event()
-    ui_state.params.put_bool("IsDriverViewEnabled", False)
+    self._publish_alert_sound(None)
+    self._pm = None
+    ui_state.params.put_bool("IsDriverViewEnabled", False, block=True)
     device.set_override_interactive_timeout(None)
 
   def _handle_mouse_release(self, _):
@@ -61,6 +65,7 @@ class BaseDriverCameraDialog(Widget):
   def close(self):
     if self._camera_view:
       self._camera_view.close()
+      self._camera_view = None
 
   def _update_state(self):
     if self._camera_view:
@@ -121,12 +126,14 @@ class BaseDriverCameraDialog(Widget):
 
     is_vision = dm_state.activePolicy == log.DriverMonitoringState.MonitoringPolicy.vision
     awareness_pct = dm_state.visionPolicyState.awarenessPercent if is_vision else dm_state.wheeltouchPolicyState.awarenessPercent
-    gui_label(rl.Rectangle(rect.x + 2, rect.y + 2, rect.width, rect.height),
-              f"{tr('Awareness')}: {awareness_pct:.0f}%", font_size=44, font_weight=FontWeight.MEDIUM,
+    # Keep attention text below the back gesture bar and clear of the eye icons.
+    awareness_rect = rl.Rectangle(rect.x, rect.y + 22, rect.width, max(0, rect.height - 22))
+    gui_label(rl.Rectangle(awareness_rect.x + 2, awareness_rect.y + 2, awareness_rect.width, awareness_rect.height),
+              f"{tr('Awareness')}: {awareness_pct:.0f}%", font_size=36, font_weight=FontWeight.MEDIUM,
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT,
               alignment_vertical=rl.GuiTextAlignmentVertical.TEXT_ALIGN_TOP,
               color=rl.Color(0, 0, 0, 180))
-    gui_label(rect, f"{tr('Awareness')}: {awareness_pct:.0f}%", font_size=44, font_weight=FontWeight.MEDIUM,
+    gui_label(awareness_rect, f"{tr('Awareness')}: {awareness_pct:.0f}%", font_size=36, font_weight=FontWeight.MEDIUM,
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT,
               alignment_vertical=rl.GuiTextAlignmentVertical.TEXT_ALIGN_TOP,
               color=rl.Color(255, 255, 255, int(255 * 0.9)))
@@ -135,7 +142,9 @@ class BaseDriverCameraDialog(Widget):
       return
 
     # Show alert level
-    alert_level_str = f"{tr('Pay Attention') if is_vision else tr('Touch Wheel')} - level {dm_state.alertLevel}"
+    levels = {'one': 1, 'two': 2, 'three': 3}
+    alert_level_str = tr("{action} - Level {level}").format(
+      action=tr('Pay Attention') if is_vision else tr('Touch Wheel'), level=levels.get(str(dm_state.alertLevel), 0))
     alignment = rl.GuiTextAlignment.TEXT_ALIGN_RIGHT if self.driver_state_renderer.is_rhd else rl.GuiTextAlignment.TEXT_ALIGN_LEFT
 
     shadow_rect = rl.Rectangle(rect.x + 2, rect.y + 2, rect.width, rect.height)
@@ -231,8 +240,35 @@ class BaseDriverCameraDialog(Widget):
 class DriverCameraDialog(NavWidget, BaseDriverCameraDialog):
   def __init__(self):
     super().__init__()
-    # TODO: this can grow unbounded, should be given some thought
-    device.add_interactive_timeout_callback(gui_app.pop_widget)
+    self._preview_open = False
+
+  def show_event(self):
+    super().show_event()
+    self._preview_open = True
+    device.add_interactive_timeout_callback(self._on_timeout)
+
+  def hide_event(self):
+    self._preview_open = False
+    device.remove_interactive_timeout_callback(self._on_timeout)
+    super().hide_event()
+    self.close()
+
+  def _on_timeout(self):
+    if gui_app.get_active_widget() is self:
+      gui_app.pop_widget()
+
+  def _update_state(self):
+    if not self._preview_open:
+      return
+    if self._preview_open and not ui_state.is_offroad() and gui_app.widget_in_stack(self):
+      gui_app.pop_widgets_to(self, instant=True)
+      gui_app.pop_widget()
+      return
+    super()._update_state()
+
+  def _render(self, rect):
+    if self._preview_open:
+      return super()._render(rect)
 
 
 if __name__ == "__main__":

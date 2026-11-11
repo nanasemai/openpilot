@@ -6,7 +6,7 @@ from openpilot.selfdrive.ui.mici.widgets.button import BigParamControl, BigMulti
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.selfdrive.ui.layouts.settings.common import restart_needed_callback
 from openpilot.selfdrive.ui.ui_state import ui_state
-from openpilot.system.ui.lib.multilang import tr, tr_noop
+from openpilot.system.ui.lib.multilang import tr
 
 PERSONALITY_TO_INT = log.LongitudinalPersonality.schema.enumerants
 
@@ -15,18 +15,20 @@ class TogglesLayoutMici(NavScroller):
   def __init__(self):
     super().__init__()
 
-    self._personality_toggle = BigMultiParamToggle(tr("driving personality"), "LongitudinalPersonality", [tr("aggressive"), tr("standard"), tr("relaxed")])
-    self._experimental_btn = BigParamControl(tr("experimental mode"), "ExperimentalMode")
-    enable_openpilot = BigParamControl(tr("enable sunnypilot"), "OpenpilotEnabledToggle", toggle_callback=restart_needed_callback)
+    self._personality_toggle = BigMultiParamToggle(lambda: tr("driving personality"), "LongitudinalPersonality",
+                                                  [lambda: tr("aggressive"), lambda: tr("standard"), lambda: tr("relaxed")])
+    self._experimental_btn = BigParamControl(lambda: tr("experimental mode"), "ExperimentalMode")
+    enable_openpilot = BigParamControl(lambda: tr("enable sunnypilot"), "OpenpilotEnabledToggle", toggle_callback=restart_needed_callback)
 
-    disengage_on_accel = BigParamControl(tr("disengage on accelerator pedal"), "DisengageOnAccelerator")
-    ldw_toggle = BigParamControl(tr("lane departure warnings"), "IsLdwEnabled")
-    always_on_dm_toggle = BigParamControl(tr("always-on driver monitor"), "AlwaysOnDM")
-    disable_driver_cam = BigParamControl(tr("disable driver monitoring camera"), "DisableDriverMonitoringCamera", toggle_callback=restart_needed_callback)
-    dynamic_exp_toggle = BigParamControl(tr("dynamic experimental control"), "DynamicExperimentalControl")
-    is_metric_toggle = BigParamControl(tr("use metric units"), "IsMetric")
-    record_front = BigParamControl(tr("record & upload driver camera"), "RecordFront", toggle_callback=restart_needed_callback)
-    record_mic = BigParamControl(tr("record & upload mic audio"), "RecordAudio", toggle_callback=restart_needed_callback)
+    disengage_on_accel = BigParamControl(lambda: tr("disengage on accelerator pedal"), "DisengageOnAccelerator")
+    ldw_toggle = BigParamControl(lambda: tr("lane departure warnings"), "IsLdwEnabled")
+    always_on_dm_toggle = BigParamControl(lambda: tr("always-on driver monitor"), "AlwaysOnDM")
+    disable_driver_cam = BigParamControl(lambda: tr("disable driver monitoring camera"), "DisableDriverMonitoringCamera",
+                                         toggle_callback=restart_needed_callback)
+    dynamic_exp_toggle = BigParamControl(lambda: tr("dynamic experimental control"), "DynamicExperimentalControl")
+    is_metric_toggle = BigParamControl(lambda: tr("use metric units"), "IsMetric")
+    record_front = BigParamControl(lambda: tr("record & upload driver camera"), "RecordFront", toggle_callback=restart_needed_callback)
+    record_mic = BigParamControl(lambda: tr("record & upload mic audio"), "RecordAudio", toggle_callback=restart_needed_callback)
 
     disable_driver = bool(os.getenv("DISABLE_DRIVER"))
     if disable_driver:

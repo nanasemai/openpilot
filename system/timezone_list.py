@@ -1,4 +1,6 @@
 """Shared timezone definitions for settings UI and timezoned service."""
+import datetime
+from zoneinfo import ZoneInfo
 
 
 TZ_LIST = [
@@ -42,3 +44,8 @@ def get_timezone_from_params(params) -> str:
     if v in TZ_LIST:
       return v
     return tz_name(DEFAULT_TZ_INDEX)
+
+
+def now_in_timezone(params) -> datetime.datetime:
+  """Read the selected zone directly so a running UI updates without restarting."""
+  return datetime.datetime.now(ZoneInfo(get_timezone_from_params(params)))

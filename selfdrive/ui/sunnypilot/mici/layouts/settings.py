@@ -1,104 +1,96 @@
-"""
-Copyright (c) 2021-, Haibin Wen, sunnypilot, and a number of other contributors.
-
-This file is part of sunnypilot and is licensed under the MIT License.
-See the LICENSE.md file in the root directory for more details.
-"""
-from openpilot.selfdrive.ui.mici.layouts.settings import settings as OP
-from openpilot.selfdrive.ui.mici.layouts.settings.settings import SettingsBigButton
-from openpilot.selfdrive.ui.mici.layouts.settings.device import DeviceLayoutMici
-from openpilot.selfdrive.ui.mici.widgets.button import BigCircleButton
-from openpilot.selfdrive.ui.mici.widgets.dialog import BigConfirmationDialog, BigDialog
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.sunnylink import SunnylinkLayoutMici
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.models import ModelsLayoutMici
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.steering import SteeringLayoutMici
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.cruise import CruiseLayoutMici
+"""Complete settings navigation for the C4 display."""
 from openpilot.selfdrive.ui.ui_state import ui_state
+from openpilot.selfdrive.ui.sunnypilot.ui_state import OnroadTimerStatus
 from openpilot.system.ui.lib.application import gui_app
-from openpilot.system.ui.lib.multilang import tr
+from openpilot.system.ui.lib.multilang import tr, tr_noop
+from openpilot.system.ui.widgets import DialogResult
+from openpilot.system.ui.widgets.compact import CompactButton, CompactPage, CompactRow
+from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog, alert_dialog
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_panel import SettingsPanel
 
-ICON_SIZE = 70
-BIG_ICON_SIZE = 110
+GROUPS = (
+  (tr_noop("Driving"), ("toggles", "steering", "cruise", "models", "vehicle")),
+  (tr_noop("Display"), ("display", "visuals")),
+  (tr_noop("Device"), ("device", "trips")),
+  (tr_noop("Connections"), ("network", "sunnylink", "osm", "firehose")),
+  (tr_noop("Maintenance"), ("software", "developer")),
+)
+TITLES = {
+  "toggles": tr_noop("Toggles"), "steering": tr_noop("Steering"), "cruise": tr_noop("Cruise"),
+  "models": tr_noop("Models"), "vehicle": tr_noop("Vehicle"), "display": tr_noop("Display"),
+  "visuals": tr_noop("Visuals"), "device": tr_noop("Device"), "trips": tr_noop("Trips"),
+  "network": tr_noop("Network"), "sunnylink": tr_noop("sunnylink"), "osm": tr_noop("Offline Maps"),
+  "firehose": tr_noop("Firehose Mode"), "software": tr_noop("Software"), "developer": tr_noop("Developer"),
+}
 
 
-class SettingsLayoutSP(OP.SettingsLayout):
+def make_panel(key):
+  from openpilot.selfdrive.ui.layouts.settings.toggles import TogglesLayout
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.steering import SteeringLayout
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.models import ModelsLayout
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.display import DisplayLayout
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.visuals import VisualsLayout
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.osm import OSMLayout
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.software import SoftwareLayoutSP
+  from openpilot.selfdrive.ui.sunnypilot.layouts.settings.developer import DeveloperLayoutSP
+  from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_controllers import (
+    DeviceController, VehicleController, SunnylinkController, CruiseController, TripsPanel, FirehosePanel,
+  )
+  from openpilot.selfdrive.ui.sunnypilot.mici.layouts.network import NetworkPanel
+
+  controllers = {
+    "toggles": TogglesLayout, "steering": SteeringLayout, "cruise": CruiseController, "models": ModelsLayout,
+    "vehicle": VehicleController, "display": DisplayLayout, "visuals": VisualsLayout, "device": DeviceController,
+    "osm": OSMLayout, "software": SoftwareLayoutSP, "developer": DeveloperLayoutSP, "sunnylink": SunnylinkController,
+  }
+  if key == "trips":
+    return TripsPanel()
+  if key == "firehose":
+    return FirehosePanel()
+  if key == "network":
+    return NetworkPanel()
+  return SettingsPanel(TITLES[key], controllers[key]())
+
+
+class SettingsLayoutSP(CompactPage):
   def __init__(self):
-    OP.SettingsLayout.__init__(self)
+    super().__init__(lambda: tr("Settings"))
+    self._category = 0
+    self._panels = {}
+    self._categories = [CompactPage(lambda name=name: tr(name)) for name, _ in GROUPS]
+    self._list.set_items([CompactRow(lambda name=name: tr(name), callback=lambda index=index: self._set_category(index), title_size=52)
+                          for index, (name, _) in enumerate(GROUPS)])
+    self._header.action_width = 152
+    self._header.action = CompactButton(lambda: tr("Exit Offroad") if ui_state.always_offroad else tr("Offroad Mode"), self._handle_always_offroad)
+    for page, (_, keys) in zip(self._categories, GROUPS, strict=True):
+      page._list.set_items([CompactRow(lambda key=key: tr(TITLES[key]), callback=lambda key=key: self.open_panel(key), title_size=52)
+                            for key in keys])
 
-    device_panel = DeviceLayoutMici()
-    self._scroller._items[2].set_click_callback(lambda: gui_app.push_widget(device_panel))
+  def show_event(self):
+    ui_state.reset_onroad_sleep_timer(OnroadTimerStatus.PAUSE)
 
-    self.icon_offroad_enable = gui_app.texture("../../sunnypilot/selfdrive/assets/icons_mici/always_offroad.png", BIG_ICON_SIZE,
-                                               BIG_ICON_SIZE)
-    self.icon_offroad_disable = gui_app.texture("../../sunnypilot/selfdrive/assets/icons_mici/disable_offroad.png", BIG_ICON_SIZE,
-                                                BIG_ICON_SIZE)
-    self.icon_offroad_slider = gui_app.texture("icons_mici/settings/device/lkas.png", BIG_ICON_SIZE, BIG_ICON_SIZE)
+  def hide_event(self):
+    ui_state.reset_onroad_sleep_timer(OnroadTimerStatus.RESUME)
 
-    sunnylink_panel = SunnylinkLayoutMici(back_callback=gui_app.pop_widget)
-    sunnylink_btn = SettingsBigButton(tr("sunnylink"), "", gui_app.texture("icons_mici/settings/developer/ssh.png", 55, 55))
-    sunnylink_btn.set_click_callback(lambda: gui_app.push_widget(sunnylink_panel))
+  def _set_category(self, index):
+    self._category = index
+    gui_app.push_widget(self._categories[index])
 
-    models_panel = ModelsLayoutMici(back_callback=gui_app.pop_widget)
-    models_btn = SettingsBigButton(tr("models"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_models.png", ICON_SIZE, ICON_SIZE))
-    models_btn.set_click_callback(lambda: gui_app.push_widget(models_panel))
+  def open_panel(self, key):
+    if key not in self._panels:
+      self._panels[key] = make_panel(key)
+    gui_app.push_widget(self._panels[key])
 
-    steering_panel = SteeringLayoutMici(back_callback=gui_app.pop_widget)
-    steering_btn = SettingsBigButton(tr("steering"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_lateral.png", ICON_SIZE, ICON_SIZE))
-    steering_btn.set_click_callback(lambda: gui_app.push_widget(steering_panel))
+  def _handle_always_offroad(self):
+    if ui_state.engaged:
+      gui_app.push_widget(alert_dialog(tr("Disengage to Enter Always Offroad Mode")))
+      return
+    enabled = not ui_state.always_offroad
 
-    cruise_panel = CruiseLayoutMici(back_callback=gui_app.pop_widget)
-    cruise_btn = SettingsBigButton(tr("cruise"), "", gui_app.texture("../../sunnypilot/selfdrive/assets/offroad/icon_map.png", ICON_SIZE, ICON_SIZE))
-    cruise_btn.set_click_callback(lambda: gui_app.push_widget(cruise_panel))
+    def confirm(result):
+      if result == DialogResult.CONFIRM and not ui_state.engaged:
+        ui_state.params.put_bool("OffroadMode", enabled, block=True)
+        ui_state.always_offroad = enabled
 
-    # onroad: enable button sits at the front (left of toggles)
-    self._enable_offroad_btn_onroad = BigCircleButton(self.icon_offroad_enable, red=True)
-    self._enable_offroad_btn_onroad.set_click_callback(lambda: self._handle_always_offroad(True))
-    self._enable_offroad_btn_onroad.set_visible(lambda: ui_state.started and not ui_state.always_offroad)
-
-    # offroad: enable button sits at the end (right of developer)
-    self._enable_offroad_btn_offroad = BigCircleButton(self.icon_offroad_enable, red=True)
-    self._enable_offroad_btn_offroad.set_click_callback(lambda: self._handle_always_offroad(True))
-    self._enable_offroad_btn_offroad.set_visible(lambda: not ui_state.started and not ui_state.always_offroad)
-
-    self._disable_offroad_btn = BigCircleButton(self.icon_offroad_disable, red=False)
-    self._disable_offroad_btn.set_click_callback(lambda: self._handle_always_offroad(False))
-    self._disable_offroad_btn.set_visible(lambda: ui_state.always_offroad)
-
-    items = self._scroller._items.copy()
-
-    items.insert(1, sunnylink_btn)
-    items.insert(2, models_btn)
-    items.insert(3, steering_btn)
-    items.insert(4, cruise_btn)
-
-    # front slots (only one ever visible at a time): exit-always-offroad, then enable-onroad
-    items.insert(0, self._enable_offroad_btn_onroad)
-    items.insert(0, self._disable_offroad_btn)
-    # end slot: enable-offroad (right of developer)
-    items.append(self._enable_offroad_btn_offroad)
-
-    self._scroller._items.clear()
-    for item in items:
-      self._scroller.add_widget(item)
-
-  def _update_state(self):
-    super()._update_state()
-
-  def _handle_always_offroad(self, enable: bool):
-
-    def _set_offroad_status(status: bool):
-      if not ui_state.engaged:
-        ui_state.params.put_bool("OffroadMode", status)
-        ui_state.always_offroad = status
-
-    if not enable:
-      dlg = BigConfirmationDialog(tr("slide to exit always offroad"), self.icon_offroad_slider, red=False,
-                                  confirm_callback=lambda: _set_offroad_status(False))
-    else:
-      if ui_state.engaged:
-        gui_app.push_widget(BigDialog(tr("disengage to enable always offroad"), "", ))
-        return
-
-      dlg = BigConfirmationDialog(tr("slide to force offroad"), self.icon_offroad_slider, red=True,
-                                  confirm_callback=lambda: _set_offroad_status(True))
-    gui_app.push_widget(dlg)
+    gui_app.push_widget(ConfirmDialog(tr("Are you sure you want to enter Always Offroad mode?") if enabled else
+                                      tr("Are you sure you want to exit Always Offroad mode?"), tr("Confirm"), callback=confirm))

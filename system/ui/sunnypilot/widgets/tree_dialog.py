@@ -5,10 +5,11 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 from dataclasses import dataclass, field
+from collections.abc import Callable
 
 import pyray as rl
 from openpilot.common.params import Params
-from openpilot.system.ui.lib.application import FontWeight
+from openpilot.system.ui.lib.application import FontWeight, gui_app
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.system.ui.widgets.button import Button, ButtonStyle, BUTTON_PRESSED_BACKGROUND_COLORS
@@ -31,6 +32,7 @@ class TreeNode:
 class TreeFolder:
   folder: str
   nodes: list
+  display_name: Callable[[], str] | None = None
 
 
 class TreeItemWidget(Button):
@@ -122,10 +124,12 @@ class TreeOptionDialog(MultiOptionDialog):
           self.selection = display
           self.current = display
           self.selection_node = node
+          self.selection_ref = node.ref
           break
       if self.selection_node is not None:
         break
 
+    self._initial_ref = self.selection_ref
     self._build_visible_items()
 
   def _on_search_confirm(self, result, text):
@@ -135,8 +139,8 @@ class TreeOptionDialog(MultiOptionDialog):
 
   def _on_search_clicked(self):
     self.search_dialog = InputDialogSP(
-      self.search_title,
-      self.search_subtitle,
+      tr(self.search_title() if callable(self.search_title) else self.search_title),
+      tr(self.search_subtitle() if callable(self.search_subtitle) else self.search_subtitle) if self.search_subtitle else None,
       current_text=self.query,
       callback=self._on_search_confirm,
     )
@@ -159,19 +163,18 @@ class TreeOptionDialog(MultiOptionDialog):
   def _toggle_favorite(self, node):
     self.favorites.remove(node.ref) if node.ref in self.favorites else self.favorites.add(node.ref)
     if self.fav_param:
-      self.params.put(self.fav_param, ';'.join(self.favorites))
+      self.params.put(self.fav_param, ';'.join(self.favorites), block=True)
     if self.get_folders_fn:
       self.folders = self.get_folders_fn(self.favorites)
     self._build_visible_items(reset_scroll=False)
 
   def _build_visible_items(self, reset_scroll=True):
     self.visible_items = []
+    found = False
 
     # Pinned selected item at the very top (if any)
     if getattr(self, "selection_node", None) is not None:
       node = self.selection_node
-      display = self.display_func(node)
-      self.selection = self.current = display
       favorite_cb = (lambda node_ref=node: self._toggle_favorite(node_ref)) if self.fav_param and node.ref != "Default" else None
       self.visible_items.append(TreeItemWidget(self.display_func(node), node.ref, False, 0,
                                                lambda node_ref=node: self._select_node(node_ref),
@@ -181,9 +184,12 @@ class TreeOptionDialog(MultiOptionDialog):
       nodes = [node for node in folder.nodes if not self.query or search_from_list(self.query, [search_func(node) for search_func in self.search_funcs])]
       if not nodes and self.query:
         continue
+      found = found or bool(nodes)
       expanded = folder.folder in self.expanded or not folder.folder or bool(self.query)
       if folder.folder:
-        self.visible_items.append(TreeItemWidget(f"{'-' if expanded else '+'} {folder.folder}", "", True, 0,
+        def label(folder=folder, expanded=expanded):
+          return f"{'-' if expanded else '+'} " + (folder.display_name() if folder.display_name is not None else tr(folder.folder))
+        self.visible_items.append(TreeItemWidget(label, "", True, 0,
                                                  lambda folder_ref=folder: self._toggle_folder(folder_ref)))
       if expanded:
         for node in nodes:
@@ -196,6 +202,8 @@ class TreeOptionDialog(MultiOptionDialog):
                                                    lambda node_ref=node: self._select_node(node_ref),
                                                    favorite_cb, node.ref in self.favorites, is_expanded=expanded))
 
+    if self.query and not found:
+      self.visible_items.append(TreeItemWidget(lambda: tr("No matching options"), ""))
     self.option_buttons = self.visible_items
     self.options = [item.text for item in self.visible_items]
     # Rebuild scroller items to ensure proper setup of touch callbacks
@@ -206,6 +214,9 @@ class TreeOptionDialog(MultiOptionDialog):
       self.scroller.scroll_panel.set_offset(0)
 
   def _render(self, rect):
+    if not gui_app.big_ui():
+      self._render_compact(rect)
+      return
     dialog_content_rect = rl.Rectangle(rect.x + 50, rect.y + 50, rect.width - 100, rect.height - 100)
     rl.draw_rectangle_rounded(dialog_content_rect, 0.02, 20, rl.BLACK)
 
@@ -273,8 +284,74 @@ class TreeOptionDialog(MultiOptionDialog):
     self.cancel_button.render(cancel_rect)
 
     select_rect = rl.Rectangle(dialog_content_rect.x + 100 + button_width, button_y_position, button_width, 160)
-    self.select_button.set_enabled(self.selection != self.current)
+    self.select_button.set_enabled(self.selection_ref != self._initial_ref)
     self.select_button.render(select_rect)
+
+  def _render_compact(self, rect):
+    from openpilot.system.ui.widgets.compact import (
+      CompactButton, CompactPage, CompactRow, CompactConfirmView, translation_source, resolve,
+    )
+
+    if self._compact_page is None:
+      self._compact_page = CompactPage(lambda: tr(self.title), lambda: self._set_result(DialogResult.CANCEL))
+      self._compact_page._header.action = CompactButton(lambda: tr("Search"), self._on_search_clicked)
+      self._compact_items = []
+      self._compact_confirm = CompactButton(lambda: tr("Select"), lambda: self._set_result(DialogResult.CONFIRM), primary=True)
+      self._compact_selection = None
+      self._compact_confirm_view = CompactConfirmView(lambda: tr(self.title),
+                                                       lambda: self._compact_labels.get(self.selection_ref, lambda: self.selection)(),
+                                                       lambda: tr("Select"), lambda: tr("Cancel"),
+                                                       self._compact_confirm._click_callback, self._cancel_compact_selection)
+    if self._compact_items != self.visible_items:
+      self._compact_items = self.visible_items.copy()
+      nodes = {node.ref: node for folder in self.folders for node in folder.nodes}
+      self._compact_labels = {}
+      rows = []
+      for item in self.visible_items:
+        initial_title = str(resolve(item.text))
+        title = translation_source(initial_title)
+        node = nodes.get(item.ref)
+        def label(item=item, title=title, node=node, initial_title=initial_title):
+          current = self.display_func(node) if node is not None else str(resolve(item.text))
+          return tr(title) if current == initial_title else tr(current)
+        self._compact_labels[item.ref] = label
+        favorite = item._favorite_callback
+        def select(item=item):
+          if item.is_folder:
+            item._click_callback()
+          else:
+            self._compact_selection = (self.selection, self.selection_ref)
+            item._click_callback()
+
+        row = CompactRow(label,
+                         lambda item=item: ("✓ " if not item.is_folder and item.ref == self.selection_ref else "") +
+                           (("★" if item.is_favorite else "☆") if item._favorite_callback else ""),
+                         select if item._click_callback is not None else None,
+                         help_callback=favorite, value_alignment=rl.GuiTextAlignment.TEXT_ALIGN_RIGHT)
+        if favorite:
+          # Reserve the right touch area for favorites; selection stays on the title.
+          def release(pos, row=row, item=item):
+            if rl.check_collision_point_rec(pos, row._switch_touch_rect()):
+              item._favorite_callback()
+            elif row.callback:
+              row.callback()
+          row._handle_mouse_release = release
+        rows.append(row)
+      self._compact_page._list.set_items(rows)
+    self._compact_page.set_enabled(self.enabled)
+    self._compact_page._header.set_enabled(self.enabled)
+    self._compact_page._list.set_enabled(self.enabled)
+    self._compact_page.set_enabled(self.enabled and self._compact_selection is None)
+    if self._compact_selection is None:
+      self._compact_page._render(rect)
+    else:
+      self._compact_confirm_view.set_enabled(self.enabled)
+      self._compact_confirm_view._confirm.set_enabled(self.enabled and self.selection_ref != self._initial_ref)
+      self._compact_confirm_view._render(rect)
+
+  def _cancel_compact_selection(self):
+    self.selection, self.selection_ref = self._compact_selection
+    self._compact_selection = None
 
   def _handle_mouse_press(self, mouse_pos):
     if self._search_rect and rl.check_collision_point_rec(mouse_pos, self._search_rect):

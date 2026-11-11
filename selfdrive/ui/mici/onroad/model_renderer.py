@@ -153,8 +153,8 @@ class ModelRenderer(Widget, ModelRendererSP):
       self._draw_lane_lines()
       self._draw_path(sm)
 
-    # if render_lead_indicator and radar_state:
-    #   self._draw_lead_indicator()
+    if render_lead_indicator:
+      self._draw_lead_indicator()
 
   def _update_raw_points(self, model):
     """Update raw 3D points from model data"""
@@ -381,6 +381,19 @@ class ModelRenderer(Widget, ModelRendererSP):
 
       rl.draw_triangle_fan(lead.glow, len(lead.glow), rl.Color(218, 202, 37, 255))
       rl.draw_triangle_fan(lead.chevron, len(lead.chevron), rl.Color(201, 34, 49, lead.fill_alpha))
+    lead = ui_state.sm['radarState'].leadOne
+    if not lead.status or not self._lead_vehicles[0].chevron:
+      return
+    from openpilot.selfdrive.ui.sunnypilot.onroad.chevron_metrics import ChevronMetrics
+    from openpilot.system.ui.widgets.label import gui_label
+    values = ChevronMetrics._build_text_lines(lead.dRel, lead.vRel, ui_state.sm['carState'].vEgo)
+    if not values:
+      return
+    point = self._lead_vehicles[0].chevron[1]
+    width = min(220, self._rect.width - 20)
+    x = self._rect.x + max(10, min(self._rect.width - width - 10, point[0] - width / 2))
+    y = self._rect.y + min(self._rect.height - 34, point[1] + 30)
+    gui_label(rl.Rectangle(x, y, width, 24), ' · '.join(values), 16, alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
 
   @staticmethod
   def _get_path_length_idx(pos_x_array: np.ndarray, path_height: float) -> int:

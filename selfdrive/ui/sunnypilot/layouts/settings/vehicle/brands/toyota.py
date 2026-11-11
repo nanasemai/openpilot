@@ -65,17 +65,20 @@ class ToyotaSettings(BrandSettings):
     ]
 
   def _on_enable_enforce_stock_longitudinal(self, state: bool):
+    if not self.is_current("toyota") or ui_state.engaged:
+      self.update_settings()
+      return
     if state:
+      self.enforce_stock_longitudinal.action_item.set_state(ui_state.params.get_bool("ToyotaEnforceStockLongitudinal"))
       def confirm_callback(result: int):
-        if result == DialogResult.CONFIRM:
-          ui_state.params.put_bool("ToyotaEnforceStockLongitudinal", True)
+        if result == DialogResult.CONFIRM and not ui_state.engaged and self.is_current("toyota"):
+          ui_state.params.put_bool("ToyotaEnforceStockLongitudinal", True, block=True)
           if ui_state.params.get_bool("AlphaLongitudinalEnabled"):
-            ui_state.params.put_bool("AlphaLongitudinalEnabled", False)
-          ui_state.params.put_bool("ToyotaStopAndGoHack", False)
+            ui_state.params.put_bool("AlphaLongitudinalEnabled", False, block=True)
+          ui_state.params.put_bool("ToyotaStopAndGoHack", False, block=True)
           self.stop_and_go_hack.action_item.set_state(False)
-          ui_state.params.put_bool("OnroadCycleRequested", True)
-        else:
-          self.enforce_stock_longitudinal.action_item.set_state(False)
+          ui_state.params.put_bool("OnroadCycleRequested", True, block=True)
+        self.update_settings()
 
       content = (f"<h1>{self.enforce_stock_longitudinal.title}</h1><br>" +
                  f"<p>{self.enforce_stock_longitudinal.description}</p>")
@@ -84,17 +87,22 @@ class ToyotaSettings(BrandSettings):
       gui_app.push_widget(dlg)
 
     else:
-      ui_state.params.put_bool("ToyotaEnforceStockLongitudinal", False)
-      ui_state.params.put_bool("OnroadCycleRequested", True)
+      if not ui_state.engaged:
+        ui_state.params.put_bool("ToyotaEnforceStockLongitudinal", False, block=True)
+        ui_state.params.put_bool("OnroadCycleRequested", True, block=True)
 
   def _on_enable_stop_and_go_hack(self, state: bool):
+    self.update_settings()
+    if not self.is_current("toyota") or ui_state.engaged or (state and not self.stop_and_go_hack.action_item.enabled):
+      return
     if state:
       def confirm_callback(result: int):
-        if result == DialogResult.CONFIRM:
-          ui_state.params.put_bool("ToyotaStopAndGoHack", True)
-          ui_state.params.put_bool("OnroadCycleRequested", True)
-        else:
-          self.stop_and_go_hack.action_item.set_state(False)
+        if (result == DialogResult.CONFIRM and not ui_state.engaged and self.is_current("toyota") and ui_state.CP is not None and
+            ui_state.CP.brand == "toyota" and
+            ui_state.CP.openpilotLongitudinalControl and not ui_state.params.get_bool("ToyotaEnforceStockLongitudinal")):
+          ui_state.params.put_bool("ToyotaStopAndGoHack", True, block=True)
+          ui_state.params.put_bool("OnroadCycleRequested", True, block=True)
+        self.update_settings()
 
       content = (f"<h1>{self.stop_and_go_hack.title}</h1><br>" +
                  f"<p>{self.stop_and_go_hack.description}</p>")
@@ -103,20 +111,29 @@ class ToyotaSettings(BrandSettings):
       gui_app.push_widget(dlg)
 
     else:
-      ui_state.params.put_bool("ToyotaStopAndGoHack", False)
-      ui_state.params.put_bool("OnroadCycleRequested", True)
+      if not ui_state.engaged:
+        ui_state.params.put_bool("ToyotaStopAndGoHack", False, block=True)
+        ui_state.params.put_bool("OnroadCycleRequested", True, block=True)
 
   def _on_enable_auto_lock(self, state: bool):
-    ui_state.params.put_bool("ToyotaDoorAutoLockUnlock", state)
-    ui_state.params.put_bool("OnroadCycleRequested", True)
+    if not ui_state.engaged and self.is_current("toyota"):
+      ui_state.params.put_bool("ToyotaDoorAutoLockUnlock", state, block=True)
+      ui_state.params.put_bool("OnroadCycleRequested", True, block=True)
+    self.update_settings()
 
   def update_settings(self):
-    if ui_state.CP is not None:
+    for item, param in ((self.enforce_stock_longitudinal, "ToyotaEnforceStockLongitudinal"),
+                        (self.stop_and_go_hack, "ToyotaStopAndGoHack"), (self.auto_lock, "ToyotaDoorAutoLockUnlock")):
+      item.action_item.set_state(ui_state.params.get_bool(param))
+    allowed = self.is_current("toyota") and not ui_state.engaged
+    self.enforce_stock_longitudinal.action_item.set_enabled(allowed)
+    self.auto_lock.action_item.set_enabled(allowed)
+    if ui_state.CP is not None and ui_state.CP.brand == "toyota" and self.is_current("toyota"):
       longitudinal = ui_state.CP.openpilotLongitudinalControl
       enforce_stock = self.enforce_stock_longitudinal.action_item.get_state()
 
       if longitudinal and not enforce_stock:
-        self.stop_and_go_hack.action_item.set_enabled(not ui_state.engaged)
+        self.stop_and_go_hack.action_item.set_enabled(allowed)
         new_desc = tr(DESCRIPTIONS["stop_and_go_hack"])
         show_desc = False
       else:

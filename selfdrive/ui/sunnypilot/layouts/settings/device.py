@@ -104,7 +104,7 @@ class DeviceLayoutSP(DeviceLayout):
 
     self._onroad_uploads_and_reset_settings = dual_button_item_sp(
       left_text=lambda: tr("Onroad Uploads"),
-      left_callback=lambda: ui_state.params.put_bool("OnroadUploads", not ui_state.params.get_bool("OnroadUploads")),
+      left_callback=self._toggle_onroad_uploads,
       right_text=lambda: tr("Reset Settings"),
       right_callback=self._reset_settings
     )
@@ -165,14 +165,16 @@ class DeviceLayoutSP(DeviceLayout):
 
   @staticmethod
   def _reset_settings():
+    if not ui_state.is_offroad() or ui_state.engaged:
+      return
     def _do_reset(result: int):
-      if result == DialogResult.CONFIRM:
+      if result == DialogResult.CONFIRM and ui_state.is_offroad() and not ui_state.engaged:
         for _key in ui_state.params.all_keys():
           ui_state.params.remove(_key)
         HARDWARE.reboot()
 
     def _second_confirm(result: int):
-      if result == DialogResult.CONFIRM:
+      if result == DialogResult.CONFIRM and ui_state.is_offroad() and not ui_state.engaged:
         gui_app.push_widget(ConfirmDialog(
           text=tr("The reset cannot be undone. You have been warned."),
           confirm_text=tr("Confirm"), callback=_do_reset
@@ -195,7 +197,7 @@ class DeviceLayoutSP(DeviceLayout):
 
     def _set_always_offroad(result: int):
       if result == DialogResult.CONFIRM and not ui_state.engaged:
-        ui_state.params.put_bool("OffroadMode", not _offroad_mode_state)
+        ui_state.params.put_bool("OffroadMode", not _offroad_mode_state, block=True)
 
     gui_app.push_widget(ConfirmDialog(_offroad_mode_str, tr("Confirm"), callback=lambda result: _set_always_offroad(result)))
 
@@ -206,10 +208,15 @@ class DeviceLayoutSP(DeviceLayout):
     return label
 
   @staticmethod
+  def _toggle_onroad_uploads():
+    if not ui_state.params.get_bool("dp_dev_disable_connect"):
+      ui_state.params.put_bool("OnroadUploads", not ui_state.params.get_bool("OnroadUploads"), block=True)
+
+  @staticmethod
   def _on_disable_connect_changed(state: bool):
     # Disabling Comma Connect must also force Onroad Uploads off
     if state:
-      ui_state.params.put_bool("OnroadUploads", False)
+      ui_state.params.put_bool("OnroadUploads", False, block=True)
 
   def _update_state(self):
     super()._update_state()
@@ -240,6 +247,7 @@ class DeviceLayoutSP(DeviceLayout):
     self._onroad_uploads_and_reset_settings.action_item.left_button.set_enabled(not disable_connect)
 
     # Offroad only buttons
+    self._power_buttons.action_item.right_button.set_visible(ui_state.is_offroad())
     self._driver_cam_btn.action_item.set_enabled(ui_state.is_offroad())
     self._reg_and_training.action_item.left_button.set_enabled(ui_state.is_offroad())
     self._reg_and_training.action_item.right_button.set_enabled(ui_state.is_offroad())

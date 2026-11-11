@@ -24,7 +24,7 @@ class BigDialogBase(NavWidget, abc.ABC):
 
 
 class BigDialog(BigDialogBase):
-  def __init__(self, title: str, description: str, icon: Union[rl.Texture, None] = None):
+  def __init__(self, title: str | Callable[[], str], description: str | Callable[[], str], icon: Union[rl.Texture, None] = None):
     super().__init__()
     self._card = GreyBigButton(title, description, icon)
 
@@ -38,7 +38,7 @@ class BigDialog(BigDialogBase):
 
 
 class BigConfirmationDialog(BigDialogBase):
-  def __init__(self, title: str, icon: rl.Texture, confirm_callback: Callable[[], None],
+  def __init__(self, title: str | Callable[[], str], icon: rl.Texture, confirm_callback: Callable[[], None],
                exit_on_confirm: bool = True, red: bool = False):
     super().__init__()
     self._confirm_callback = confirm_callback
@@ -72,11 +72,11 @@ class BigInputDialog(BigDialogBase):
   TEXT_INPUT_SIZE = 35
 
   def __init__(self,
-               hint: str,
+               hint: str | Callable[[], str],
                default_text: str = "",
                minimum_length: int = 1,
                confirm_callback: Callable[[str], None] | None = None,
-               auto_return_to_letters: str = ""):
+               auto_return_to_letters: str = "", cancel_callback: Callable[[], None] | None = None):
     super().__init__()
     self._hint_label = UnifiedLabel(hint, font_size=35, text_color=rl.Color(255, 255, 255, int(255 * 0.35)),
                                     font_weight=FontWeight.MEDIUM)
@@ -84,6 +84,8 @@ class BigInputDialog(BigDialogBase):
     self._keyboard.set_text(default_text)
     self._keyboard.set_enabled(lambda: self.enabled and not self.is_dismissing)  # for nav stack + NavWidget
     self._minimum_length = minimum_length
+    self._cancel_callback = cancel_callback
+    self._input_confirmed = False
 
     self._backspace_held_time: float | None = None
 
@@ -99,9 +101,16 @@ class BigInputDialog(BigDialogBase):
     self._top_right_button_rect = rl.Rectangle(0, 0, 0, 0)
 
     def confirm_callback_wrapper():
+      self._input_confirmed = True
       text = self._keyboard.text()
       self.dismiss((lambda: confirm_callback(text)) if confirm_callback else None)
     self._confirm_callback = confirm_callback_wrapper
+
+  def hide_event(self):
+    super().hide_event()
+    if not self._input_confirmed and self._cancel_callback:
+      callback, self._cancel_callback = self._cancel_callback, None
+      callback()
 
   def _update_state(self):
     super()._update_state()
@@ -229,7 +238,7 @@ class BigDialogButton(BigButton):
 
 
 class BigConfirmationCircleButton(BigCircleButton):
-  def __init__(self, title: str, icon: rl.Texture, confirm_callback: Callable[[], None], exit_on_confirm: bool = True,
+  def __init__(self, title: str | Callable[[], str], icon: rl.Texture, confirm_callback: Callable[[], None], exit_on_confirm: bool = True,
                red: bool = False, icon_offset: tuple[int, int] = (0, 0)):
     super().__init__(icon, red, icon_offset)
 

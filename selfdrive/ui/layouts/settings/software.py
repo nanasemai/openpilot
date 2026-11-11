@@ -4,7 +4,7 @@ import datetime
 from openpilot.common.time_helpers import system_time_valid
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app
-from openpilot.system.ui.lib.multilang import tr, trn
+from openpilot.system.ui.lib.multilang import tr, trn, tr_noop
 from openpilot.system.ui.widgets import Widget, DialogResult
 from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
 from openpilot.system.ui.widgets.list_view import button_item, text_item, ListItem
@@ -19,9 +19,9 @@ UPDATED_TIMEOUT = 10  # seconds to wait for updated to respond
 
 # Mapping updater internal states to translated display strings
 STATE_TO_DISPLAY_TEXT = {
-  "checking...": tr("checking..."),
-  "downloading...": tr("downloading..."),
-  "finalizing update...": tr("finalizing update..."),
+  "checking...": tr_noop("checking..."),
+  "downloading...": tr_noop("downloading..."),
+  "finalizing update...": tr_noop("finalizing update..."),
 }
 
 
@@ -30,7 +30,7 @@ def time_ago(date: datetime.datetime | None) -> str:
     return tr("never")
 
   if not system_time_valid():
-    return date.strftime("%a %b %d %Y")
+    return date.strftime("%Y-%m-%d")
 
   now = datetime.datetime.now(datetime.UTC)
   if date.tzinfo is None:
@@ -48,7 +48,7 @@ def time_ago(date: datetime.datetime | None) -> str:
   if diff_seconds < 604800:
     d = diff_seconds // 86400
     return trn("{} day ago", "{} days ago", d).format(d)
-  return date.strftime("%a %b %d %Y")
+  return date.strftime("%Y-%m-%d")
 
 
 class SoftwareLayout(Widget):
@@ -66,11 +66,14 @@ class SoftwareLayout(Widget):
     # Track waiting-for-updater transition to avoid brief re-enable while still idle
     self._waiting_for_updater = False
     self._waiting_start_ts: float = 0.0
+    self._updater_timeout = False
 
     # Branch switcher
     self._branch_btn = button_item(lambda: tr("Target Branch"), lambda: tr("SELECT"), callback=self._on_select_branch)
     self._branch_btn.action_item.set_value(ui_state.params.get("UpdaterTargetBranch") or "")
     self._branch_dialog: MultiOptionDialog | None = None
+    self._uninstall_btn = button_item(lambda: tr("Uninstall"), lambda: tr("UNINSTALL"), callback=self._on_uninstall,
+                                      description=lambda: tr("Uninstalling is only available while the vehicle is off."))
 
     self._scroller = Scroller([
       self._onroad_label,
@@ -78,7 +81,7 @@ class SoftwareLayout(Widget):
       self._download_btn,
       self._install_btn,
       self._branch_btn,
-      button_item(lambda: tr("Uninstall"), lambda: tr("UNINSTALL"), callback=self._on_uninstall),
+      self._uninstall_btn,
     ], line_separator=True, spacing=0)
 
   def show_event(self):
@@ -91,6 +94,7 @@ class SoftwareLayout(Widget):
   def _update_state(self):
     # Show/hide onroad warning
     self._onroad_label.set_visible(ui_state.is_onroad())
+    self._uninstall_btn.action_item.set_enabled(ui_state.is_offroad())
 
     # Update current version and release notes
     current_desc = ui_state.params.get("UpdaterCurrentDescription") or ""
@@ -109,12 +113,18 @@ class SoftwareLayout(Widget):
     if updater_state != "idle":
       # Updater responded
       self._waiting_for_updater = False
+      self._updater_timeout = False
       self._download_btn.action_item.set_enabled(False)
       # Use the mapping, with a fallback to the original state string
-      display_text = STATE_TO_DISPLAY_TEXT.get(updater_state, updater_state)
+      display_text = tr(STATE_TO_DISPLAY_TEXT.get(updater_state, updater_state))
       self._download_btn.action_item.set_value(display_text)
     else:
-      if failed_count > 0:
+      if self._waiting_for_updater:
+        self._download_btn.action_item.set_value(tr("Waiting for update service..."))
+      elif self._updater_timeout:
+        self._download_btn.action_item.set_value(tr("Update service did not respond. Retry."))
+        self._download_btn.action_item.set_text(tr("CHECK"))
+      elif failed_count > 0:
         self._download_btn.action_item.set_value(tr("failed to check for update"))
         self._download_btn.action_item.set_text(tr("CHECK"))
       elif fetch_available:
@@ -132,6 +142,9 @@ class SoftwareLayout(Widget):
       # If we've been waiting too long without a state change, reset state
       if self._waiting_for_updater and (time.monotonic() - self._waiting_start_ts > UPDATED_TIMEOUT):
         self._waiting_for_updater = False
+        self._updater_timeout = True
+        self._download_btn.action_item.set_value(tr("Update service did not respond. Retry."))
+        self._download_btn.action_item.set_text(tr("CHECK"))
 
       # Only enable if we're not waiting for updater to flip out of idle
       self._download_btn.action_item.set_enabled(not self._waiting_for_updater)
@@ -154,9 +167,12 @@ class SoftwareLayout(Widget):
       self._install_btn.set_visible(False)
 
   def _on_download_update(self):
+    if not ui_state.is_offroad() or self._waiting_for_updater or (ui_state.params.get("UpdaterState") or "idle") != "idle":
+      return
     # Check if we should start checking or start downloading
     self._download_btn.action_item.set_enabled(False)
-    if self._download_btn.action_item.text == tr("CHECK"):
+    self._updater_timeout = False
+    if not ui_state.params.get_bool("UpdaterFetchAvailable") or (ui_state.params.get("UpdateFailedCount") or 0) > 0:
       # Start checking for updates
       self._waiting_for_updater = True
       self._waiting_start_ts = time.monotonic()
@@ -168,14 +184,18 @@ class SoftwareLayout(Widget):
       os.system("pkill -SIGHUP -f system.updated.updated")
 
   def _on_uninstall(self):
+    if not ui_state.is_offroad():
+      return
     def handle_uninstall_confirmation(result: DialogResult):
-      if result == DialogResult.CONFIRM:
+      if result == DialogResult.CONFIRM and ui_state.is_offroad():
         ui_state.params.put_bool("DoUninstall", True, block=True)
 
     dialog = ConfirmDialog(tr("Are you sure you want to uninstall?"), tr("Uninstall"), callback=handle_uninstall_confirmation)
     gui_app.push_widget(dialog)
 
   def _on_install_update(self):
+    if not ui_state.is_offroad() or not ui_state.params.get_bool("UpdateAvailable"):
+      return
     # Trigger reboot to install update
     self._install_btn.action_item.set_enabled(False)
     ui_state.params.put_bool("DoReboot", True, block=True)

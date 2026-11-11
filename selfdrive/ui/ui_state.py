@@ -104,6 +104,10 @@ class UIState(UIStateSP):
   def add_offroad_transition_callback(self, callback: Callable[[], None]):
     self._offroad_transition_callbacks.append(callback)
 
+  def remove_offroad_transition_callback(self, callback: Callable[[], None]):
+    if callback in self._offroad_transition_callbacks:
+      self._offroad_transition_callbacks.remove(callback)
+
   def add_engaged_transition_callback(self, callback: Callable[[], None]):
     self._engaged_transition_callbacks.append(callback)
 
@@ -194,7 +198,7 @@ class UIState(UIStateSP):
         self.started_frame = self.sm.frame
         self.started_time = time.monotonic()
 
-      for callback in self._offroad_transition_callbacks:
+      for callback in self._offroad_transition_callbacks.copy():
         callback()
 
       self._started_prev = self.started
@@ -227,6 +231,9 @@ class Device(DeviceSP):
     self._ignition = False
     self._interaction_time: float = -1
     self._override_interactive_timeout: int | None = None
+    self._last_interactive_timeout: int | None = None
+    self._wake_touch_slots: set[int] = set()
+    self._touch_down_slots: set[int] = set()
     self._interactive_timeout_callbacks: list[Callable] = []
     self._prev_timed_out = False
     self._awake: bool = True
@@ -259,20 +266,54 @@ class Device(DeviceSP):
     return ignition_timeout if ui_state.ignition else 30
 
   def _reset_interactive_timeout(self) -> None:
-    self._interaction_time = time.monotonic() + self.interactive_timeout
+    self._last_interactive_timeout = self.interactive_timeout
+    self._interaction_time = time.monotonic() + self._last_interactive_timeout
+
+  def handle_mouse_events(self) -> None:
+    # Consume the entire wake gesture before any widget sees its press or release.
+    events = gui_app.mouse_events
+    sunnypilot = gui_app.sunnypilot_ui()
+    wake_only = not self._awake or (sunnypilot and ui_state.started and ui_state.onroad_brightness_timer_expired)
+    touching = bool(self._touch_down_slots) or any(event.left_down for event in events)
+    for event in events:
+      if event.left_down:
+        self._touch_down_slots.add(event.slot)
+      else:
+        self._touch_down_slots.discard(event.slot)
+    if touching:
+      self._reset_interactive_timeout()
+      if sunnypilot:
+        DeviceSP.wake_from_dimmed_onroad_brightness(ui_state, True)
+      self._set_awake(True)
+
+    accepted = []
+    for event in events:
+      if wake_only and event.left_pressed:
+        self._wake_touch_slots.add(event.slot)
+      if event.slot in self._wake_touch_slots:
+        if event.left_released:
+          self._wake_touch_slots.remove(event.slot)
+      else:
+        accepted.append(event)
+    events[:] = accepted
 
   def add_interactive_timeout_callback(self, callback: Callable):
-    self._interactive_timeout_callbacks.append(callback)
+    if callback not in self._interactive_timeout_callbacks:
+      self._interactive_timeout_callbacks.append(callback)
+
+  def remove_interactive_timeout_callback(self, callback: Callable):
+    if callback in self._interactive_timeout_callbacks:
+      self._interactive_timeout_callbacks.remove(callback)
 
   def update(self):
     self._start_brightness_thread()  # start thread after manager forks ui
 
     # do initial reset
-    if self._interaction_time <= 0:
+    if self._interaction_time <= 0 or self.interactive_timeout != self._last_interactive_timeout:
       self._reset_interactive_timeout()
 
-    self._update_brightness()
     self._update_wakefulness()
+    self._update_brightness()
 
   def _start_brightness_thread(self):
     if self._brightness_thread is None or not self._brightness_thread.is_alive():
@@ -329,13 +370,13 @@ class Device(DeviceSP):
 
     if ignition_just_turned_off or any(ev.left_down for ev in gui_app.mouse_events):
       if gui_app.sunnypilot_ui():
-        DeviceSP.wake_from_dimmed_onroad_brightness(ui_state, gui_app.mouse_events)
+        DeviceSP.wake_from_dimmed_onroad_brightness(ui_state, any(ev.left_down for ev in gui_app.mouse_events))
 
       self._reset_interactive_timeout()
 
     interaction_timeout = time.monotonic() > self._interaction_time
     if interaction_timeout and not self._prev_timed_out:
-      for callback in self._interactive_timeout_callbacks:
+      for callback in self._interactive_timeout_callbacks.copy():
         callback()
     self._prev_timed_out = interaction_timeout
 

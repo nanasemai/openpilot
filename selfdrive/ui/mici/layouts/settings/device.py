@@ -18,6 +18,7 @@ from openpilot.system.ui.lib.multilang import multilang, tr
 from openpilot.system.ui.widgets import Widget
 from openpilot.selfdrive.ui.ui_state import device, ui_state
 from openpilot.system.ui.widgets.label import UnifiedLabel
+from openpilot.system.ui.widgets.compact import translation_source
 from openpilot.system.ui.widgets.html_render import HtmlModal, HtmlRenderer
 from openpilot.system.athena.registration import UNREGISTERED_DONGLE_ID
 
@@ -33,14 +34,36 @@ class ReviewTermsPage(TermsPage, NavScroller):
 
 
 class ReviewTrainingGuide(TrainingGuide):
+  def __init__(self, completed_callback: Callable[[], None]):
+    super().__init__(completed_callback)
+    self._review_open = False
+
   def show_event(self):
     super().show_event()
+    self._review_open = True
+    ui_state.add_offroad_transition_callback(self._on_vehicle_state_changed)
     device.set_override_interactive_timeout(300)
 
   def hide_event(self):
+    self._review_open = False
+    ui_state.remove_offroad_transition_callback(self._on_vehicle_state_changed)
     super().hide_event()
     device.set_override_interactive_timeout(None)
-    ui_state.params.put_bool("IsDriverViewEnabled", False)
+    ui_state.params.put_bool("IsDriverViewEnabled", False, block=True)
+
+  def _on_vehicle_state_changed(self):
+    if self._review_open and not ui_state.is_offroad() and gui_app.widget_in_stack(self):
+      gui_app.pop_widgets_to(self, instant=True)
+      gui_app.pop_widget()
+
+  def _update_state(self):
+    self._on_vehicle_state_changed()
+    if self._review_open:
+      super()._update_state()
+
+  def _render(self, rect):
+    if self._review_open:
+      super()._render(rect)
 
 
 class MiciFccModal(NavRawScrollPanel):
@@ -72,23 +95,28 @@ def _engaged_confirmation_click(callback: Callable, action_text: str, icon: rl.T
       if not ui_state.engaged:
         callback()
 
-    gui_app.push_widget(BigConfirmationDialog(tr(f"slide to\n{action_text.lower()}"), icon, confirm_callback, exit_on_confirm=exit_on_confirm, red=red))
+    gui_app.push_widget(BigConfirmationDialog(lambda: tr("slide to\n{action}").format(action=tr(action_text).lower()),
+                                              icon, confirm_callback, exit_on_confirm=exit_on_confirm, red=red))
   else:
-    gui_app.push_widget(BigDialog("", tr(f"Disengage to {action_text}")))
+    gui_app.push_widget(BigDialog("", lambda: tr("Disengage to {action}").format(action=tr(action_text))))
 
 
 class EngagedConfirmationCircleButton(BigCircleButton):
   def __init__(self, title: str, icon: rl.Texture, callback: Callable[[], None], exit_on_confirm: bool = True,
                red: bool = False, icon_offset: tuple[int, int] = (0, 0)):
     super().__init__(icon, red, icon_offset)
-    self.set_click_callback(lambda: _engaged_confirmation_click(callback, title, icon, exit_on_confirm=exit_on_confirm, red=red))
+    # Callers may already have translated the action. Keep its source while that
+    # language is active, so opening or rendering after a language change works.
+    action_source = translation_source(title).lower()
+    self.set_click_callback(lambda: _engaged_confirmation_click(callback, action_source, icon, exit_on_confirm=exit_on_confirm, red=red))
 
 
 class EngagedConfirmationButton(BigButton):
-  def __init__(self, text: str, action_text: str, icon: rl.Texture, callback: Callable[[], None],
+  def __init__(self, text: str | Callable[[], str], action_text: str, icon: rl.Texture, callback: Callable[[], None],
                exit_on_confirm: bool = True, red: bool = False):
     super().__init__(text, "", icon)
-    self.set_click_callback(lambda: _engaged_confirmation_click(callback, action_text, icon, exit_on_confirm=exit_on_confirm, red=red))
+    action_source = translation_source(action_text).lower()
+    self.set_click_callback(lambda: _engaged_confirmation_click(callback, action_source, icon, exit_on_confirm=exit_on_confirm, red=red))
 
 
 class DeviceInfoLayoutMici(Widget):
@@ -107,6 +135,13 @@ class DeviceInfoLayoutMici(Widget):
     self._serial_number_label = UnifiedLabel(tr("serial"), 48, max_width=max_width, font_weight=FontWeight.DISPLAY, wrap_text=False)
     self._serial_number_text_label = UnifiedLabel(params.get("HardwareSerial") or tr('N/A'), 32, max_width=max_width, text_color=subheader_color,
                                                   font_weight=FontWeight.ROMAN, wrap_text=False)
+
+  def _update_state(self):
+    super()._update_state()
+    self._dongle_id_label.set_text(tr("device id"))
+    self._dongle_id_text_label.set_text(ui_state.params.get("DongleId") or tr('N/A'))
+    self._serial_number_label.set_text(tr("serial"))
+    self._serial_number_text_label.set_text(ui_state.params.get("HardwareSerial") or tr('N/A'))
 
   def _render(self, _):
     self._dongle_id_label.set_position(self._rect.x + 20, self._rect.y - 10)
@@ -141,12 +176,12 @@ class PairBigButton(BigButton):
     if ui_state.prime_state.is_paired():
       self.set_text(tr("paired"))
       if ui_state.prime_state.is_prime():
-        self.set_value(tr("subscribed"))
+        self.set_value(lambda: tr("subscribed"))
       else:
-        self.set_value(tr("upgrade to prime"))
+        self.set_value(lambda: tr("upgrade to prime"))
     else:
       self.set_text(tr("pair"))
-      self.set_value(tr("connect.comma.ai"))
+      self.set_value(lambda: tr("connect.comma.ai"))
 
   def _handle_mouse_release(self, mouse_pos: MousePos):
     super()._handle_mouse_release(mouse_pos)
@@ -228,7 +263,7 @@ class UpdateOpenpilotBigButton(BigButton):
       self.set_rotate_icon(False)
       self.set_enabled(True)
       if self.get_value() != tr("update now"):
-        self.set_value(tr("update now"))
+        self.set_value(lambda: tr("update now"))
         self.set_icon(self._txt_reboot_icon)
 
     elif self._state == UpdaterState.WAITING_FOR_UPDATER:
@@ -242,7 +277,7 @@ class UpdateOpenpilotBigButton(BigButton):
 
       if self._waiting_for_updater_t is not None and rl.get_time() - self._waiting_for_updater_t > UPDATER_TIMEOUT:
         self.set_rotate_icon(False)
-        self.set_value(tr("updater failed\nto respond"))
+        self.set_value(lambda: tr("updater failed\nto respond"))
         self._state = UpdaterState.IDLE
         self._hide_value_t = rl.get_time()
 
@@ -260,17 +295,17 @@ class UpdateOpenpilotBigButton(BigButton):
       if failed:
         self.set_enabled(True)  # allow retry when failure came from updater param
         if self.get_value() != tr("failed to update"):
-          self.set_value(tr("failed to update"))
+          self.set_value(lambda: tr("failed to update"))
 
       elif ui_state.params.get_bool("UpdaterFetchAvailable"):
         self.set_enabled(True)
         if self.get_value() != tr("download update"):
-          self.set_value(tr("download update"))
+          self.set_value(lambda: tr("download update"))
 
       elif self._hide_value_t is not None:
         self.set_enabled(True)
         if self.get_value() == tr("checking..."):
-          self.set_value(tr("up to date"))
+          self.set_value(lambda: tr("up to date"))
           self.set_icon(self._txt_up_to_date_icon)
 
         # Hide previous text after short amount of time (up to date or failed)
@@ -307,11 +342,15 @@ class LanguageSelectionLayout(Scroller):
   def _on_language_selected(self, lang_code: str, _display_name: str):
     multilang.change_language(lang_code)
     gui_app.on_language_changed(lang_code)
-    # Pop to SettingsLayout instantly, then push a fresh DeviceLayoutMici with new language
+    # Native settings keep their pages, callbacks and current scroll positions.
     try:
       parent_idx = gui_app._nav_stack.index(self._parent)
       if parent_idx > 0:
         settings_layout = gui_app._nav_stack[parent_idx - 1]
+        if hasattr(settings_layout, 'refresh_translations'):
+          settings_layout.refresh_translations()
+          gui_app.pop_widgets_to(self._parent, instant=True)
+          return
         gui_app.pop_widgets_to(settings_layout, instant=True)
         gui_app.push_widget(DeviceLayoutMici())
         return
@@ -344,10 +383,11 @@ class DeviceLayoutMici(NavScroller):
     def uninstall_openpilot_callback():
       ui_state.params.put_bool("DoUninstall", True, block=True)
 
-    reset_calibration_btn = EngagedConfirmationButton(tr("reset calibration"), tr("reset"), gui_app.texture("icons_mici/settings/device/lkas.png", 122, 64),
+    reset_calibration_btn = EngagedConfirmationButton(lambda: tr("reset calibration"), tr("reset"),
+                                                      gui_app.texture("icons_mici/settings/device/lkas.png", 122, 64),
                                                       reset_calibration_callback)
 
-    uninstall_openpilot_btn = EngagedConfirmationButton(tr("uninstall sunnypilot"), tr("uninstall"),
+    uninstall_openpilot_btn = EngagedConfirmationButton(lambda: tr("uninstall sunnypilot"), tr("uninstall"),
                                                         gui_app.texture("icons_mici/settings/device/uninstall.png", 64, 64),
                                                         uninstall_openpilot_callback, exit_on_confirm=False)
 
@@ -358,23 +398,23 @@ class DeviceLayoutMici(NavScroller):
                                                           power_off_callback, exit_on_confirm=False, red=True)
     self._power_off_btn.set_visible(lambda: not ui_state.ignition)
 
-    regulatory_btn = BigButton(tr("regulatory info"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+    regulatory_btn = BigButton(lambda: tr("regulatory info"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
     regulatory_btn.set_click_callback(self._on_regulatory)
 
-    driver_cam_btn = BigButton(tr("driver\ncamera preview"), "", gui_app.texture("icons_mici/settings/device/cameras.png", 64, 64))
+    driver_cam_btn = BigButton(lambda: tr("driver\ncamera preview"), "", gui_app.texture("icons_mici/settings/device/cameras.png", 64, 64))
     driver_cam_btn.set_click_callback(lambda: gui_app.push_widget(DriverCameraDialog()))
     driver_cam_btn.set_enabled(lambda: ui_state.is_offroad())
     if os.getenv("DISABLE_DRIVER"):
       driver_cam_btn.set_visible(False)
 
-    review_training_guide_btn = BigButton(tr("review\ntraining guide"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+    review_training_guide_btn = BigButton(lambda: tr("review\ntraining guide"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
     review_training_guide_btn.set_click_callback(lambda: gui_app.push_widget(ReviewTrainingGuide(completed_callback=lambda: gui_app.pop_widgets_to(self))))
     review_training_guide_btn.set_enabled(lambda: ui_state.is_offroad())
 
-    terms_btn = BigButton(tr("terms &\nconditions"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+    terms_btn = BigButton(lambda: tr("terms &\nconditions"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
     terms_btn.set_click_callback(lambda: gui_app.push_widget(ReviewTermsPage()))
 
-    language_btn = BigButton(tr("change language"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
+    language_btn = BigButton(lambda: tr("change language"), "", gui_app.texture("icons_mici/settings/device/info.png", 64, 64))
     language_btn.set_click_callback(self._show_language_dialog)
 
     self._scroller.add_widgets([

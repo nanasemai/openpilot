@@ -30,8 +30,10 @@ class ConfirmDialog(Widget):
     self._callback = callback
     self._cancel_text = cancel_text
     self._scroller = Scroller([self._html_renderer], line_separator=False, spacing=0)
+    self._compact_view = None
 
   def set_text(self, text):
+    self._compact_view = None
     if not self._rich:
       self._label.set_text(text)
     else:
@@ -48,6 +50,21 @@ class ConfirmDialog(Widget):
       self._callback(DialogResult.CONFIRM)
 
   def _render(self, rect: rl.Rectangle):
+    if not gui_app.big_ui():
+      from openpilot.system.ui.widgets.compact import CompactConfirmView, resolve, translation_source
+      if self._compact_view is None:
+        def translated(value):
+          initial = str(resolve(value))
+          source = translation_source(initial)
+          return lambda: tr(source) if str(resolve(value)) == initial else tr(str(resolve(value)))
+        self._compact_view = CompactConfirmView(
+          lambda: tr("Confirm"), translated(lambda: self._html_renderer.raw_text if self._rich else resolve(self._label._text)),
+          translated(lambda: resolve(self._confirm_button._label._text)), translated(lambda: resolve(self._cancel_button._label._text)),
+          self._confirm_button_callback, self._cancel_button_callback, self._rich,
+        )
+      self._compact_view.set_enabled(self.enabled)
+      self._compact_view.render(rect)
+      return
     dialog_x = OUTER_MARGIN if not self._rich else RICH_OUTER_MARGIN
     dialog_y = OUTER_MARGIN if not self._rich else RICH_OUTER_MARGIN
     dialog_width = gui_app.width - 2 * dialog_x

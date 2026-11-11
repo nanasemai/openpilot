@@ -4,12 +4,12 @@ Copyright (c) 2021-, Haibin Wen, sunnypilot, and a number of other contributors.
 This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
-import re
 import unicodedata
 
 
 def normalize(text: str) -> str:
-  return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8').lower()
+  text = unicodedata.normalize('NFKD', text).casefold()
+  return ''.join(char for char in text if not unicodedata.combining(char))
 
 
 def search_from_list(query: str, items: list[str]) -> list[str]:
@@ -17,13 +17,13 @@ def search_from_list(query: str, items: list[str]) -> list[str]:
     return items
 
   normalized_query = normalize(query)
-  search_terms = [re.sub(r'[^a-z0-9]', '', term) for term in normalized_query.split() if term.strip()]
+  search_terms = [''.join(char for char in term if char.isalnum()) for term in normalized_query.split() if term.strip()]
 
   results = []
   for item in items:
     normalized_item = normalize(item)
-    item_with_spaces = re.sub(r'[^a-z0-9\s]', ' ', normalized_item)
-    item_stripped = re.sub(r'[^a-z0-9]', '', normalized_item)
+    item_with_spaces = ''.join(char if char.isalnum() or char.isspace() else ' ' for char in normalized_item)
+    item_stripped = ''.join(char for char in normalized_item if char.isalnum())
 
     all_terms_match = True
     for term in search_terms:

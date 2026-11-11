@@ -14,18 +14,18 @@ class AlphaLongConfirmPage(NavScroller):
   def __init__(self, on_confirm: Callable[[], None]):
     super().__init__()
 
-    accept = BigConfirmationCircleButton(tr("enable alpha\nlongitudinal"),
+    accept = BigConfirmationCircleButton(lambda: tr("enable alpha\nlongitudinal"),
                                          gui_app.texture("icons_mici/setup/driver_monitoring/dm_check.png", 64, 64),
                                          lambda: self.dismiss(on_confirm))
 
     self._scroller.add_widgets([
-      GreyBigButton(tr("enabling alpha longitudinal"), tr("scroll to continue"),
+      GreyBigButton(lambda: tr("enabling alpha longitudinal"), lambda: tr("scroll to continue"),
                     gui_app.texture("icons_mici/setup/warning.png", 64, 64)),
-      GreyBigButton("", tr("WARNING: alpha longitudinal control may disable Automatic Emergency Braking (AEB)")),
-      GreyBigButton("", tr("On this car, openpilot defaults to the stock system's built-in ACC.")),
-      GreyBigButton("", tr("Enabling this will switch to openpilot longitudinal control.")),
-      GreyBigButton("", tr("Using Experimental mode is recommended with openpilot longitudinal control alpha.")),
-      GreyBigButton("", tr("Changing this setting will restart openpilot if the car is powered on.")),
+      GreyBigButton("", lambda: tr("WARNING: alpha longitudinal control may disable Automatic Emergency Braking (AEB)")),
+      GreyBigButton("", lambda: tr("On this car, openpilot defaults to the stock system's built-in ACC.")),
+      GreyBigButton("", lambda: tr("Enabling this will switch to openpilot longitudinal control.")),
+      GreyBigButton("", lambda: tr("Using Experimental mode is recommended with openpilot longitudinal control alpha.")),
+      GreyBigButton("", lambda: tr("Changing this setting will restart openpilot if the car is powered on.")),
       accept,
     ])
 
@@ -37,7 +37,7 @@ class DeveloperLayoutMici(NavScroller):
 
     def github_username_callback(username: str):
       if username:
-        self._ssh_keys_btn.set_value(tr("Loading..."))
+        self._ssh_keys_btn.set_value(lambda: tr("Loading..."))
         self._ssh_keys_btn.set_enabled(False)
 
         def on_response(error):
@@ -45,17 +45,17 @@ class DeveloperLayoutMici(NavScroller):
           if error is None:
             self._ssh_keys_btn.set_value(username)
           else:
-            self._ssh_keys_btn.set_value(tr("Not set"))
+            self._ssh_keys_btn.set_value(lambda: tr("Not set"))
             gui_app.push_widget(BigDialog("", error))
 
         self._ssh_fetcher.fetch(username, on_response)
       else:
         self._ssh_fetcher.clear()
-        self._ssh_keys_btn.set_value(tr("Not set"))
+        self._ssh_keys_btn.set_value(lambda: tr("Not set"))
 
     def ssh_keys_callback():
       github_username = ui_state.params.get("GithubUsername") or ""
-      dlg = BigInputDialog(tr("enter GitHub username..."), github_username, minimum_length=0, confirm_callback=github_username_callback)
+      dlg = BigInputDialog(lambda: tr("enter GitHub username..."), github_username, minimum_length=0, confirm_callback=github_username_callback)
       if not system_time_valid():
         dlg = BigDialog("", tr("Please connect to Wi-Fi to fetch your key."))
         gui_app.push_widget(dlg)
@@ -64,32 +64,32 @@ class DeveloperLayoutMici(NavScroller):
 
     txt_ssh = gui_app.texture("icons_mici/settings/developer/ssh.png", 56, 64)
     github_username = ui_state.params.get("GithubUsername") or ""
-    self._ssh_keys_btn = BigButton(tr("SSH keys"), tr("Not set") if not github_username else github_username, icon=txt_ssh)
+    self._ssh_keys_btn = BigButton(lambda: tr("SSH keys"), lambda: tr("Not set") if not github_username else github_username, icon=txt_ssh)
     self._ssh_keys_btn.set_click_callback(ssh_keys_callback)
 
     # adb, ssh, ssh keys, debug mode, joystick debug mode, longitudinal maneuver mode, ip address
     # ******** Main Scroller ********
     self._adb_toggle = BigCircleParamControl(gui_app.texture("icons_mici/adb_short.png", 82, 82), "AdbEnabled", icon_offset=(0, 12))
     self._ssh_toggle = BigCircleParamControl(gui_app.texture("icons_mici/ssh_short.png", 82, 82), "SshEnabled", icon_offset=(0, 12))
-    self._joystick_toggle = BigToggle(tr("joystick debug mode"),
+    self._joystick_toggle = BigToggle(lambda: tr("joystick debug mode"),
                                       initial_state=ui_state.params.get_bool("JoystickDebugMode"),
                                       toggle_callback=self._on_joystick_debug_mode)
-    self._long_maneuver_toggle = BigToggle(tr("longitudinal maneuver mode"),
+    self._long_maneuver_toggle = BigToggle(lambda: tr("longitudinal maneuver mode"),
                                            initial_state=ui_state.params.get_bool("LongitudinalManeuverMode"),
                                            toggle_callback=self._on_long_maneuver_mode)
-    self._lat_maneuver_toggle = BigToggle(tr("lateral maneuver mode"),
+    self._lat_maneuver_toggle = BigToggle(lambda: tr("lateral maneuver mode"),
                                           initial_state=ui_state.params.get_bool("LateralManeuverMode"),
                                           toggle_callback=self._on_lat_maneuver_mode)
-    self._alpha_long_toggle = BigToggle(tr("alpha longitudinal"),
+    self._alpha_long_toggle = BigToggle(lambda: tr("alpha longitudinal"),
                                         initial_state=ui_state.params.get_bool("AlphaLongitudinalEnabled"),
                                         toggle_callback=self._on_alpha_long_enabled)
-    self._debug_mode_toggle = BigParamControl(tr("ui debug mode"), "ShowDebugInfo",
+    self._debug_mode_toggle = BigParamControl(lambda: tr("ui debug mode"), "ShowDebugInfo",
                                               toggle_callback=lambda checked: (gui_app.set_show_touches(checked),
                                                                                gui_app.set_show_fps(checked)))
-    self._enable_livestream_toggle = BigParamControl(tr("enable livestream"), "EnableLivestream")
-    self._enable_copyparty_toggle = BigParamControl(tr("copyparty service"), "EnableCopyparty")
-    self._quickboot_toggle = BigParamControl(tr("quickboot mode"), "QuickBootToggle")
-    self._disable_updates_toggle = BigParamControl(tr("disable updates"), "DisableUpdates")
+    self._enable_livestream_toggle = BigParamControl(lambda: tr("enable livestream"), "EnableLivestream")
+    self._enable_copyparty_toggle = BigParamControl(lambda: tr("copyparty service"), "EnableCopyparty")
+    self._quickboot_toggle = BigParamControl(lambda: tr("quickboot mode"), "QuickBootToggle")
+    self._disable_updates_toggle = BigParamControl(lambda: tr("disable updates"), "DisableUpdates")
 
     self._scroller.add_widgets([
       self._adb_toggle,

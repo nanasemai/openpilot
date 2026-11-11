@@ -147,7 +147,7 @@ class TogglesLayout(Widget):
       # Make description callable for live translation
       additional_desc = ""
       if needs_restart and not locked:
-        additional_desc = tr("Changing this setting will restart sunnypilot if the car is powered on.")
+        additional_desc = tr_noop("Changing this setting will restart sunnypilot if the car is powered on.")
       toggle.set_description(lambda og_desc=toggle.description, add_desc=additional_desc: tr(og_desc) + (" " + tr(add_desc) if add_desc else ""))
 
       # track for engaged state updates
@@ -171,6 +171,7 @@ class TogglesLayout(Widget):
     ui_state.add_engaged_transition_callback(self._update_toggles)
 
   def _update_state(self):
+    self._update_toggles(refresh_params=False)
     if ui_state.sm.updated["selfdriveState"]:
       personality = PERSONALITY_TO_INT[ui_state.sm["selfdriveState"].personality]
       if personality != ui_state.personality and ui_state.started:
@@ -182,8 +183,9 @@ class TogglesLayout(Widget):
     self._scroller.show_event()
     self._update_toggles()
 
-  def _update_toggles(self):
-    ui_state.update_params()
+  def _update_toggles(self, refresh_params=True):
+    if refresh_params:
+      ui_state.update_params()
 
     e2e_description = tr(
       "sunnypilot defaults to driving in chill mode. Experimental mode enables alpha-level features that aren't ready for chill mode. " +
@@ -207,7 +209,8 @@ class TogglesLayout(Widget):
         self._toggles["ExperimentalMode"].action_item.set_enabled(False)
         self._toggles["ExperimentalMode"].action_item.set_state(False)
         self._long_personality_setting.action_item.set_enabled(False)
-        self._params.remove("ExperimentalMode")
+        if self._params.get("ExperimentalMode") is not None:
+          self._params.remove("ExperimentalMode")
 
         unavailable = tr("Experimental mode is currently unavailable on this car since the car's stock ACC is used for longitudinal control.")
 
@@ -221,6 +224,8 @@ class TogglesLayout(Widget):
 
         self._toggles["ExperimentalMode"].set_description("<b>" + long_desc + "</b><br><br>" + e2e_description)
     else:
+      self._toggles["ExperimentalMode"].action_item.set_enabled(False)
+      self._long_personality_setting.action_item.set_enabled(False)
       self._toggles["ExperimentalMode"].set_description(e2e_description)
 
     self._update_experimental_mode_icon()
@@ -231,6 +236,20 @@ class TogglesLayout(Widget):
       if param not in self._toggles:
         continue
       self._toggles[param].action_item.set_state(self._params.get_bool(param))
+      try:
+        locked = self._params.get_bool(param + "Lock")
+      except UnknownKeyName:
+        locked = False
+      if locked:
+        self._locked_toggles.add(param)
+      else:
+        self._locked_toggles.discard(param)
+      if param != "ExperimentalMode":
+        self._toggles[param].action_item.set_enabled(not locked and (not self._toggle_defs[param][3] or not ui_state.engaged))
+      elif locked:
+        self._toggles[param].action_item.set_enabled(False)
+    if ui_state.is_offroad():
+      self._long_personality_setting.action_item.set_selected_button(self._params.get("LongitudinalPersonality", return_default=True))
 
     # these toggles need restart, block while engaged
     for toggle_def in self._toggle_defs:
@@ -247,14 +266,19 @@ class TogglesLayout(Widget):
     self._toggles["ExperimentalMode"].set_icon(icon)
 
   def _handle_experimental_mode_toggle(self, state: bool):
+    self._update_toggles(refresh_params=False)
+    toggle = self._toggles["ExperimentalMode"]
+    if not toggle.is_visible or not toggle.action_item.enabled:
+      return
     confirmed = self._params.get_bool("ExperimentalModeConfirmed")
     if state and not confirmed:
+      toggle.action_item.set_state(False)
       def confirm_callback(result: DialogResult):
-        if result == DialogResult.CONFIRM:
+        self._update_toggles(refresh_params=False)
+        if result == DialogResult.CONFIRM and toggle.is_visible and toggle.action_item.enabled:
           self._params.put_bool("ExperimentalMode", True, block=True)
           self._params.put_bool("ExperimentalModeConfirmed", True, block=True)
-        else:
-          self._toggles["ExperimentalMode"].action_item.set_state(False)
+        toggle.action_item.set_state(self._params.get_bool("ExperimentalMode"))
         self._update_experimental_mode_icon()
 
       # show confirmation dialog
@@ -267,13 +291,19 @@ class TogglesLayout(Widget):
       self._params.put_bool("ExperimentalMode", state, block=True)
 
   def _toggle_callback(self, state: bool, param: str):
+    self._update_toggles(refresh_params=False)
+    if not self._toggles[param].is_visible or not self._toggles[param].action_item.enabled:
+      return
     if param == "ExperimentalMode":
       self._handle_experimental_mode_toggle(state)
       return
 
     self._params.put_bool(param, state, block=True)
+    self._toggles[param].action_item.set_state(state)
     if self._toggle_defs[param][3]:
       self._params.put_bool("OnroadCycleRequested", True, block=True)
 
   def _set_longitudinal_personality(self, button_index: int):
-    self._params.put("LongitudinalPersonality", button_index, block=True)
+    self._update_toggles(refresh_params=False)
+    if self._long_personality_setting.action_item.enabled and 0 <= button_index < 3:
+      self._params.put("LongitudinalPersonality", button_index, block=True)

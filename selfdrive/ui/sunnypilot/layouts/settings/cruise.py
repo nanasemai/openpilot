@@ -32,7 +32,9 @@ ONROAD_ONLY_DESCRIPTION = tr_noop("Start the vehicle to check vehicle compatibil
 
 ACCEL_PROFILE_DESC = tr_noop("Select an acceleration profile to adjust how aggressively your vehicle accelerates.")
 
-HTD_DESC = tr_noop("When enabled, HTD detects the driver actively steering into a sharp turn at low speed (≤35 km/h) and temporarily releases lane keeping to avoid LKAS resistance. Once the turn is complete, lateral control resumes automatically within 0.5~1 second.")
+HTD_DESC = tr_noop("When enabled, HTD detects the driver actively steering into a sharp turn at low speed (≤35 km/h) " +
+                   "and temporarily releases lane keeping to avoid LKAS resistance. " +
+                   "Once the turn is complete, lateral control resumes automatically within 0.5~1 second.")
 HTD_THRESHOLD_DESC = tr_noop("Sets the steering angle threshold for Human Turn Detection. Lower values make it more sensitive.")
 
 
@@ -72,6 +74,7 @@ class CruiseLayout(Widget):
       title=lambda: tr("Short Press Increment"),
       param="CustomAccShortPressIncrement",
       min_value=1, max_value=10, value_change_step=1,
+      label_callback=lambda value: f"{value} " + (tr("km/h") if ui_state.is_metric else tr("mph")),
       inline=True)
 
     self.custom_acc_long_increment = option_item_sp(
@@ -79,6 +82,7 @@ class CruiseLayout(Widget):
       param="CustomAccLongPressIncrement",
       value_map={1: 1, 2: 5, 3: 10},
       min_value=1, max_value=3, value_change_step=1,
+      label_callback=lambda value: f"{value} " + (tr("km/h") if ui_state.is_metric else tr("mph")),
       inline=True)
 
     self.accel_profile_selector = multiple_button_item_sp(
@@ -90,7 +94,8 @@ class CruiseLayout(Widget):
 
     self.apm_toggle = toggle_item_sp(
       title=lambda: tr("Auto Aggressive Mode"),
-      description=lambda: tr("Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. Deactivates above 70 km/h."),
+      description=lambda: tr("Automatically switches to aggressive driving personality at low speeds to maintain a tighter following distance. " +
+                             "Deactivates above 70 km/h."),
       param="SPAccelProfileModeEnabled")
 
     self.sla_settings_button = simple_button_item_sp(
@@ -115,6 +120,7 @@ class CruiseLayout(Widget):
       description=lambda: tr(HTD_THRESHOLD_DESC),
       param="dp_htd_turn_angle_threshold",
       min_value=30, max_value=120, value_change_step=5,
+      label_callback=lambda value: f"{value}°",
       inline=True)
 
     items = [

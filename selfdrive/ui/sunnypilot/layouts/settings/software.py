@@ -12,7 +12,7 @@ from openpilot.system.hardware import HARDWARE
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
-from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
+from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog, alert_dialog
 
 from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp
 from openpilot.system.ui.sunnypilot.widgets.tree_dialog import TreeOptionDialog, TreeNode, TreeFolder
@@ -39,18 +39,21 @@ class SoftwareLayoutSP(SoftwareLayout):
     )
     self._scroller.add_widget(self.disable_updates_toggle)
 
-  def _handle_reboot(self, result):
-    if result == DialogResult.CONFIRM:
-      ui_state.params.put_bool("DisableUpdates", self.disable_updates_toggle.action_item.get_state())
-      ui_state.params.put_bool("DoReboot", True)
+  def _handle_reboot(self, result, enabled):
+    if result == DialogResult.CONFIRM and ui_state.is_offroad():
+      ui_state.params.put_bool("DisableUpdates", enabled, block=True)
+      ui_state.params.put_bool("DoReboot", True, block=True)
     else:
       self.disable_updates_toggle.action_item.set_state(ui_state.params.get_bool("DisableUpdates"))
 
   def _on_disable_updates_toggled(self, enabled):
-    dialog = ConfirmDialog(tr("System reboot required for changes to take effect. Reboot now?"), tr("Reboot"), callback=self._handle_reboot)
+    dialog = ConfirmDialog(tr("System reboot required for changes to take effect. Reboot now?"), tr("Reboot"),
+                           callback=lambda result: self._handle_reboot(result, enabled))
     gui_app.push_widget(dialog)
 
   def _on_select_branch(self):
+    if not ui_state.is_offroad() or self._waiting_for_updater or (ui_state.params.get("UpdaterState") or "idle") != "idle":
+      return
     current_git_branch = ui_state.params.get("GitBranch") or ""
     branches_str = ui_state.params.get("UpdaterAvailableBranches") or ""
     branches = [b for b in branches_str.split(",") if b]
@@ -75,15 +78,19 @@ class SoftwareLayoutSP(SoftwareLayout):
     ]
 
     def _on_branch_selected(result):
-      if result == DialogResult.CONFIRM and self._branch_dialog is not None:
+      if result == DialogResult.CONFIRM and self._branch_dialog is not None and ui_state.is_offroad():
         selection = self._branch_dialog.selection_ref
-        if selection:
-          ui_state.params.put("UpdaterTargetBranch", selection)
-          self._branch_btn.action_item.set_value(selection)
-          os.system("pkill -SIGUSR1 -f system.updated.updated")
+        if not self._waiting_for_updater and (ui_state.params.get("UpdaterState") or "idle") == "idle":
+          available = (ui_state.params.get("UpdaterAvailableBranches") or "").split(",")
+          if selection in branches and selection in available and (ui_state.params.get("UpdaterTargetBranch") or "") == current_target:
+            ui_state.params.put("UpdaterTargetBranch", selection, block=True)
+            self._branch_btn.action_item.set_value(selection)
+            os.system("pkill -SIGUSR1 -f system.updated.updated")
+          else:
+            gui_app.push_widget(alert_dialog(tr("Branch settings changed. Reopen the branch selector and try again.")))
       self._branch_dialog = None
 
-    self._branch_dialog = TreeOptionDialog(tr("Select a branch"), folders, current_target, "",
+    self._branch_dialog = TreeOptionDialog(lambda: tr("Select a branch"), folders, current_target, "",
                                            on_exit=_on_branch_selected)
 
     gui_app.push_widget(self._branch_dialog)
@@ -91,8 +98,11 @@ class SoftwareLayoutSP(SoftwareLayout):
   def _update_state(self):
     super()._update_state()
     show_advanced = ui_state.params.get_bool("ShowAdvancedControls")
+    self.disable_updates_toggle.action_item.set_state(ui_state.params.get_bool("DisableUpdates"))
     self.disable_updates_toggle.action_item.set_enabled(ui_state.is_offroad())
     self.disable_updates_toggle.set_visible(show_advanced)
 
     disable_updates_desc = tr(DESCRIPTIONS["disable_updates_offroad"] if ui_state.is_offroad() else DESCRIPTIONS["disable_updates_onroad"])
     self.disable_updates_toggle.set_description(disable_updates_desc)
+    self._branch_btn.action_item.set_enabled(ui_state.is_offroad() and not self._waiting_for_updater and
+                                              (ui_state.params.get("UpdaterState") or "idle") == "idle")

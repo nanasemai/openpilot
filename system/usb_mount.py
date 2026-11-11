@@ -20,6 +20,16 @@ MOUNT_OPTS = "nodev,noexec,nosuid,uid=1000,gid=1000"
 DEFAULT_TIMEOUT = 15
 
 
+class UsbMessage(str):
+  """Keep English text for non-UI callers and retain its translation template."""
+  def __new__(cls, template: str, **values):
+    rendered = {key: "\n".join(str(item) for item in value) if isinstance(value, list) else value for key, value in values.items()}
+    message = super().__new__(cls, template.format(**rendered))
+    message.template = template
+    message.values = values
+    return message
+
+
 class MountResult(NamedTuple):
   ok: bool
   message: str
@@ -171,43 +181,43 @@ def mount_usb(device: str, mount_dir: str = MOUNT_DIR, fstype: str = "vfat") -> 
   if is_mounted(mount_dir):
     dev = get_mount_device(mount_dir)
     if dev == device:
-      return MountResult(True, f"Already mounted at {mount_dir}")
-    return MountResult(False, f"{mount_dir} is already in use by {dev}")
+      return MountResult(True, UsbMessage("Already mounted at {path}", path=mount_dir))
+    return MountResult(False, UsbMessage("{path} is already in use by {device}", path=mount_dir, device=dev))
 
   cmd = ["mount", "-t", fstype, device, mount_dir, "-o", MOUNT_OPTS]
   try:
     result = _sudo(cmd)
   except (OSError, subprocess.SubprocessError) as e:
-    return MountResult(False, f"{type(e).__name__}: {e}")
+    return MountResult(False, UsbMessage("USB operation failed: {error}", error=f"{type(e).__name__}: {e}"))
 
   if result.returncode != 0:
     err = (result.stderr or result.stdout or "").strip().replace("\n", " ")
     _log(f"FAIL mount {device} -> {mount_dir}: {err}")
-    return MountResult(False, f"{err} (rc={result.returncode})")
+    return MountResult(False, UsbMessage("USB operation failed (exit code {code}): {error}", code=result.returncode, error=err))
 
   ensure_mount_dirs(mount_dir)
   _log(f"OK mount {device} -> {mount_dir}")
-  return MountResult(True, f"Mounted {device} at {mount_dir}")
+  return MountResult(True, UsbMessage("Mounted {device} at {path}", device=device, path=mount_dir))
 
 
 def unmount_usb(mount_dir: str = MOUNT_DIR) -> MountResult:
   if not is_mounted(mount_dir):
-    return MountResult(True, f"{mount_dir} is not mounted")
+    return MountResult(True, UsbMessage("{path} is not mounted", path=mount_dir))
   try:
     result = _sudo(["umount", mount_dir])
   except (OSError, subprocess.SubprocessError) as e:
-    return MountResult(False, f"{type(e).__name__}: {e}")
+    return MountResult(False, UsbMessage("USB operation failed: {error}", error=f"{type(e).__name__}: {e}"))
   if result.returncode != 0:
     err = (result.stderr or result.stdout or "").strip().replace("\n", " ")
-    return MountResult(False, f"{err} (rc={result.returncode})")
+    return MountResult(False, UsbMessage("USB operation failed (exit code {code}): {error}", code=result.returncode, error=err))
   _log(f"OK umount {mount_dir}")
-  return MountResult(True, f"Unmounted {mount_dir}")
+  return MountResult(True, UsbMessage("Unmounted {path}", path=mount_dir))
 
 
 def unmount_device(device: str) -> MountResult:
   mount_point = get_mount_status(device)
   if mount_point is None:
-    return MountResult(True, f"{device} is not mounted")
+    return MountResult(True, UsbMessage("{path} is not mounted", path=device))
   return unmount_usb(mount_point)
 
 
@@ -219,12 +229,12 @@ def format_drive(device: str) -> MountResult:
   try:
     result = _sudo(["mkfs.vfat", "-F", "32", device], timeout=180)
   except (OSError, subprocess.SubprocessError) as e:
-    return MountResult(False, f"{type(e).__name__}: {e}")
+    return MountResult(False, UsbMessage("USB operation failed: {error}", error=f"{type(e).__name__}: {e}"))
   if result.returncode != 0:
     err = (result.stderr or result.stdout or "").strip().replace("\n", " ")
-    return MountResult(False, f"{err} (rc={result.returncode})")
+    return MountResult(False, UsbMessage("USB operation failed (exit code {code}): {error}", code=result.returncode, error=err))
   _log(f"OK format {device} -> FAT32")
-  return MountResult(True, f"Formatted {device} as FAT32")
+  return MountResult(True, UsbMessage("Formatted {device} as FAT32", device=device))
 
 
 # ── Export helpers ────────────────────────────────────────────────────────────
@@ -252,7 +262,7 @@ def _copy_tree_with_progress(src: str, dst: str, progress_callback=None) -> tupl
     if progress_callback and file_count > 0:
       progress_callback(0, file_count, os.path.basename(src))
 
-    for dirpath, dirnames, filenames in os.walk(src):
+    for dirpath, _dirnames, filenames in os.walk(src):
       rel = os.path.relpath(dirpath, src)
       dst_dir = os.path.join(dst, rel) if rel != '.' else dst
       os.makedirs(dst_dir, exist_ok=True)
@@ -273,9 +283,9 @@ def _copy_tree_with_progress(src: str, dst: str, progress_callback=None) -> tupl
         if progress_callback and file_count > 0:
           progress_callback(done, file_count, fname)
 
-    return True, f"Copied {file_count} files"
+    return True, UsbMessage("Copied {count} files", count=file_count)
   except (OSError, shutil.Error) as e:
-    return False, f"{type(e).__name__}: {e}"
+    return False, UsbMessage("USB copy failed: {error}", error=f"{type(e).__name__}: {e}")
 
 
 def _safe_copy(src: str, dst_dir: str, progress_callback=None) -> tuple[bool, str]:
@@ -289,62 +299,63 @@ def _safe_copy(src: str, dst_dir: str, progress_callback=None) -> tuple[bool, st
       shutil.copy2(src, os.path.join(dst_dir, os.path.basename(src)))
       if progress_callback:
         progress_callback(1, 1, os.path.basename(src))
-      return True, f"Copied {os.path.basename(src)}"
+      return True, UsbMessage("Copied {filename}", filename=os.path.basename(src))
     elif os.path.isdir(src):
       dst = os.path.join(dst_dir, os.path.basename(src.rstrip("/")))
       if os.path.exists(dst):
         shutil.rmtree(dst)
       return _copy_tree_with_progress(src, dst, progress_callback)
     else:
-      return False, f"Source not found: {src}"
+      return False, UsbMessage("Source not found: {path}", path=src)
   except (OSError, shutil.Error) as e:
-    return False, f"{type(e).__name__}: {e}"
+    return False, UsbMessage("USB copy failed: {error}", error=f"{type(e).__name__}: {e}")
 
 
 def export_logs(dest_dir: str = MOUNT_DIR, progress_callback=None) -> tuple[bool, str]:
   """Export all log directories to dest_dir/logs/. Skips missing sources."""
   if not os.path.isdir(dest_dir):
-    return False, f"Destination not mounted: {dest_dir}"
+    return False, UsbMessage("Destination not mounted: {path}", path=dest_dir)
 
   target = os.path.join(dest_dir, "logs")
   os.makedirs(target, exist_ok=True)
 
   sources = [(src, label) for src, label in LOG_SOURCES if os.path.exists(src)]
   if not sources:
-    return False, "No log sources found"
+    return False, UsbMessage("No log sources found")
 
   total_sources = len(sources)
   results = []
-  any_ok = False
+  ok_count = 0
 
   for idx, (src, label) in enumerate(sources):
     def _src_cb(done, total, fname, idx=idx, label=label, total_sources=total_sources):
       if progress_callback:
         overall_pct = ((idx + done / max(total, 1)) / total_sources) * 100
-        progress_callback(overall_pct, f"{label}: {fname}")
+        message = UsbMessage("System logs: {filename}", filename=fname) if label == "swaglog" else UsbMessage("Crash logs: {filename}", filename=fname)
+        progress_callback(overall_pct, message)
 
     ok, msg = _safe_copy(src, target, progress_callback=_src_cb)
-    results.append(f"{src} -> {msg}")
-    any_ok = any_ok or ok
+    results.append(UsbMessage("{path} -> {message}", path=src, message=msg))
+    ok_count += int(ok)
 
-  if not any_ok:
-    return False, "All copies failed:\n" + "\n".join(results)
-  ok_count = len([r for r in results if 'Copied' in r])
-  return True, f"Exported {ok_count}/{total_sources} sources"
+  if ok_count < total_sources:
+    return False, UsbMessage("Export incomplete: {count}/{total} sources copied.\n{details}",
+                             count=ok_count, total=total_sources, details=results)
+  return True, UsbMessage("Exported {count}/{total} sources", count=ok_count, total=total_sources)
 
 
 def export_realdata(dest_dir: str = MOUNT_DIR, progress_callback=None) -> tuple[bool, str]:
   """Export the realdata directory (route files) to dest_dir/realdata/."""
   if not os.path.isdir(dest_dir):
-    return False, f"Destination not mounted: {dest_dir}"
+    return False, UsbMessage("Destination not mounted: {path}", path=dest_dir)
   if not os.path.isdir(REALDATA_SRC):
-    return False, f"Realdata source not found: {REALDATA_SRC}"
+    return False, UsbMessage("Route data source not found: {path}", path=REALDATA_SRC)
 
   target = os.path.join(dest_dir, "realdata")
   os.makedirs(target, exist_ok=True)
 
   def _cb(done, total, fname):
     if progress_callback:
-      progress_callback((done / max(total, 1)) * 100, f"realdata: {fname}")
+      progress_callback((done / max(total, 1)) * 100, UsbMessage("Route data: {filename}", filename=fname))
 
   return _safe_copy(REALDATA_SRC, target, progress_callback=_cb)

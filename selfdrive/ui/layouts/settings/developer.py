@@ -99,11 +99,12 @@ class DeveloperLayout(Widget):
       description=lambda: tr("Show camera and UI as if driving, even when parked. For testing only - never use while driving."),
       initial_state=self._params.get_bool("ForceOnroad"),
       callback=self._on_force_onroad,
+      enabled=lambda: not ui_state.started,
     )
 
     self._enable_livestream_toggle = toggle_item(
       lambda: tr("Enable Livestream"),
-      description=lambda: tr("Serve live camera + HUD + diagnostics on LAN port 8090. "
+      description=lambda: tr("Serve live camera + HUD + diagnostics on LAN port 8090. " +
                              "Open http://<device-ip>:8090/ in a phone browser."),
       initial_state=self._params.get_bool("EnableLivestream"),
       callback=self._on_enable_livestream,
@@ -128,13 +129,17 @@ class DeveloperLayout(Widget):
   def _render(self, rect):
     self._scroller.render(rect)
 
+  def _update_state(self):
+    self._update_toggles(refresh_params=False)
+
   def show_event(self):
     super().show_event()
     self._scroller.show_event()
     self._update_toggles()
 
-  def _update_toggles(self):
-    ui_state.update_params()
+  def _update_toggles(self, refresh_params=True):
+    if refresh_params:
+      ui_state.update_params()
 
     # Hide non-release toggles on release builds
     # TODO: we can do an onroad cycle, but alpha long toggle requires a deinit function to re-enable radar and not fault
@@ -146,12 +151,14 @@ class DeveloperLayout(Widget):
       alpha_avail = ui_state.CP.alphaLongitudinalAvailable
       if not alpha_avail or self._is_release:
         self._alpha_long_toggle.set_visible(False)
-        self._params.remove("AlphaLongitudinalEnabled")
+        if self._params.get("AlphaLongitudinalEnabled") is not None:
+          self._params.remove("AlphaLongitudinalEnabled")
       else:
         self._alpha_long_toggle.set_visible(True)
 
       long_man_enabled = ui_state.has_longitudinal_control and ui_state.is_offroad()
       self._long_maneuver_toggle.action_item.set_enabled(long_man_enabled)
+      self._lat_maneuver_toggle.action_item.set_enabled(ui_state.is_offroad())
     else:
       self._long_maneuver_toggle.action_item.set_enabled(False)
       self._lat_maneuver_toggle.action_item.set_enabled(False)
@@ -179,18 +186,25 @@ class DeveloperLayout(Widget):
     gui_app.set_show_mouse_coords(state)
 
   def _on_force_onroad(self, state: bool):
+    if ui_state.started:
+      self._force_onroad_toggle.action_item.set_state(self._params.get_bool("ForceOnroad"))
+      return
     self._params.put_bool("ForceOnroad", state, block=True)
 
   def _on_enable_livestream(self, state: bool):
     self._params.put_bool("EnableLivestream", state, block=True)
 
   def _on_enable_adb(self, state: bool):
-    self._params.put_bool("AdbEnabled", state, block=True)
+    if ui_state.is_offroad():
+      self._params.put_bool("AdbEnabled", state, block=True)
 
   def _on_enable_ssh(self, state: bool):
     self._params.put_bool("SshEnabled", state, block=True)
 
   def _on_joystick_debug_mode(self, state: bool):
+    self._update_toggles(refresh_params=False)
+    if not self._joystick_toggle.is_visible or not self._joystick_toggle.action_item.enabled:
+      return
     self._params.put_bool("JoystickDebugMode", state, block=True)
     self._params.put_bool("LongitudinalManeuverMode", False, block=True)
     self._long_maneuver_toggle.action_item.set_state(False)
@@ -198,6 +212,9 @@ class DeveloperLayout(Widget):
     self._lat_maneuver_toggle.action_item.set_state(False)
 
   def _on_long_maneuver_mode(self, state: bool):
+    self._update_toggles(refresh_params=False)
+    if not self._long_maneuver_toggle.is_visible or not self._long_maneuver_toggle.action_item.enabled:
+      return
     self._params.put_bool("LongitudinalManeuverMode", state, block=True)
     self._params.put_bool("JoystickDebugMode", False, block=True)
     self._joystick_toggle.action_item.set_state(False)
@@ -205,6 +222,9 @@ class DeveloperLayout(Widget):
     self._lat_maneuver_toggle.action_item.set_state(False)
 
   def _on_lat_maneuver_mode(self, state: bool):
+    self._update_toggles(refresh_params=False)
+    if not self._lat_maneuver_toggle.is_visible or not self._lat_maneuver_toggle.action_item.enabled:
+      return
     self._params.put_bool("LateralManeuverMode", state, block=True)
     self._params.put_bool("ExperimentalMode", False, block=True)
     self._params.put_bool("JoystickDebugMode", False, block=True)
@@ -213,14 +233,18 @@ class DeveloperLayout(Widget):
     self._long_maneuver_toggle.action_item.set_state(False)
 
   def _on_alpha_long_enabled(self, state: bool):
+    self._update_toggles(refresh_params=False)
+    if not self._alpha_long_toggle.is_visible or not self._alpha_long_toggle.action_item.enabled:
+      return
     if state:
+      self._alpha_long_toggle.action_item.set_state(self._params.get_bool("AlphaLongitudinalEnabled"))
       def confirm_callback(result: DialogResult):
-        if result == DialogResult.CONFIRM:
+        self._update_toggles(refresh_params=False)
+        if result == DialogResult.CONFIRM and self._alpha_long_toggle.is_visible and self._alpha_long_toggle.action_item.enabled:
           self._params.put_bool("AlphaLongitudinalEnabled", True, block=True)
           self._params.put_bool("OnroadCycleRequested", True, block=True)
           self._update_toggles()
-        else:
-          self._alpha_long_toggle.action_item.set_state(False)
+        self._alpha_long_toggle.action_item.set_state(self._params.get_bool("AlphaLongitudinalEnabled"))
 
       # show confirmation dialog
       content = (f"<h1>{self._alpha_long_toggle.title}</h1><br>" +

@@ -1,0 +1,1382 @@
+{
+  "country:AF": {
+    "text": "Map country: Afghanistan",
+    "display_name": "Afghanistan",
+    "ref": "AF",
+    "kind": "Country"
+  },
+  "country:AO": {
+    "text": "Map country: Angola",
+    "display_name": "Angola",
+    "ref": "AO",
+    "kind": "Country"
+  },
+  "country:AL": {
+    "text": "Map country: Albania",
+    "display_name": "Albania",
+    "ref": "AL",
+    "kind": "Country"
+  },
+  "country:AE": {
+    "text": "Map country: United Arab Emirates",
+    "display_name": "United Arab Emirates",
+    "ref": "AE",
+    "kind": "Country"
+  },
+  "country:AR": {
+    "text": "Map country: Argentina",
+    "display_name": "Argentina",
+    "ref": "AR",
+    "kind": "Country"
+  },
+  "country:AM": {
+    "text": "Map country: Armenia",
+    "display_name": "Armenia",
+    "ref": "AM",
+    "kind": "Country"
+  },
+  "country:AQ": {
+    "text": "Map country: Antarctica",
+    "display_name": "Antarctica",
+    "ref": "AQ",
+    "kind": "Country"
+  },
+  "country:TF": {
+    "text": "Map country: French Southern Territories",
+    "display_name": "French Southern Territories",
+    "ref": "TF",
+    "kind": "Country"
+  },
+  "country:AU": {
+    "text": "Map country: Australia",
+    "display_name": "Australia",
+    "ref": "AU",
+    "kind": "Country"
+  },
+  "country:AT": {
+    "text": "Map country: Austria",
+    "display_name": "Austria",
+    "ref": "AT",
+    "kind": "Country"
+  },
+  "country:AZ": {
+    "text": "Map country: Azerbaijan",
+    "display_name": "Azerbaijan",
+    "ref": "AZ",
+    "kind": "Country"
+  },
+  "country:BI": {
+    "text": "Map country: Burundi",
+    "display_name": "Burundi",
+    "ref": "BI",
+    "kind": "Country"
+  },
+  "country:BE": {
+    "text": "Map country: Belgium",
+    "display_name": "Belgium",
+    "ref": "BE",
+    "kind": "Country"
+  },
+  "country:BJ": {
+    "text": "Map country: Benin",
+    "display_name": "Benin",
+    "ref": "BJ",
+    "kind": "Country"
+  },
+  "country:BF": {
+    "text": "Map country: Burkina Faso",
+    "display_name": "Burkina Faso",
+    "ref": "BF",
+    "kind": "Country"
+  },
+  "country:BD": {
+    "text": "Map country: Bangladesh",
+    "display_name": "Bangladesh",
+    "ref": "BD",
+    "kind": "Country"
+  },
+  "country:BG": {
+    "text": "Map country: Bulgaria",
+    "display_name": "Bulgaria",
+    "ref": "BG",
+    "kind": "Country"
+  },
+  "country:BS": {
+    "text": "Map country: Bahamas",
+    "display_name": "Bahamas",
+    "ref": "BS",
+    "kind": "Country"
+  },
+  "country:BA": {
+    "text": "Map country: Bosnia and Herzegovina",
+    "display_name": "Bosnia and Herzegovina",
+    "ref": "BA",
+    "kind": "Country"
+  },
+  "country:BY": {
+    "text": "Map country: Belarus",
+    "display_name": "Belarus",
+    "ref": "BY",
+    "kind": "Country"
+  },
+  "country:BZ": {
+    "text": "Map country: Belize",
+    "display_name": "Belize",
+    "ref": "BZ",
+    "kind": "Country"
+  },
+  "country:BO": {
+    "text": "Map country: Bolivia",
+    "display_name": "Bolivia",
+    "ref": "BO",
+    "kind": "Country"
+  },
+  "country:BR": {
+    "text": "Map country: Brazil",
+    "display_name": "Brazil",
+    "ref": "BR",
+    "kind": "Country"
+  },
+  "country:BN": {
+    "text": "Map country: Brunei",
+    "display_name": "Brunei",
+    "ref": "BN",
+    "kind": "Country"
+  },
+  "country:BT": {
+    "text": "Map country: Bhutan",
+    "display_name": "Bhutan",
+    "ref": "BT",
+    "kind": "Country"
+  },
+  "country:BW": {
+    "text": "Map country: Botswana",
+    "display_name": "Botswana",
+    "ref": "BW",
+    "kind": "Country"
+  },
+  "country:CF": {
+    "text": "Map country: Central African Republic",
+    "display_name": "Central African Republic",
+    "ref": "CF",
+    "kind": "Country"
+  },
+  "country:CA": {
+    "text": "Map country: Canada",
+    "display_name": "Canada",
+    "ref": "CA",
+    "kind": "Country"
+  },
+  "country:CH": {
+    "text": "Map country: Switzerland",
+    "display_name": "Switzerland",
+    "ref": "CH",
+    "kind": "Country"
+  },
+  "country:CL": {
+    "text": "Map country: Chile",
+    "display_name": "Chile",
+    "ref": "CL",
+    "kind": "Country"
+  },
+  "country:CN": {
+    "text": "Map country: China",
+    "display_name": "China",
+    "ref": "CN",
+    "kind": "Country"
+  },
+  "country:CI": {
+    "text": "Map country: Ivory Coast",
+    "display_name": "Ivory Coast",
+    "ref": "CI",
+    "kind": "Country"
+  },
+  "country:CM": {
+    "text": "Map country: Cameroon",
+    "display_name": "Cameroon",
+    "ref": "CM",
+    "kind": "Country"
+  },
+  "country:CD": {
+    "text": "Map country: Congo (Kinshasa)",
+    "display_name": "Congo (Kinshasa)",
+    "ref": "CD",
+    "kind": "Country"
+  },
+  "country:CG": {
+    "text": "Map country: Congo (Brazzaville)",
+    "display_name": "Congo (Brazzaville)",
+    "ref": "CG",
+    "kind": "Country"
+  },
+  "country:CO": {
+    "text": "Map country: Colombia",
+    "display_name": "Colombia",
+    "ref": "CO",
+    "kind": "Country"
+  },
+  "country:CR": {
+    "text": "Map country: Costa Rica",
+    "display_name": "Costa Rica",
+    "ref": "CR",
+    "kind": "Country"
+  },
+  "country:CU": {
+    "text": "Map country: Cuba",
+    "display_name": "Cuba",
+    "ref": "CU",
+    "kind": "Country"
+  },
+  "country:CY": {
+    "text": "Map country: Cyprus",
+    "display_name": "Cyprus",
+    "ref": "CY",
+    "kind": "Country"
+  },
+  "country:CZ": {
+    "text": "Map country: Czech Republic",
+    "display_name": "Czech Republic",
+    "ref": "CZ",
+    "kind": "Country"
+  },
+  "country:DE": {
+    "text": "Map country: Germany",
+    "display_name": "Germany",
+    "ref": "DE",
+    "kind": "Country"
+  },
+  "country:DJ": {
+    "text": "Map country: Djibouti",
+    "display_name": "Djibouti",
+    "ref": "DJ",
+    "kind": "Country"
+  },
+  "country:DK": {
+    "text": "Map country: Denmark",
+    "display_name": "Denmark",
+    "ref": "DK",
+    "kind": "Country"
+  },
+  "country:DO": {
+    "text": "Map country: Dominican Republic",
+    "display_name": "Dominican Republic",
+    "ref": "DO",
+    "kind": "Country"
+  },
+  "country:DZ": {
+    "text": "Map country: Algeria",
+    "display_name": "Algeria",
+    "ref": "DZ",
+    "kind": "Country"
+  },
+  "country:EC": {
+    "text": "Map country: Ecuador",
+    "display_name": "Ecuador",
+    "ref": "EC",
+    "kind": "Country"
+  },
+  "country:EG": {
+    "text": "Map country: Egypt",
+    "display_name": "Egypt",
+    "ref": "EG",
+    "kind": "Country"
+  },
+  "country:ER": {
+    "text": "Map country: Eritrea",
+    "display_name": "Eritrea",
+    "ref": "ER",
+    "kind": "Country"
+  },
+  "country:ES": {
+    "text": "Map country: Spain",
+    "display_name": "Spain",
+    "ref": "ES",
+    "kind": "Country"
+  },
+  "country:EE": {
+    "text": "Map country: Estonia",
+    "display_name": "Estonia",
+    "ref": "EE",
+    "kind": "Country"
+  },
+  "country:ET": {
+    "text": "Map country: Ethiopia",
+    "display_name": "Ethiopia",
+    "ref": "ET",
+    "kind": "Country"
+  },
+  "country:FI": {
+    "text": "Map country: Finland",
+    "display_name": "Finland",
+    "ref": "FI",
+    "kind": "Country"
+  },
+  "country:FJ": {
+    "text": "Map country: Fiji",
+    "display_name": "Fiji",
+    "ref": "FJ",
+    "kind": "Country"
+  },
+  "country:FK": {
+    "text": "Map country: Falkland Islands",
+    "display_name": "Falkland Islands",
+    "ref": "FK",
+    "kind": "Country"
+  },
+  "country:FR": {
+    "text": "Map country: France",
+    "display_name": "France",
+    "ref": "FR",
+    "kind": "Country"
+  },
+  "country:GA": {
+    "text": "Map country: Gabon",
+    "display_name": "Gabon",
+    "ref": "GA",
+    "kind": "Country"
+  },
+  "country:GB": {
+    "text": "Map country: United Kingdom",
+    "display_name": "United Kingdom",
+    "ref": "GB",
+    "kind": "Country"
+  },
+  "country:GE": {
+    "text": "Map country: Georgia",
+    "display_name": "Georgia",
+    "ref": "GE",
+    "kind": "Country"
+  },
+  "country:GH": {
+    "text": "Map country: Ghana",
+    "display_name": "Ghana",
+    "ref": "GH",
+    "kind": "Country"
+  },
+  "country:GN": {
+    "text": "Map country: Guinea",
+    "display_name": "Guinea",
+    "ref": "GN",
+    "kind": "Country"
+  },
+  "country:GM": {
+    "text": "Map country: Gambia",
+    "display_name": "Gambia",
+    "ref": "GM",
+    "kind": "Country"
+  },
+  "country:GW": {
+    "text": "Map country: Guinea Bissau",
+    "display_name": "Guinea Bissau",
+    "ref": "GW",
+    "kind": "Country"
+  },
+  "country:GQ": {
+    "text": "Map country: Equatorial Guinea",
+    "display_name": "Equatorial Guinea",
+    "ref": "GQ",
+    "kind": "Country"
+  },
+  "country:GR": {
+    "text": "Map country: Greece",
+    "display_name": "Greece",
+    "ref": "GR",
+    "kind": "Country"
+  },
+  "country:GL": {
+    "text": "Map country: Greenland",
+    "display_name": "Greenland",
+    "ref": "GL",
+    "kind": "Country"
+  },
+  "country:GT": {
+    "text": "Map country: Guatemala",
+    "display_name": "Guatemala",
+    "ref": "GT",
+    "kind": "Country"
+  },
+  "country:GY": {
+    "text": "Map country: Guyana",
+    "display_name": "Guyana",
+    "ref": "GY",
+    "kind": "Country"
+  },
+  "country:HN": {
+    "text": "Map country: Honduras",
+    "display_name": "Honduras",
+    "ref": "HN",
+    "kind": "Country"
+  },
+  "country:HR": {
+    "text": "Map country: Croatia",
+    "display_name": "Croatia",
+    "ref": "HR",
+    "kind": "Country"
+  },
+  "country:HT": {
+    "text": "Map country: Haiti",
+    "display_name": "Haiti",
+    "ref": "HT",
+    "kind": "Country"
+  },
+  "country:HU": {
+    "text": "Map country: Hungary",
+    "display_name": "Hungary",
+    "ref": "HU",
+    "kind": "Country"
+  },
+  "country:ID": {
+    "text": "Map country: Indonesia",
+    "display_name": "Indonesia",
+    "ref": "ID",
+    "kind": "Country"
+  },
+  "country:IN": {
+    "text": "Map country: India",
+    "display_name": "India",
+    "ref": "IN",
+    "kind": "Country"
+  },
+  "country:IE": {
+    "text": "Map country: Ireland",
+    "display_name": "Ireland",
+    "ref": "IE",
+    "kind": "Country"
+  },
+  "country:IR": {
+    "text": "Map country: Iran",
+    "display_name": "Iran",
+    "ref": "IR",
+    "kind": "Country"
+  },
+  "country:IQ": {
+    "text": "Map country: Iraq",
+    "display_name": "Iraq",
+    "ref": "IQ",
+    "kind": "Country"
+  },
+  "country:IS": {
+    "text": "Map country: Iceland",
+    "display_name": "Iceland",
+    "ref": "IS",
+    "kind": "Country"
+  },
+  "country:IL": {
+    "text": "Map country: Israel",
+    "display_name": "Israel",
+    "ref": "IL",
+    "kind": "Country"
+  },
+  "country:IT": {
+    "text": "Map country: Italy",
+    "display_name": "Italy",
+    "ref": "IT",
+    "kind": "Country"
+  },
+  "country:JM": {
+    "text": "Map country: Jamaica",
+    "display_name": "Jamaica",
+    "ref": "JM",
+    "kind": "Country"
+  },
+  "country:JO": {
+    "text": "Map country: Jordan",
+    "display_name": "Jordan",
+    "ref": "JO",
+    "kind": "Country"
+  },
+  "country:JP": {
+    "text": "Map country: Japan",
+    "display_name": "Japan",
+    "ref": "JP",
+    "kind": "Country"
+  },
+  "country:KZ": {
+    "text": "Map country: Kazakhstan",
+    "display_name": "Kazakhstan",
+    "ref": "KZ",
+    "kind": "Country"
+  },
+  "country:KE": {
+    "text": "Map country: Kenya",
+    "display_name": "Kenya",
+    "ref": "KE",
+    "kind": "Country"
+  },
+  "country:KG": {
+    "text": "Map country: Kyrgyzstan",
+    "display_name": "Kyrgyzstan",
+    "ref": "KG",
+    "kind": "Country"
+  },
+  "country:KH": {
+    "text": "Map country: Cambodia",
+    "display_name": "Cambodia",
+    "ref": "KH",
+    "kind": "Country"
+  },
+  "country:KR": {
+    "text": "Map country: South Korea",
+    "display_name": "South Korea",
+    "ref": "KR",
+    "kind": "Country"
+  },
+  "country:KW": {
+    "text": "Map country: Kuwait",
+    "display_name": "Kuwait",
+    "ref": "KW",
+    "kind": "Country"
+  },
+  "country:LA": {
+    "text": "Map country: Laos",
+    "display_name": "Laos",
+    "ref": "LA",
+    "kind": "Country"
+  },
+  "country:LB": {
+    "text": "Map country: Lebanon",
+    "display_name": "Lebanon",
+    "ref": "LB",
+    "kind": "Country"
+  },
+  "country:LR": {
+    "text": "Map country: Liberia",
+    "display_name": "Liberia",
+    "ref": "LR",
+    "kind": "Country"
+  },
+  "country:LY": {
+    "text": "Map country: Libya",
+    "display_name": "Libya",
+    "ref": "LY",
+    "kind": "Country"
+  },
+  "country:LK": {
+    "text": "Map country: Sri Lanka",
+    "display_name": "Sri Lanka",
+    "ref": "LK",
+    "kind": "Country"
+  },
+  "country:LS": {
+    "text": "Map country: Lesotho",
+    "display_name": "Lesotho",
+    "ref": "LS",
+    "kind": "Country"
+  },
+  "country:LT": {
+    "text": "Map country: Lithuania",
+    "display_name": "Lithuania",
+    "ref": "LT",
+    "kind": "Country"
+  },
+  "country:LU": {
+    "text": "Map country: Luxembourg",
+    "display_name": "Luxembourg",
+    "ref": "LU",
+    "kind": "Country"
+  },
+  "country:LV": {
+    "text": "Map country: Latvia",
+    "display_name": "Latvia",
+    "ref": "LV",
+    "kind": "Country"
+  },
+  "country:MA": {
+    "text": "Map country: Morocco",
+    "display_name": "Morocco",
+    "ref": "MA",
+    "kind": "Country"
+  },
+  "country:MD": {
+    "text": "Map country: Moldova",
+    "display_name": "Moldova",
+    "ref": "MD",
+    "kind": "Country"
+  },
+  "country:MG": {
+    "text": "Map country: Madagascar",
+    "display_name": "Madagascar",
+    "ref": "MG",
+    "kind": "Country"
+  },
+  "country:MX": {
+    "text": "Map country: Mexico",
+    "display_name": "Mexico",
+    "ref": "MX",
+    "kind": "Country"
+  },
+  "country:MK": {
+    "text": "Map country: Macedonia",
+    "display_name": "Macedonia",
+    "ref": "MK",
+    "kind": "Country"
+  },
+  "country:ML": {
+    "text": "Map country: Mali",
+    "display_name": "Mali",
+    "ref": "ML",
+    "kind": "Country"
+  },
+  "country:MM": {
+    "text": "Map country: Myanmar",
+    "display_name": "Myanmar",
+    "ref": "MM",
+    "kind": "Country"
+  },
+  "country:ME": {
+    "text": "Map country: Montenegro",
+    "display_name": "Montenegro",
+    "ref": "ME",
+    "kind": "Country"
+  },
+  "country:MN": {
+    "text": "Map country: Mongolia",
+    "display_name": "Mongolia",
+    "ref": "MN",
+    "kind": "Country"
+  },
+  "country:MZ": {
+    "text": "Map country: Mozambique",
+    "display_name": "Mozambique",
+    "ref": "MZ",
+    "kind": "Country"
+  },
+  "country:MR": {
+    "text": "Map country: Mauritania",
+    "display_name": "Mauritania",
+    "ref": "MR",
+    "kind": "Country"
+  },
+  "country:MW": {
+    "text": "Map country: Malawi",
+    "display_name": "Malawi",
+    "ref": "MW",
+    "kind": "Country"
+  },
+  "country:MY": {
+    "text": "Map country: Malaysia",
+    "display_name": "Malaysia",
+    "ref": "MY",
+    "kind": "Country"
+  },
+  "country:NA": {
+    "text": "Map country: Namibia",
+    "display_name": "Namibia",
+    "ref": "NA",
+    "kind": "Country"
+  },
+  "country:NC": {
+    "text": "Map country: New Caledonia",
+    "display_name": "New Caledonia",
+    "ref": "NC",
+    "kind": "Country"
+  },
+  "country:NE": {
+    "text": "Map country: Niger",
+    "display_name": "Niger",
+    "ref": "NE",
+    "kind": "Country"
+  },
+  "country:NG": {
+    "text": "Map country: Nigeria",
+    "display_name": "Nigeria",
+    "ref": "NG",
+    "kind": "Country"
+  },
+  "country:NI": {
+    "text": "Map country: Nicaragua",
+    "display_name": "Nicaragua",
+    "ref": "NI",
+    "kind": "Country"
+  },
+  "country:NL": {
+    "text": "Map country: Netherlands",
+    "display_name": "Netherlands",
+    "ref": "NL",
+    "kind": "Country"
+  },
+  "country:NO": {
+    "text": "Map country: Norway",
+    "display_name": "Norway",
+    "ref": "NO",
+    "kind": "Country"
+  },
+  "country:NP": {
+    "text": "Map country: Nepal",
+    "display_name": "Nepal",
+    "ref": "NP",
+    "kind": "Country"
+  },
+  "country:NZ": {
+    "text": "Map country: New Zealand",
+    "display_name": "New Zealand",
+    "ref": "NZ",
+    "kind": "Country"
+  },
+  "country:OM": {
+    "text": "Map country: Oman",
+    "display_name": "Oman",
+    "ref": "OM",
+    "kind": "Country"
+  },
+  "country:PK": {
+    "text": "Map country: Pakistan",
+    "display_name": "Pakistan",
+    "ref": "PK",
+    "kind": "Country"
+  },
+  "country:PA": {
+    "text": "Map country: Panama",
+    "display_name": "Panama",
+    "ref": "PA",
+    "kind": "Country"
+  },
+  "country:PE": {
+    "text": "Map country: Peru",
+    "display_name": "Peru",
+    "ref": "PE",
+    "kind": "Country"
+  },
+  "country:PH": {
+    "text": "Map country: Philippines",
+    "display_name": "Philippines",
+    "ref": "PH",
+    "kind": "Country"
+  },
+  "country:PG": {
+    "text": "Map country: Papua New Guinea",
+    "display_name": "Papua New Guinea",
+    "ref": "PG",
+    "kind": "Country"
+  },
+  "country:PL": {
+    "text": "Map country: Poland",
+    "display_name": "Poland",
+    "ref": "PL",
+    "kind": "Country"
+  },
+  "country:PR": {
+    "text": "Map country: Puerto Rico",
+    "display_name": "Puerto Rico",
+    "ref": "PR",
+    "kind": "Country"
+  },
+  "country:KP": {
+    "text": "Map country: North Korea",
+    "display_name": "North Korea",
+    "ref": "KP",
+    "kind": "Country"
+  },
+  "country:PT": {
+    "text": "Map country: Portugal",
+    "display_name": "Portugal",
+    "ref": "PT",
+    "kind": "Country"
+  },
+  "country:PY": {
+    "text": "Map country: Paraguay",
+    "display_name": "Paraguay",
+    "ref": "PY",
+    "kind": "Country"
+  },
+  "country:QA": {
+    "text": "Map country: Qatar",
+    "display_name": "Qatar",
+    "ref": "QA",
+    "kind": "Country"
+  },
+  "country:RO": {
+    "text": "Map country: Romania",
+    "display_name": "Romania",
+    "ref": "RO",
+    "kind": "Country"
+  },
+  "country:RU": {
+    "text": "Map country: Russia",
+    "display_name": "Russia",
+    "ref": "RU",
+    "kind": "Country"
+  },
+  "country:RW": {
+    "text": "Map country: Rwanda",
+    "display_name": "Rwanda",
+    "ref": "RW",
+    "kind": "Country"
+  },
+  "country:SA": {
+    "text": "Map country: Saudi Arabia",
+    "display_name": "Saudi Arabia",
+    "ref": "SA",
+    "kind": "Country"
+  },
+  "country:SD": {
+    "text": "Map country: Sudan",
+    "display_name": "Sudan",
+    "ref": "SD",
+    "kind": "Country"
+  },
+  "country:SS": {
+    "text": "Map country: South Sudan",
+    "display_name": "South Sudan",
+    "ref": "SS",
+    "kind": "Country"
+  },
+  "country:SN": {
+    "text": "Map country: Senegal",
+    "display_name": "Senegal",
+    "ref": "SN",
+    "kind": "Country"
+  },
+  "country:SB": {
+    "text": "Map country: Solomon Islands",
+    "display_name": "Solomon Islands",
+    "ref": "SB",
+    "kind": "Country"
+  },
+  "country:SL": {
+    "text": "Map country: Sierra Leone",
+    "display_name": "Sierra Leone",
+    "ref": "SL",
+    "kind": "Country"
+  },
+  "country:SV": {
+    "text": "Map country: El Salvador",
+    "display_name": "El Salvador",
+    "ref": "SV",
+    "kind": "Country"
+  },
+  "country:SO": {
+    "text": "Map country: Somalia",
+    "display_name": "Somalia",
+    "ref": "SO",
+    "kind": "Country"
+  },
+  "country:RS": {
+    "text": "Map country: Serbia",
+    "display_name": "Serbia",
+    "ref": "RS",
+    "kind": "Country"
+  },
+  "country:SR": {
+    "text": "Map country: Suriname",
+    "display_name": "Suriname",
+    "ref": "SR",
+    "kind": "Country"
+  },
+  "country:SK": {
+    "text": "Map country: Slovakia",
+    "display_name": "Slovakia",
+    "ref": "SK",
+    "kind": "Country"
+  },
+  "country:SI": {
+    "text": "Map country: Slovenia",
+    "display_name": "Slovenia",
+    "ref": "SI",
+    "kind": "Country"
+  },
+  "country:SE": {
+    "text": "Map country: Sweden",
+    "display_name": "Sweden",
+    "ref": "SE",
+    "kind": "Country"
+  },
+  "country:SZ": {
+    "text": "Map country: Swaziland",
+    "display_name": "Swaziland",
+    "ref": "SZ",
+    "kind": "Country"
+  },
+  "country:SY": {
+    "text": "Map country: Syria",
+    "display_name": "Syria",
+    "ref": "SY",
+    "kind": "Country"
+  },
+  "country:TD": {
+    "text": "Map country: Chad",
+    "display_name": "Chad",
+    "ref": "TD",
+    "kind": "Country"
+  },
+  "country:TG": {
+    "text": "Map country: Togo",
+    "display_name": "Togo",
+    "ref": "TG",
+    "kind": "Country"
+  },
+  "country:TH": {
+    "text": "Map country: Thailand",
+    "display_name": "Thailand",
+    "ref": "TH",
+    "kind": "Country"
+  },
+  "country:TJ": {
+    "text": "Map country: Tajikistan",
+    "display_name": "Tajikistan",
+    "ref": "TJ",
+    "kind": "Country"
+  },
+  "country:TM": {
+    "text": "Map country: Turkmenistan",
+    "display_name": "Turkmenistan",
+    "ref": "TM",
+    "kind": "Country"
+  },
+  "country:TL": {
+    "text": "Map country: East Timor",
+    "display_name": "East Timor",
+    "ref": "TL",
+    "kind": "Country"
+  },
+  "country:TT": {
+    "text": "Map country: Trinidad and Tobago",
+    "display_name": "Trinidad and Tobago",
+    "ref": "TT",
+    "kind": "Country"
+  },
+  "country:TN": {
+    "text": "Map country: Tunisia",
+    "display_name": "Tunisia",
+    "ref": "TN",
+    "kind": "Country"
+  },
+  "country:TR": {
+    "text": "Map country: Turkey",
+    "display_name": "Turkey",
+    "ref": "TR",
+    "kind": "Country"
+  },
+  "country:TW": {
+    "text": "Map country: Taiwan",
+    "display_name": "Taiwan",
+    "ref": "TW",
+    "kind": "Country"
+  },
+  "country:TZ": {
+    "text": "Map country: Tanzania",
+    "display_name": "Tanzania",
+    "ref": "TZ",
+    "kind": "Country"
+  },
+  "country:UG": {
+    "text": "Map country: Uganda",
+    "display_name": "Uganda",
+    "ref": "UG",
+    "kind": "Country"
+  },
+  "country:UA": {
+    "text": "Map country: Ukraine",
+    "display_name": "Ukraine",
+    "ref": "UA",
+    "kind": "Country"
+  },
+  "country:UY": {
+    "text": "Map country: Uruguay",
+    "display_name": "Uruguay",
+    "ref": "UY",
+    "kind": "Country"
+  },
+  "country:US": {
+    "text": "Map country: United States",
+    "display_name": "United States",
+    "ref": "US",
+    "kind": "Country"
+  },
+  "country:UZ": {
+    "text": "Map country: Uzbekistan",
+    "display_name": "Uzbekistan",
+    "ref": "UZ",
+    "kind": "Country"
+  },
+  "country:VE": {
+    "text": "Map country: Venezuela",
+    "display_name": "Venezuela",
+    "ref": "VE",
+    "kind": "Country"
+  },
+  "country:VN": {
+    "text": "Map country: Vietnam",
+    "display_name": "Vietnam",
+    "ref": "VN",
+    "kind": "Country"
+  },
+  "country:VU": {
+    "text": "Map country: Vanuatu",
+    "display_name": "Vanuatu",
+    "ref": "VU",
+    "kind": "Country"
+  },
+  "country:PS": {
+    "text": "Map country: West Bank",
+    "display_name": "West Bank",
+    "ref": "PS",
+    "kind": "Country"
+  },
+  "country:YE": {
+    "text": "Map country: Yemen",
+    "display_name": "Yemen",
+    "ref": "YE",
+    "kind": "Country"
+  },
+  "country:ZA": {
+    "text": "Map country: South Africa",
+    "display_name": "South Africa",
+    "ref": "ZA",
+    "kind": "Country"
+  },
+  "country:ZM": {
+    "text": "Map country: Zambia",
+    "display_name": "Zambia",
+    "ref": "ZM",
+    "kind": "Country"
+  },
+  "country:ZW": {
+    "text": "Map country: Zimbabwe",
+    "display_name": "Zimbabwe",
+    "ref": "ZW",
+    "kind": "Country"
+  },
+  "state:AL": {
+    "text": "Map state: Alabama",
+    "display_name": "Alabama",
+    "ref": "AL",
+    "kind": "State"
+  },
+  "state:AK": {
+    "text": "Map state: Alaska",
+    "display_name": "Alaska",
+    "ref": "AK",
+    "kind": "State"
+  },
+  "state:AZ": {
+    "text": "Map state: Arizona",
+    "display_name": "Arizona",
+    "ref": "AZ",
+    "kind": "State"
+  },
+  "state:AR": {
+    "text": "Map state: Arkansas",
+    "display_name": "Arkansas",
+    "ref": "AR",
+    "kind": "State"
+  },
+  "state:CA": {
+    "text": "Map state: California",
+    "display_name": "California",
+    "ref": "CA",
+    "kind": "State"
+  },
+  "state:CO": {
+    "text": "Map state: Colorado",
+    "display_name": "Colorado",
+    "ref": "CO",
+    "kind": "State"
+  },
+  "state:CT": {
+    "text": "Map state: Connecticut",
+    "display_name": "Connecticut",
+    "ref": "CT",
+    "kind": "State"
+  },
+  "state:DE": {
+    "text": "Map state: Delaware",
+    "display_name": "Delaware",
+    "ref": "DE",
+    "kind": "State"
+  },
+  "state:DC": {
+    "text": "Map state: District of Columbia",
+    "display_name": "District of Columbia",
+    "ref": "DC",
+    "kind": "State"
+  },
+  "state:FL": {
+    "text": "Map state: Florida",
+    "display_name": "Florida",
+    "ref": "FL",
+    "kind": "State"
+  },
+  "state:GA": {
+    "text": "Map state: Georgia",
+    "display_name": "Georgia",
+    "ref": "GA",
+    "kind": "State"
+  },
+  "state:HI": {
+    "text": "Map state: Hawaii",
+    "display_name": "Hawaii",
+    "ref": "HI",
+    "kind": "State"
+  },
+  "state:ID": {
+    "text": "Map state: Idaho",
+    "display_name": "Idaho",
+    "ref": "ID",
+    "kind": "State"
+  },
+  "state:IL": {
+    "text": "Map state: Illinois",
+    "display_name": "Illinois",
+    "ref": "IL",
+    "kind": "State"
+  },
+  "state:IN": {
+    "text": "Map state: Indiana",
+    "display_name": "Indiana",
+    "ref": "IN",
+    "kind": "State"
+  },
+  "state:IA": {
+    "text": "Map state: Iowa",
+    "display_name": "Iowa",
+    "ref": "IA",
+    "kind": "State"
+  },
+  "state:KS": {
+    "text": "Map state: Kansas",
+    "display_name": "Kansas",
+    "ref": "KS",
+    "kind": "State"
+  },
+  "state:KY": {
+    "text": "Map state: Kentucky",
+    "display_name": "Kentucky",
+    "ref": "KY",
+    "kind": "State"
+  },
+  "state:LA": {
+    "text": "Map state: Louisiana",
+    "display_name": "Louisiana",
+    "ref": "LA",
+    "kind": "State"
+  },
+  "state:ME": {
+    "text": "Map state: Maine",
+    "display_name": "Maine",
+    "ref": "ME",
+    "kind": "State"
+  },
+  "state:MD": {
+    "text": "Map state: Maryland",
+    "display_name": "Maryland",
+    "ref": "MD",
+    "kind": "State"
+  },
+  "state:MA": {
+    "text": "Map state: Massachusetts",
+    "display_name": "Massachusetts",
+    "ref": "MA",
+    "kind": "State"
+  },
+  "state:MI": {
+    "text": "Map state: Michigan",
+    "display_name": "Michigan",
+    "ref": "MI",
+    "kind": "State"
+  },
+  "state:MN": {
+    "text": "Map state: Minnesota",
+    "display_name": "Minnesota",
+    "ref": "MN",
+    "kind": "State"
+  },
+  "state:MS": {
+    "text": "Map state: Mississippi",
+    "display_name": "Mississippi",
+    "ref": "MS",
+    "kind": "State"
+  },
+  "state:MO": {
+    "text": "Map state: Missouri",
+    "display_name": "Missouri",
+    "ref": "MO",
+    "kind": "State"
+  },
+  "state:MT": {
+    "text": "Map state: Montana",
+    "display_name": "Montana",
+    "ref": "MT",
+    "kind": "State"
+  },
+  "state:NE": {
+    "text": "Map state: Nebraska",
+    "display_name": "Nebraska",
+    "ref": "NE",
+    "kind": "State"
+  },
+  "state:NV": {
+    "text": "Map state: Nevada",
+    "display_name": "Nevada",
+    "ref": "NV",
+    "kind": "State"
+  },
+  "state:NH": {
+    "text": "Map state: New Hampshire",
+    "display_name": "New Hampshire",
+    "ref": "NH",
+    "kind": "State"
+  },
+  "state:NJ": {
+    "text": "Map state: New Jersey",
+    "display_name": "New Jersey",
+    "ref": "NJ",
+    "kind": "State"
+  },
+  "state:NM": {
+    "text": "Map state: New Mexico",
+    "display_name": "New Mexico",
+    "ref": "NM",
+    "kind": "State"
+  },
+  "state:NY": {
+    "text": "Map state: New York",
+    "display_name": "New York",
+    "ref": "NY",
+    "kind": "State"
+  },
+  "state:NC": {
+    "text": "Map state: North Carolina",
+    "display_name": "North Carolina",
+    "ref": "NC",
+    "kind": "State"
+  },
+  "state:ND": {
+    "text": "Map state: North Dakota",
+    "display_name": "North Dakota",
+    "ref": "ND",
+    "kind": "State"
+  },
+  "state:OH": {
+    "text": "Map state: Ohio",
+    "display_name": "Ohio",
+    "ref": "OH",
+    "kind": "State"
+  },
+  "state:OK": {
+    "text": "Map state: Oklahoma",
+    "display_name": "Oklahoma",
+    "ref": "OK",
+    "kind": "State"
+  },
+  "state:OR": {
+    "text": "Map state: Oregon",
+    "display_name": "Oregon",
+    "ref": "OR",
+    "kind": "State"
+  },
+  "state:PA": {
+    "text": "Map state: Pennsylvania",
+    "display_name": "Pennsylvania",
+    "ref": "PA",
+    "kind": "State"
+  },
+  "state:PR": {
+    "text": "Map state: Puerto Rico",
+    "display_name": "Puerto Rico",
+    "ref": "PR",
+    "kind": "State"
+  },
+  "state:RI": {
+    "text": "Map state: Rhode Island",
+    "display_name": "Rhode Island",
+    "ref": "RI",
+    "kind": "State"
+  },
+  "state:SC": {
+    "text": "Map state: South Carolina",
+    "display_name": "South Carolina",
+    "ref": "SC",
+    "kind": "State"
+  },
+  "state:SD": {
+    "text": "Map state: South Dakota",
+    "display_name": "South Dakota",
+    "ref": "SD",
+    "kind": "State"
+  },
+  "state:TN": {
+    "text": "Map state: Tennessee",
+    "display_name": "Tennessee",
+    "ref": "TN",
+    "kind": "State"
+  },
+  "state:TX": {
+    "text": "Map state: Texas",
+    "display_name": "Texas",
+    "ref": "TX",
+    "kind": "State"
+  },
+  "state:UT": {
+    "text": "Map state: Utah",
+    "display_name": "Utah",
+    "ref": "UT",
+    "kind": "State"
+  },
+  "state:VT": {
+    "text": "Map state: Vermont",
+    "display_name": "Vermont",
+    "ref": "VT",
+    "kind": "State"
+  },
+  "state:VI": {
+    "text": "Map state: Virgin Islands",
+    "display_name": "Virgin Islands",
+    "ref": "VI",
+    "kind": "State"
+  },
+  "state:VA": {
+    "text": "Map state: Virginia",
+    "display_name": "Virginia",
+    "ref": "VA",
+    "kind": "State"
+  },
+  "state:WA": {
+    "text": "Map state: Washington",
+    "display_name": "Washington",
+    "ref": "WA",
+    "kind": "State"
+  },
+  "state:WV": {
+    "text": "Map state: West Virginia",
+    "display_name": "West Virginia",
+    "ref": "WV",
+    "kind": "State"
+  },
+  "state:WI": {
+    "text": "Map state: Wisconsin",
+    "display_name": "Wisconsin",
+    "ref": "WI",
+    "kind": "State"
+  },
+  "state:WY": {
+    "text": "Map state: Wyoming",
+    "display_name": "Wyoming",
+    "ref": "WY",
+    "kind": "State"
+  },
+  "state:MP": {
+    "text": "Map state: Northern Mariana Islands",
+    "display_name": "Northern Mariana Islands",
+    "ref": "MP",
+    "kind": "State"
+  },
+  "state:GM": {
+    "text": "Map state: Guam",
+    "display_name": "Guam",
+    "ref": "GM",
+    "kind": "State"
+  },
+  "state:AS": {
+    "text": "Map state: American Samoa",
+    "display_name": "American Samoa",
+    "ref": "AS",
+    "kind": "State"
+  },
+  "_source": {
+    "snapshot_date": "2026-11-11",
+    "provider": "pfeiferj/openpilot-mapd",
+    "countries_sha256": "e4847e0eadb93fad77e2f036dd452b23a7922f1248f34016116b1b52583333d0",
+    "states_sha256": "ce25ca289f1ddebcd9473a0a42163a66bed4b78538c35cf208628880d8a6bac9"
+  }
+}

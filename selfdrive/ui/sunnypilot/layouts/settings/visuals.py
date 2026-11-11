@@ -4,7 +4,6 @@ Copyright (c) 2021-, Haibin Wen, sunnypilot, and a number of other contributors.
 This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
-from openpilot.common.params import Params
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp, multiple_button_item_sp
@@ -22,7 +21,6 @@ class VisualsLayout(Widget):
   def __init__(self):
     super().__init__()
 
-    self._params = Params()
     items = self._initialize_items()
     self._scroller = Scroller(items, line_separator=True, spacing=0)
 
@@ -109,7 +107,7 @@ class VisualsLayout(Widget):
       title=lambda: tr("Display Metrics Below Chevron"),
       description="",
       buttons=[lambda: tr("Off"), lambda: tr("Distance"), lambda: tr("Speed"), lambda: tr("Time"), lambda: tr("All")],
-      param="ChevronInfo",
+      callback=self._on_chevron_info_selected,
       inline=False
     )
     self._dev_ui_info = multiple_button_item_sp(
@@ -127,22 +125,29 @@ class VisualsLayout(Widget):
     ]
     return items
 
+  def _on_chevron_info_selected(self, index):
+    self._update_state()
+    if self._chevron_info.action_item.enabled and index in range(5):
+      ui_state.params.put("ChevronInfo", index, block=True)
+      self._chevron_info.action_item.set_selected_button(index)
+
   def _update_state(self):
     super()._update_state()
 
     for param in self._toggle_defs:
-      self._toggles[param].action_item.set_state(self._params.get_bool(param))
+      self._toggles[param].action_item.set_state(ui_state.params.get_bool(param))
 
-    self._dev_ui_info.action_item.set_selected_button(ui_state.params.get("DevUIInfo", return_default=True))
+    dev_mode = ui_state.params.get("DevUIInfo", return_default=True)
+    self._dev_ui_info.action_item.set_selected_button(dev_mode if dev_mode in range(4) else 0)
+    chevron_mode = ui_state.params.get("ChevronInfo", return_default=True)
+    self._chevron_info.action_item.set_selected_button(chevron_mode if chevron_mode in range(5) else 0)
 
     if ui_state.has_longitudinal_control:
       self._chevron_info.set_description(tr(CHEVRON_INFO_DESCRIPTION["enabled"]))
-      self._chevron_info.action_item.set_selected_button(ui_state.params.get("ChevronInfo", return_default=True))
       self._chevron_info.action_item.set_enabled(True)
     else:
       self._chevron_info.set_description(tr(CHEVRON_INFO_DESCRIPTION["disabled"]))
       self._chevron_info.action_item.set_enabled(False)
-      ui_state.params.put("ChevronInfo", 0)
 
   def _render(self, rect):
     self._scroller.render(rect)
