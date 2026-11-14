@@ -883,21 +883,25 @@ def test_home_swipe_navigation_preserves_parameter_scroll():
   root = SettingsLayoutSP()
   gui_app.push_widget(root)
   draw(root)
-  root.buttons[root.menu_keys.index('steering')]._click_callback()
+  root.buttons[root.menu_keys.index('driving')]._click_callback()
   panel = gui_app.get_active_widget()
   draw(panel)
   panel._list.change_page(1)
-  panel._rows[panel.controller._lat_position_offset][0].callback()
+  item = panel.panels['steering'].controller._lat_position_offset
+  row = panel._rows['steering', item][0]
+  panel._list.focus_item(row)
+  position = panel._list.page
+  row.callback()
   assert isinstance(gui_app.get_active_widget(), CompactNumberPage)
   gui_app.pop_widget()
   draw(panel)
-  assert panel._list.page == 1
+  assert panel._list.page == position
   gui_app.pop_widget()
   draw(root)
-  root.buttons[root.menu_keys.index('steering')]._click_callback()
+  root.buttons[root.menu_keys.index('driving')]._click_callback()
   draw(panel)
   assert gui_app.get_active_widget() is panel
-  assert panel._list.page == 1
+  assert panel._list.page == position
 
 
 def test_tree_confirmation_cancel_keeps_dialog_and_original_selection():
@@ -5386,8 +5390,9 @@ def test_c4_settings_navigation_pauses_brightness_until_settings_exit(monkeypatc
   settings.focus_category('display')
   settings.buttons[settings.menu_keys.index('display')]._click_callback()
   panel = gui_app.get_active_widget()
-  item = panel.controller._onroad_brightness
-  panel._open_number(item, lambda: item.title, lambda: item.description)
+  source = panel.panels['display']
+  item = source.controller._onroad_brightness
+  source._open_number(item, lambda: item.title, lambda: item.description)
   for _ in range(10):
     ui_state.update_onroad_brightness(False)
   UIStateSP.update_params(ui_state)

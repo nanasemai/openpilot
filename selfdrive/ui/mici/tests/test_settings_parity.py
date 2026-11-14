@@ -6,8 +6,9 @@ from pathlib import Path
 import pytest
 
 from openpilot.selfdrive.ui.ui_state import ui_state
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP, MENU_ORDER
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ParameterPanel, ParameterSearch, parameter_key
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP, MENU_ORDER, MENU_GROUPS, CATEGORY_GROUP
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ParameterSearch, parameter_key
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_group import SettingsGroup
 from openpilot.selfdrive.ui.sunnypilot.layouts.settings.vehicle.brands.factory import BrandSettingsFactory
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
@@ -64,11 +65,15 @@ def home():
   return page
 
 
-def test_every_registered_c3x_destination_is_on_home():
+def test_every_registered_c3x_destination_is_in_exactly_one_of_six_groups():
   page = home()
   assert len(registered_controllers()) == 15
-  assert tuple(registered_controllers()) == page.menu_keys
-  assert len(page.buttons) == 15
+  categories = [category for _, members in MENU_GROUPS.values() for category in members]
+  assert len(categories) == len(set(categories)) == 15
+  assert set(registered_controllers()) == set(categories)
+  assert page.menu_keys == ('device', 'driving', 'display', 'vehicle', 'connections', 'maintenance')
+  assert [str(resolve(button.title)) for button in page.buttons] == ['设备', '辅助驾驶', '显示', '车辆与模型', '网络与连接', '软件与调试']
+  assert len(page.buttons) == 6
 
 
 @pytest.mark.parametrize('kind', MENU_ORDER)
@@ -84,8 +89,8 @@ def test_c3x_category_touch_opens_secondary_settings_and_remembers_menu_page(kin
   page = gui_app.get_active_widget()
   assert page is not root
   assert page._list.horizontal
-  if kind not in ('network', 'trips', 'firehose'):
-    assert isinstance(page, ParameterPanel) and page.kind == kind
+  assert isinstance(page, SettingsGroup) and page.kind == kind
+  assert tuple(page.panels) == MENU_GROUPS[kind][1]
   gui_app.pop_widget()
   draw(root)
   assert gui_app.get_active_widget() is root
@@ -124,7 +129,43 @@ def test_home_search_is_a_direct_shortcut_and_opens_the_existing_category(monkey
   assert len(entries) == 1 and entries[0][0] == 'steering'
   search.open_result(entries[0])
   page = gui_app.get_active_widget()
-  assert isinstance(page, ParameterPanel) and page.kind == 'steering'
+  assert isinstance(page, SettingsGroup) and page.kind == 'driving'
+  draw(page)
+  row = page._list.visible_items[page._list.page]
+  category, item = page._row_sources[row]
+  assert category == 'steering' and parameter_key(item) == 'TorqueParamsOverrideFriction'
+
+
+def test_search_from_group_returns_to_existing_group_and_focuses_another_section(monkeypatch):
+  root = home()
+  root.open_group('driving')
+  group = gui_app.get_active_widget()
+  draw(group)
+  tap(group, group._header.action._search.rect, monkeypatch)
+  search = gui_app.get_active_widget()
+  search.query = 'SpeedLimitMode'
+  search.refresh()
+  search.open_result(search.matching_entries()[0])
+  assert gui_app.get_active_widget() is group
+  assert gui_app._nav_stack.count(group) == 1
+  draw(group)
+  category, item = group._row_sources[group._list.visible_items[group._list.page]]
+  assert category == 'cruise' and parameter_key(item) == 'SpeedLimitMode'
+  assert not gui_app.widget_in_stack(search)
+
+
+def test_search_shortcut_reuses_search_already_below_another_group(monkeypatch):
+  root = home()
+  root.open_search()
+  search = gui_app.get_active_widget()
+  search.query = 'LateralPositionOffset'
+  search.refresh()
+  search.open_result(search.matching_entries()[0])
+  group = gui_app.get_active_widget()
+  draw(group)
+  tap(group, group._header.action._search.rect, monkeypatch)
+  assert gui_app.get_active_widget() is search
+  assert gui_app._nav_stack.count(search) == 1
 
 
 def test_offroad_mode_stays_in_device_settings_and_search():
@@ -160,6 +201,10 @@ def test_c3x_settings_actions_options_and_ranges_are_preserved(kind):
       assert panel._rows[item], item.title
       if isinstance(item.action_item, (ToggleAction, MultipleButtonAction, OptionControlSP)):
         assert all(row.is_visible for row in panel._rows[item]), item.title
+  root.open_group(CATEGORY_GROUP[kind])
+  group = gui_app.get_active_widget()
+  reachable = {signature(item) for (category, item), rows in group._rows.items() if category == kind and rows}
+  assert expected <= reachable, expected - reachable
 
 
 @pytest.mark.parametrize('brand', list(BrandSettingsFactory._BRAND_MAP))
@@ -174,6 +219,9 @@ def test_all_c3x_vehicle_brand_controls_and_options_remain_available(brand):
   assert expected <= actual, expected - actual
   assert all(panel._rows[item] for item in panel._source_items)
   assert all(parameter_key(item) for item in panel._source_items if isinstance(item.action_item, (ToggleAction, MultipleButtonAction, OptionControlSP)))
+  root.open_group('vehicle')
+  group = gui_app.get_active_widget()
+  assert expected <= {signature(item) for (category, item), rows in group._rows.items() if category == 'vehicle' and rows}
 
 
 def test_advanced_controls_are_discoverable_with_prerequisite_explanations():
@@ -194,13 +242,15 @@ def test_advanced_controls_are_discoverable_with_prerequisite_explanations():
 
 
 @pytest.mark.parametrize('password', ['', 'hidden-password'])
-def test_hidden_wifi_connect_and_cancel_preserve_c3x_behavior(password, monkeypatch):
+@pytest.mark.parametrize('grouped', [False, True])
+def test_hidden_wifi_connect_and_cancel_preserve_c3x_behavior(password, grouped, monkeypatch):
   root = home()
-  root.open_panel('network')
-  panel = gui_app.get_active_widget()
+  root.open_group('connections') if grouped else root.open_panel('network')
+  page = gui_app.get_active_widget()
+  panel = page.panels['network'] if grouped else page
   calls = []
   monkeypatch.setattr(panel.native._wifi_manager, 'connect_to_network', lambda *args, **kwargs: calls.append((args, kwargs)))
-  hidden = next(row for row in panel._list.items if resolve(row.title) == tr('Hidden Network'))
+  hidden = next(row for row in page._list.items if resolve(row.title) == tr('Hidden Network'))
   hidden.callback()
   gui_app.pop_widget()
   assert calls == []
@@ -223,12 +273,13 @@ def test_hidden_wifi_connect_and_cancel_preserve_c3x_behavior(password, monkeypa
   assert calls == [(('Hidden AP', password), {'hidden': True})]
 
 
-def test_network_browse_and_swipe_require_large_editor_to_change_roaming(monkeypatch):
+@pytest.mark.parametrize('grouped', [False, True])
+def test_network_browse_and_swipe_require_large_editor_to_change_roaming(grouped, monkeypatch):
   from openpilot.selfdrive.ui.lib.prime_state import PrimeType
   from openpilot.selfdrive.ui.sunnypilot.mici.layouts.network import NetworkTogglePage
   monkeypatch.setattr(ui_state.prime_state, 'get_type', lambda: PrimeType.NONE)
   root = home()
-  root.open_panel('network')
+  root.open_group('connections') if grouped else root.open_panel('network')
   panel = gui_app.get_active_widget()
   row = panel._list.items[5]
   panel._list.focus_item(row)
@@ -307,6 +358,81 @@ def test_actions_keep_separate_description_access_before_execution(monkeypatch):
   assert ui_state.params.get('OnroadCycleRequested') is None
 
 
+def test_grouped_actions_execute_with_the_original_confirmation_and_reject_stale_callbacks(monkeypatch):
+  from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
+  root = home()
+  root.buttons[0]._click_callback()
+  group = gui_app.get_active_widget()
+  item = group.panels['device'].controller._power_buttons
+  row = group._rows['device', item][0]
+  group._list.focus_item(row)
+  draw(group)
+  tap(group, row.rect, monkeypatch)
+  dialog = gui_app.get_active_widget()
+  assert isinstance(dialog, ConfirmDialog)
+  assert ui_state.params.get('DoReboot') is None
+  dialog._cancel_button_callback()
+  draw(group)
+  assert group._list.visible_items[group._list.page] is row
+  gui_app.pop_widget()
+  row.callback()
+  assert gui_app.get_active_widget() is root
+  assert ui_state.params.get('DoReboot') is None
+
+
+def test_grouped_parameter_taps_and_swipes_keep_large_editors_and_return_position(monkeypatch):
+  from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ParameterTogglePage
+  ui_state.params.put_bool('Mads', True, block=True)
+  root = home()
+  root.open_group('driving')
+  group = gui_app.get_active_widget()
+  group.focus_setting('steering', 'Mads')
+  draw(group)
+  row = group._list.visible_items[group._list.page]
+  position = group._list.page
+  horizontal_swipe(group, (480, 425, 250, 80, 80, 80), monkeypatch)
+  assert gui_app.get_active_widget() is group
+  assert ui_state.params.get_bool('Mads')
+  group._list.focus_item(row)
+  draw(group)
+  tap(group, row.rect, monkeypatch)
+  detail = gui_app.get_active_widget()
+  assert isinstance(detail, ParameterTogglePage)
+  assert ui_state.params.get_bool('Mads')
+  tap(detail, detail._toggle.rect, monkeypatch)
+  assert not ui_state.params.get_bool('Mads')
+  gui_app.pop_widget()
+  draw(group)
+  assert group._list.page == position
+  group.focus_setting('cruise', 'SpeedLimitMode')
+  draw(group)
+  assert tr('Cruise') == str(resolve(group._header.title))
+  assert group._row_sources[group._list.visible_items[group._list.page]][0] == 'cruise'
+
+
+@pytest.mark.parametrize('kind', MENU_ORDER)
+def test_group_categories_are_contiguous_and_native_settings_have_no_extra_category_page(kind):
+  root = home()
+  root.open_group(kind)
+  group = gui_app.get_active_widget()
+  categories = []
+  for row in group._list.items:
+    category, _ = group._row_sources[row]
+    if not categories or category != categories[-1]:
+      categories.append(category)
+  assert tuple(categories) == MENU_GROUPS[kind][1]
+  for category in categories:
+    group.focus_setting(category)
+    draw(group)
+    assert group._row_sources[group._list.visible_items[group._list.page]][0] == category
+    assert group._list.visible_items[group._list.page].rect.width >= 500
+  for category in ('network', 'trips', 'firehose'):
+    if category in group.panels:
+      original = group.panels[category]._list.items
+      combined = [row for row in group._list.items if group._row_sources[row][0] == category]
+      assert [str(resolve(row.title)) for row in combined] == [str(resolve(row.title)) for row in original]
+
+
 def test_category_button_drags_cannot_open_a_menu(monkeypatch):
   root = home()
   area = root.buttons[0].rect
@@ -346,7 +472,8 @@ def test_parameter_search_updates_after_vehicle_brand_changes():
 
 
 @pytest.mark.parametrize('text', ['Swipe left or right', 'About sunnylink', 'Enable Show Advanced Controls first.',
-                                 'Unavailable on this software branch.'])
+                                 'Unavailable on this software branch.', 'Driving Assistance', 'Vehicle & Models',
+                                 'Network & Connections', 'Software & Debugging', 'Wi-Fi · Remote Access · Maps · Uploads'])
 def test_new_labels_have_chinese_translation_and_font_glyphs(text):
   translated = tr(text)
   assert translated != text

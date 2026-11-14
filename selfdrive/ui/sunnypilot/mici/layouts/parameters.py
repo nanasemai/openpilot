@@ -306,7 +306,7 @@ class ParameterPanel(SettingsPanel):
         self._rows[item] = self._make_rows(item)
       rows.extend(self._rows[item])
     self._list.set_items(rows)
-    if gui_app.get_active_widget() is self:
+    if self._is_active():
       for item in self._source_items:
         action = item.action_item
         if hasattr(action, 'present_error'):
@@ -390,18 +390,22 @@ class ParameterPanel(SettingsPanel):
     self._focus_key = key
 
   def _section_title(self):
-    title = tr(ALL_PARAMETER_TITLES[self.kind])
     visible = self._list.visible_items
     current = visible[self._list.page] if visible else None
     for item in self._source_items:
       if current in self._rows.get(item, ()):
-        owner = self._owners.get(item)
-        for controller, label in ((self.controller._mads_settings_layout, 'Customize MADS'),
-                                  (self.controller._lane_change_settings_layout, 'Lane Change'),
-                                  (self.controller._torque_control_layout, 'Torque Parameters')):
-          if owner is controller:
-            return title + ' · ' + tr(label)
-        break
+        return self.section_title(item)
+    return tr(ALL_PARAMETER_TITLES[self.kind])
+
+  def section_title(self, item):
+    title = tr(ALL_PARAMETER_TITLES[self.kind])
+    if self.kind == 'steering':
+      owner = self._owners.get(item)
+      for controller, label in ((self.controller._mads_settings_layout, 'Customize MADS'),
+                                (self.controller._lane_change_settings_layout, 'Lane Change'),
+                                (self.controller._torque_control_layout, 'Torque Parameters')):
+        if owner is controller:
+          return title + ' · ' + tr(label)
     return title
 
   def _render(self, rect):
@@ -491,7 +495,7 @@ class ParameterSearch(CompactPage):
     self.refresh()
 
   def open_result(self, entry):
-    self.root.open_parameters(entry[0], entry[1])
+    self.root.open_setting(entry[0], entry[1])
 
   def _render(self, rect):
     rl.draw_rectangle_rec(rect, rl.BLACK)

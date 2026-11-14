@@ -37,6 +37,11 @@ class SettingsPanel(CompactPage):
     self._source_items = []
     self._notification = ''
     self._notification_until = 0
+    self._navigation_owner = None
+
+  def _is_active(self):
+    active = gui_app.get_active_widget()
+    return active is self or (self._navigation_owner is not None and active is self._navigation_owner)
 
   def _notify(self, message):
     self._notification = message
@@ -97,7 +102,7 @@ class SettingsPanel(CompactPage):
         self._rows[item] = self._make_rows(item)
       rows.extend(self._rows[item])
     self._list.set_items(rows)
-    if gui_app.get_active_widget() is self:
+    if self._is_active():
       for item in items:
         action = getattr(item, "action_item", None)
         if hasattr(action, "present_error"):
@@ -134,7 +139,7 @@ class SettingsPanel(CompactPage):
 
   def _invoke(self, item, callback, extra_allowed=lambda: True):
     self.refresh()
-    if self._item_available(item) and extra_allowed() and callback is not None and gui_app.get_active_widget() is self:
+    if self._item_available(item) and extra_allowed() and callback is not None and self._is_active():
       callback()
 
   def _make_rows(self, item):

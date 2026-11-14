@@ -6659,3 +6659,18 @@ msgstr "当前软件分支不支持此设置。"
 
 msgid "Unavailable with the current cellular subscription."
 msgstr "当前蜂窝网络服务不允许修改此设置。"
+
+msgid "Driving Assistance"
+msgstr "辅助驾驶"
+
+msgid "Vehicle & Models"
+msgstr "车辆与模型"
+
+msgid "Network & Connections"
+msgstr "网络与连接"
+
+msgid "Software & Debugging"
+msgstr "软件与调试"
+
+msgid "Wi-Fi · Remote Access · Maps · Uploads"
+msgstr "Wi-Fi · 远程 · 地图 · 上传"

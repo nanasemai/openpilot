@@ -108,9 +108,17 @@ class NetworkPanel(CompactPage):
     self._list.set_enabled(lambda: self.enabled)
     self.native = NetworkLayoutMici()
     self._wifi = WifiPanel(self.native._wifi_ui)
+    self._navigation_owner = None
+    self._list.set_items(self.setting_rows())
+
+  def _is_active(self):
+    active = gui_app.get_active_widget()
+    return active is self or (self._navigation_owner is not None and active is self._navigation_owner)
+
+  def setting_rows(self):
     def cellular_info(title):
       gui_app.push_widget(CompactInfoPage(title, lambda: tr('Unavailable with the current cellular subscription.')))
-    self._list.set_items([
+    return [
       CompactRow(lambda: tr("Wi-Fi Networks"), self.native._wifi_button.get_value, lambda: gui_app.push_widget(self._wifi)),
       CompactRow(lambda: tr("Scan"), callback=self.native._wifi_manager._request_scan),
       CompactRow(lambda: tr("network usage"), self._metered_label, self._select_metered,
@@ -126,7 +134,7 @@ class NetworkPanel(CompactPage):
       NetworkToggleRow(lambda: tr("cellular metered"), self.native._cellular_metered_btn, self,
                         help_callback=lambda: cellular_info(lambda: tr('cellular metered'))),
       CompactRow(lambda: tr("Hidden Network"), callback=self._connect_hidden),
-    ])
+    ]
 
   def _connect_hidden(self):
     from openpilot.selfdrive.ui.mici.widgets.dialog import BigInputDialog
@@ -137,7 +145,7 @@ class NetworkPanel(CompactPage):
       gui_app.push_widget(BigInputDialog(lambda: tr('Enter password'), minimum_length=0,
                                          confirm_callback=lambda password: self.native._wifi_manager.connect_to_network(ssid, password, hidden=True)))
 
-    if gui_app.get_active_widget() is self:
+    if self._is_active():
       gui_app.push_widget(BigInputDialog(lambda: tr('Enter SSID'), minimum_length=1, confirm_callback=enter_password))
 
   def show_event(self):
@@ -154,7 +162,7 @@ class NetworkPanel(CompactPage):
 
   def _toggle(self, button, active_page=None):
     self._update_state()
-    if button.enabled and button.is_visible and gui_app.get_active_widget() is (active_page or self):
+    if button.enabled and button.is_visible and (gui_app.get_active_widget() is active_page if active_page else self._is_active()):
       button._handle_mouse_release(None)
 
   def _metered_label(self):

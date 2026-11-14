@@ -169,7 +169,10 @@ class TripsPanel(CompactPage):
     self._list = CompactSwipeList()
     self._list.set_enabled(lambda: self.enabled)
     self.controller = TripsLayout()
-    self._list.set_items([
+    self._list.set_items(self.setting_rows())
+
+  def setting_rows(self):
+    return [
       CompactActionRow(lambda: tr("Refresh Trip Statistics"), self.controller.status, self.controller.request_refresh,
                  help_callback=lambda: gui_app.push_widget(CompactInfoPage(lambda: tr("Refresh Trip Statistics"), self.controller.status)),
                  enabled=lambda: ui_state.is_offroad() and not self.controller._loading),
@@ -179,7 +182,7 @@ class TripsPanel(CompactPage):
       for key, period in (("all", "ALL TIME"), ("week", "PAST WEEK"))
       for field, title in (("routes", "Drives"), ("distance", "Distance"), ("minutes", "Hours"))
       ],
-    ])
+    ]
 
   def _value(self, key, field):
     from openpilot.common.constants import CV
@@ -199,9 +202,13 @@ class FirehosePanel(CompactPage):
     super().__init__(lambda: tr("Firehose Mode"))
     self._list = CompactSwipeList()
     self._list.set_enabled(lambda: self.enabled)
-    from openpilot.selfdrive.ui.mici.layouts.settings.firehose import FirehoseLayoutBase, DESCRIPTION, INSTRUCTIONS_INTRO, FAQ_ITEMS
+    from openpilot.selfdrive.ui.mici.layouts.settings.firehose import FirehoseLayoutBase
     self.controller = FirehoseLayoutBase()
-    self._list.set_items([
+    self._list.set_items(self.setting_rows())
+
+  def setting_rows(self):
+    from openpilot.selfdrive.ui.mici.layouts.settings.firehose import DESCRIPTION, INSTRUCTIONS_INTRO, FAQ_ITEMS
+    return [
       CompactRow(lambda: tr("Status"), lambda: self.controller._get_status()[0],
                  callback=lambda: gui_app.push_widget(CompactInfoPage(lambda: tr("Status"), lambda: self.controller._get_status()[0]))),
       CompactRow(lambda: tr("Training Data Contributions"),
@@ -214,4 +221,4 @@ class FirehosePanel(CompactPage):
       CompactRow(lambda: tr("Instructions"), callback=lambda: gui_app.push_widget(CompactInfoPage(lambda: tr("Instructions"), lambda: tr(INSTRUCTIONS_INTRO)))),
       *[CompactRow(lambda q=q: tr(q),
                    callback=lambda q=q, a=a: gui_app.push_widget(CompactInfoPage(lambda: tr(q), lambda: tr(a)))) for q, a in FAQ_ITEMS],
-    ])
+    ]

@@ -6,7 +6,8 @@ import pyray as rl
 from cereal import car
 from openpilot.common.constants import CV
 from openpilot.selfdrive.ui.ui_state import ui_state
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP, CATEGORY_GROUP, MENU_GROUPS
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_group import SettingsGroup
 from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import PARAMETER_TITLES, ParameterPanel, ParameterTogglePage, parameter_key
 from openpilot.system.ui.lib.application import gui_app, MouseEvent, MousePos
 from openpilot.system.ui.lib.multilang import tr
@@ -30,33 +31,37 @@ def root():
 @pytest.mark.parametrize('kind', [key for key in PARAMETER_TITLES if key not in ('lane', 'torque')])
 def test_parameter_destinations_render_in_their_c3x_category(kind):
   home = root()
-  index = home.menu_keys.index(kind)
+  index = home.menu_keys.index(CATEGORY_GROUP[kind])
   home.buttons[index]._click_callback()
   page = gui_app.get_active_widget()
-  assert isinstance(page, ParameterPanel)
+  assert isinstance(page, SettingsGroup)
+  assert kind in page.panels
   draw(page)
   assert page._list.horizontal
   visible = page._list.visible_items[:1]
   assert all(row.rect.width >= 500 and row.rect.height == 164 for row in visible)
   assert len(visible) == 1
   assert all(row.rect.y >= 56 and row.rect.y + row.rect.height <= 220 for row in visible)
-  assert len(home.buttons) == 15
+  assert len(home.buttons) == 6
   assert home._list.page_count == len(home.buttons)
   assert home.buttons[0].rect.height == 164 and home.buttons[0].rect.width >= 500
 
 
 def test_two_click_numeric_access_and_scroll_survives_editor():
   home = root()
-  home.buttons[home.menu_keys.index('steering')]._click_callback()
+  home.buttons[home.menu_keys.index('driving')]._click_callback()
   panel = gui_app.get_active_widget()
   draw(panel)
-  panel._list.change_page(1)
-  item = panel.controller._lat_position_offset
-  panel._rows[item][0].callback()
+  item = panel.panels['steering'].controller._lat_position_offset
+  row = panel._rows['steering', item][0]
+  panel._list.focus_item(row)
+  draw(panel)
+  position = panel._list.page
+  row.callback()
   assert isinstance(gui_app.get_active_widget(), CompactNumberPage)
   gui_app.pop_widget()
   draw(panel)
-  assert panel._list.page == 1
+  assert panel._list.page == position
 
 
 @pytest.mark.parametrize('kind,key', [('steering', 'BlinkerMinLateralControlSpeed'), ('steering', 'MadsSteeringMode'),
@@ -110,10 +115,10 @@ def test_search_finds_chinese_english_and_key_without_writing():
     before = ui_state.params.get('LateralPositionOffset')
     search.open_result(entry)
     panel = gui_app.get_active_widget()
-    assert isinstance(panel, ParameterPanel)
+    assert isinstance(panel, SettingsGroup) and panel.kind == 'driving'
     draw(panel)
     assert ui_state.params.get('LateralPositionOffset') == before
-    row = next(rows[0] for item, rows in panel._rows.items() if parameter_key(item) == 'LateralPositionOffset')
+    row = next(rows[0] for (_, item), rows in panel._rows.items() if parameter_key(item) == 'LateralPositionOffset')
     draw(panel)
     assert panel._list.rect.y <= row.rect.y + 1
     assert row.rect.y + row.rect.height <= panel._list.rect.y + panel._list.rect.height + 1
@@ -348,12 +353,13 @@ def test_category_horizontal_swipes_reach_every_c3x_menu_without_opening_it(monk
   assert gui_app.get_active_widget() is home
 
 
-def test_all_original_main_menus_have_direct_home_entries():
+def test_all_original_categories_are_covered_by_six_home_groups():
   from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import TITLES
   home = root()
-  assert set(TITLES) <= set(home.menu_keys)
+  assert set(TITLES) == set(CATEGORY_GROUP)
+  assert home.menu_keys == tuple(MENU_GROUPS)
   assert str(resolve(home._header.action.text)) == tr('ADB / SSH')
-  for key in ('network', 'device', 'software', 'developer'):
+  for key in home.menu_keys:
     home.buttons[home.menu_keys.index(key)]._click_callback()
     assert gui_app.get_active_widget() is not home
     gui_app.pop_widget()
