@@ -1,5 +1,6 @@
 """Touch controls for the 536 x 240 display. Values and policy belong to their callers."""
 from collections.abc import Callable
+from decimal import Decimal, InvalidOperation
 from html import escape
 
 import pyray as rl
@@ -61,6 +62,44 @@ class CompactBackButton(CompactButton):
     rl.draw_line_ex(rl.Vector2(center.x - 8, center.y), rl.Vector2(center.x + 6, center.y + 14), 4, rl.WHITE)
 
 
+class RepeatButton(CompactButton):
+  def __init__(self, text, callback):
+    super().__init__(text, callback)
+    self._repeat_at = None
+    self._press_started = False
+
+  def _handle_mouse_press(self, pos):
+    self._press_started = True
+    self._repeat_at = rl.get_time() + 0.45
+    self._click_callback()
+
+  def _handle_mouse_release(self, pos):
+    if not self._press_started:
+      super()._handle_mouse_release(pos)
+    self._press_started = False
+    self._repeat_at = None
+
+  def _render(self, rect):
+    super()._render(rect)
+    releasing = any(event.left_released for event in gui_app.mouse_events)
+    if self.enabled and self.is_pressed and not releasing and self._repeat_at is not None and rl.get_time() >= self._repeat_at:
+      self._repeat_at = rl.get_time() + 0.10
+      self._click_callback()
+    if not self.enabled or releasing:
+      self._repeat_at = None
+      self._press_started = False if not self.enabled else self._press_started
+
+  def _handle_mouse_event(self, event):
+    if event.left_released:
+      self._repeat_at = None
+
+
+  def hide_event(self):
+    super().hide_event()
+    self._press_started = False
+    self._repeat_at = None
+
+
 class CompactHeader(Widget):
   def __init__(self, title, back: Callable):
     super().__init__()
@@ -99,10 +138,11 @@ class CompactHeader(Widget):
 
 
 class CompactList(Scroller):
-  def __init__(self, horizontal=True):
+  def __init__(self, horizontal=True, paged=False):
     super().__init__(horizontal=horizontal, spacing=20 if horizontal else 0, pad=20 if horizontal else 0,
-                     scroll_indicator=False, edge_shadows=horizontal)
+                     scroll_indicator=False, edge_shadows=horizontal, snap_items=paged)
     self.horizontal = horizontal
+    self.paged = paged
     self._scroller.set_reset_scroll_at_show(False)
     self._scroller.set_enabled(lambda: self.enabled)
 
@@ -111,21 +151,34 @@ class CompactList(Scroller):
       return
     self._scroller.items.clear()
     self._scroller.add_widgets(items)
+    if self.paged:
+      for item in items:
+        original = item._touch_valid_callback
+        item.set_touch_valid_callback(lambda original=original: original() and self._page_aligned())
+
+  def _page_aligned(self):
+    extent = self.rect.width if self.horizontal else self.rect.height
+    if extent <= 0:
+      return False
+    offset = self._scroller.scroll_panel.get_offset()
+    return abs(offset - round(offset / extent) * extent) < 2
 
   def focus_item(self, item):
-    if self.horizontal and item.is_visible and item in self._scroller.items:
+    if item.is_visible and item in self._scroller.items:
       scroll = self._scroller.scroll_panel
-      offset = scroll.get_offset() + self.rect.x + 20 - item.rect.x
-      minimum = min(0, self.rect.width - self._scroller.content_size)
+      offset = scroll.get_offset() + (self.rect.x + 20 - item.rect.x if self.horizontal else self.rect.y - item.rect.y)
+      extent = self.rect.width if self.horizontal else self.rect.height
+      minimum = min(0, extent - self._scroller.content_size)
       scroll.set_offset(max(minimum, min(0, offset)))
 
   @property
   def position(self):
     items = [item for item in self._scroller.items if item.is_visible]
-    if not self.horizontal or len(items) < 2:
+    if len(items) < 2 or not (self.horizontal or self.paged):
       return ""
-    center = self.rect.x + self.rect.width / 2
-    index = min(range(len(items)), key=lambda i: abs(items[i].rect.x + items[i].rect.width / 2 - center))
+    center = self.rect.x + self.rect.width / 2 if self.horizontal else self.rect.y + self.rect.height / 2
+    index = min(range(len(items)), key=lambda i: abs((items[i].rect.x + items[i].rect.width / 2 if self.horizontal else
+                                                   items[i].rect.y + items[i].rect.height / 2) - center))
     return f"{index + 1}/{len(items)}"
 
   def _render(self, rect):
@@ -134,10 +187,84 @@ class CompactList(Scroller):
       item.set_parent_rect(viewport)
     self._scroller.render(viewport)
     size = self._scroller.content_size
-    if not self.horizontal and size > rect.height:
+    if not self.horizontal and not self.paged and size > rect.height:
       height = max(18, rect.height * rect.height / size)
       ratio = max(0, min(1, -self._scroller.scroll_panel.get_offset() / (size - rect.height)))
       rl.draw_rectangle_rec(rl.Rectangle(rect.x + rect.width - 4, rect.y + ratio * (rect.height - height), 3, height), MUTED)
+
+
+class CompactPagedList(Widget):
+  """Two large rows with explicit page buttons and a stable position on return."""
+  FOOTER_HEIGHT = 48
+  ROW_GAP = 8
+
+  def __init__(self, per_page=2):
+    super().__init__()
+    self.per_page = per_page
+    self.items = []
+    self.page = 0
+    self.horizontal = False
+    self._previous = CompactButton(lambda: tr('Previous Page'), lambda: self.change_page(-1))
+    self._next = CompactButton(lambda: tr('Next Page'), lambda: self.change_page(1))
+    self._previous.set_enabled(lambda: self.enabled and self.page > 0)
+    self._next.set_enabled(lambda: self.enabled and self.page + 1 < self.page_count)
+    self._child(self._previous)
+    self._child(self._next)
+
+  @property
+  def visible_items(self):
+    return [item for item in self.items if item.is_visible]
+
+  @property
+  def page_count(self):
+    return max(1, (len(self.visible_items) + self.per_page - 1) // self.per_page)
+
+  @property
+  def position(self):
+    return f'{self.page + 1}/{self.page_count}'
+
+  def set_items(self, items):
+    if items != self.items:
+      visible = self.visible_items
+      anchor = visible[self.page * self.per_page] if self.page * self.per_page < len(visible) else None
+      for item in self.items:
+        item.hide_event()
+      self.items = list(items)
+      self._children = [self._previous, self._next, *self.items]
+      for item in self.items:
+        item.set_enabled(lambda: self.enabled)
+        item.set_touch_valid_callback(self._touch_valid)
+      visible = self.visible_items
+      if anchor in visible:
+        self.page = visible.index(anchor) // self.per_page
+    self.page = min(self.page, self.page_count - 1)
+
+  def change_page(self, direction):
+    target = max(0, min(self.page_count - 1, self.page + direction))
+    if target != self.page:
+      for item in self.visible_items[self.page * self.per_page:(self.page + 1) * self.per_page]:
+        item.hide_event()
+      self.page = target
+
+  def focus_item(self, item):
+    if item in self.visible_items:
+      target = self.visible_items.index(item) // self.per_page
+      self.change_page(target - self.page)
+
+  def _render(self, rect):
+    self.page = min(self.page, self.page_count - 1)
+    body_height = rect.height - self.FOOTER_HEIGHT
+    height = (body_height - self.ROW_GAP * (self.per_page - 1)) / self.per_page
+    for index, item in enumerate(self.visible_items[self.page * self.per_page:(self.page + 1) * self.per_page]):
+      row_rect = rl.Rectangle(rect.x + 8, rect.y + index * (height + self.ROW_GAP), rect.width - 16, height)
+      item.set_parent_rect(row_rect)
+      item.render(row_rect)
+    y = rect.y + body_height + 4
+    width = (rect.width - 128) / 2
+    self._previous.render(rl.Rectangle(rect.x + 8, y, width, 44))
+    gui_label(rl.Rectangle(rect.x + 8 + width, y, 112, 44), self.position, 26, MUTED,
+              alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
+    self._next.render(rl.Rectangle(rect.x + rect.width - width - 8, y, width, 44))
 
 
 class CompactRow(Widget):
@@ -293,6 +420,83 @@ class CompactPage(Widget):
     self._list.render(rl.Rectangle(rect.x, rect.y + HEADER_HEIGHT, rect.width, rect.height - HEADER_HEIGHT))
 
 
+class CompactGridSheet(Widget):
+  """Four large buttons sharing a page's scroll/touch rejection."""
+  def __init__(self, buttons):
+    super().__init__()
+    self.buttons = buttons
+    for button in buttons:
+      self._child(button)
+      button.set_enabled(lambda: self.enabled)
+      button.set_touch_valid_callback(self._touch_valid)
+
+  def set_parent_rect(self, rect):
+    super().set_parent_rect(rect)
+    self._rect.width, self._rect.height = rect.width, rect.height
+
+  def _render(self, rect):
+    width = (rect.width - 36) / 2
+    height = (rect.height - 24) / 2
+    for index, button in enumerate(self.buttons):
+      button.set_parent_rect(self._parent_rect or rect)
+      button.render(rl.Rectangle(rect.x + 12 + index % 2 * (width + 12),
+                                 rect.y + 8 + index // 2 * (height + 8), width, height))
+
+
+class CompactGridPage(CompactPage):
+  """Four entries per screen; vertical swipes retain shallow navigation."""
+  def __init__(self, title, entries, button_paging=False):
+    super().__init__(title, horizontal=False)
+    self._button_paging = button_paging
+    self.buttons = [CompactButton(text, callback) for text, callback in entries]
+    self._list = self._child(CompactList(horizontal=False, paged=True))
+    self._list.set_enabled(lambda: self.enabled)
+    self._list.set_items([CompactGridSheet(self.buttons[index:index + 4]) for index in range(0, len(self.buttons), 4)])
+    self._header.position = lambda: self._list.position
+    if button_paging:
+      self._list._scroller.set_scrolling_enabled(False)
+      self._previous = self._child(CompactGridArrow(-1, lambda: self._change_grid_page(-1)))
+      self._next = self._child(CompactGridArrow(1, lambda: self._change_grid_page(1)))
+      self._previous.set_enabled(lambda: self.enabled and self._grid_page() > 0)
+      self._next.set_enabled(lambda: self.enabled and self._grid_page() + 1 < len(self._list._scroller.items))
+      self._header.title = lambda: str(resolve(title)) + ' ' + (self._list.position or '1/1')
+
+  def _grid_page(self):
+    height = self._list.rect.height
+    return round(-self._list._scroller.scroll_panel.get_offset() / height) if height else 0
+
+  def _change_grid_page(self, direction):
+    target = max(0, min(len(self._list._scroller.items) - 1, self._grid_page() + direction))
+    self._list.focus_item(self._list._scroller.items[target])
+
+  def _render(self, rect):
+    rl.draw_rectangle_rec(rect, BACKGROUND)
+    self._header.render(rl.Rectangle(rect.x, rect.y, rect.width, HEADER_HEIGHT))
+    if self._button_paging:
+      height = rect.height - HEADER_HEIGHT
+      self._previous.render(rl.Rectangle(rect.x, rect.y + HEADER_HEIGHT, 64, height))
+      self._list.render(rl.Rectangle(rect.x + 64, rect.y + HEADER_HEIGHT, rect.width - 128, height))
+      self._next.render(rl.Rectangle(rect.x + rect.width - 64, rect.y + HEADER_HEIGHT, 64, height))
+      return
+    self._list.render(rl.Rectangle(rect.x, rect.y + HEADER_HEIGHT, rect.width, rect.height - HEADER_HEIGHT - 24))
+    gui_label(rl.Rectangle(rect.x + 12, rect.y + rect.height - 24, rect.width - 24, 24),
+              self._list.position + ' · ' + tr('Swipe up or down'), 20, MUTED, alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
+
+
+class CompactGridArrow(CompactButton):
+  def __init__(self, direction, callback):
+    super().__init__('', callback)
+    self.direction = direction
+
+  def _render(self, rect):
+    rl.draw_rectangle_rounded(rl.Rectangle(rect.x + 4, rect.y + 8, rect.width - 8, rect.height - 16), 0.2, 8, PANEL)
+    center = rl.Vector2(rect.x + rect.width / 2, rect.y + rect.height / 2)
+    color = rl.WHITE if self.enabled else rl.Color(63, 70, 83, 255)
+    point = rl.Vector2(center.x + self.direction * 10, center.y)
+    rl.draw_line_ex(rl.Vector2(center.x - self.direction * 8, center.y - 18), point, 5, color)
+    rl.draw_line_ex(point, rl.Vector2(center.x - self.direction * 8, center.y + 18), 5, color)
+
+
 class CompactInfoPage(CompactPage):
   def __init__(self, title, text, rich: bool = False):
     super().__init__(title, horizontal=False)
@@ -328,8 +532,13 @@ class CompactNumberPage(CompactPage):
     super().__init__(title)
     self.action, self.refresh = action, refresh
     self.allowed = lambda: self.action.enabled and self.action.is_visible
-    self._minus = CompactButton("−", lambda: self.change(-1))
-    self._plus = CompactButton("+", lambda: self.change(1))
+    self._minus = self._child(RepeatButton("−", lambda: self.change(-1)))
+    self._plus = self._child(RepeatButton("+", lambda: self.change(1)))
+    self._input = CompactButton(lambda: tr("Enter Value"), self.open_input)
+    self._default = CompactButton(lambda: tr("Default"), self.restore_default)
+    self._undo = CompactButton(lambda: tr("Undo"), self.undo)
+    self._history = None
+    self._status = ""
     self._help = CompactButton(lambda: tr("Description"), lambda: gui_app.push_widget(CompactInfoPage(title, help_text, True)))
     self._header.action = self._help
 
@@ -337,7 +546,70 @@ class CompactNumberPage(CompactPage):
     self.refresh()
     if self.allowed() and gui_app.get_active_widget() is self:
       value = max(self.action.min_value, min(self.action.max_value, self.action.current_value + direction * self.action.value_change_step))
-      self.action.set_value(value)
+      self.save_value(value)
+
+  def save_value(self, value=None, raw=False):
+    self.refresh()
+    if not self.allowed() or gui_app.get_active_widget() is not self:
+      return
+    before = self.action.params.get(self.action.param_key)
+    try:
+      self.action.restore_raw(value) if raw else self.action.set_value(value)
+      after = self.action.params.get(self.action.param_key)
+      if after != before:
+        mode = self.action.params.get('SpeedLimitOffsetType') if self.action.param_key == 'SpeedLimitValueOffset' else None
+        self._history = (before, after, mode)
+      self._status = tr("Saved")
+      if self.action.param_key.startswith('TorqueParamsOverride'):
+        self._status += ' · ' + tr('Real-Time & Offline' if self.action.params.get_bool('TorqueParamsOverrideEnabled') else 'Offline Only')
+    except (OSError, ValueError) as error:
+      self.refresh()
+      self._status = tr("Unable to save setting: {error}").format(error=error)
+
+  def open_input(self):
+    from openpilot.system.ui.sunnypilot.widgets.input_dialog import InputDialogSP
+    from openpilot.system.ui.widgets import DialogResult
+    units = self.action.params.get_bool('IsMetric')
+    mode = self.action.params.get('SpeedLimitOffsetType')
+    def submit(result, text):
+      if result != DialogResult.CONFIRM:
+        return
+      if units != self.action.params.get_bool('IsMetric') or mode != self.action.params.get('SpeedLimitOffsetType'):
+        self._status = tr("Setting changed. Reopen the editor and try again.")
+        return
+      self.submit_input(text)
+    number = self.action.current_value / self.action.input_scale * self.action.input_factor()
+    InputDialogSP(str(resolve(self._header.title)), current_text=f'{number:g}', callback=submit).show()
+
+  def submit_input(self, text):
+    try:
+      value = Decimal(text.strip().replace('−', '-')) * self.action.input_scale
+      if not value.is_finite() or value != value.to_integral_value():
+        raise ValueError('precision')
+      index = int(round(value / Decimal(str(self.action.input_factor()))))
+      if not self.action.min_value <= index <= self.action.max_value:
+        raise ValueError('range')
+    except (InvalidOperation, ValueError):
+      self._status = tr("Enter a value within the range and precision shown.")
+      return
+    self.save_value(index)
+
+  def restore_default(self):
+    default = self.action.params.get_default_value(self.action.param_key)
+    if default is not None:
+      self.save_value(default, raw=True)
+
+  def undo(self):
+    if self._history is None:
+      return
+    before, after, mode = self._history
+    current_mode = self.action.params.get('SpeedLimitOffsetType') if self.action.param_key == 'SpeedLimitValueOffset' else None
+    if self.action.params.get(self.action.param_key) != after or mode != current_mode:
+      self._status = tr("Setting changed. Reopen the editor and try again.")
+      self._history = None
+      return
+    self.save_value(before, raw=True)
+    self._history = None
 
   def _update_state(self):
     self.refresh()
@@ -346,17 +618,27 @@ class CompactNumberPage(CompactPage):
     rl.draw_rectangle_rec(rect, BACKGROUND)
     self._header.render(rl.Rectangle(rect.x, rect.y, rect.width, HEADER_HEIGHT))
     value = self.action.get_displayed_value()
-    gui_label(rl.Rectangle(rect.x + 110, rect.y + HEADER_HEIGHT + 12, rect.width - 220, 88), value, 48,
+    gui_label(rl.Rectangle(rect.x + 110, rect.y + HEADER_HEIGHT + 8, rect.width - 220, 60), value, 40,
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
     bounds = tr("Range: {minimum}–{maximum}").format(minimum=self._display(self.action.min_value), maximum=self._display(self.action.max_value))
     step_text = tr("Step: {step}").format(step=self.action.format_step())
-    for index, line in enumerate((bounds, step_text)):
-      gui_label(rl.Rectangle(rect.x + 16, rect.y + HEADER_HEIGHT + 112 + index * 32, rect.width - 32, 32),
-                line, 28, MUTED, alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
+    gui_label(rl.Rectangle(rect.x + 12, rect.y + 122, rect.width - 24, 22), bounds,
+              20, MUTED, alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
+    gui_label(rl.Rectangle(rect.x + 12, rect.y + 144, rect.width - 24, 22), step_text,
+              20, MUTED, alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
+    default = self.action.default_index()
+    info = self._status or (tr("Default") + ': ' + self.action.format_value(default) if default is not None else '')
+    gui_label(rl.Rectangle(rect.x + 12, rect.y + 166, rect.width - 24, 20), info, 18, MUTED,
+              alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
     for button, x, allowed in ((self._minus, rect.x + 12, self.action.current_value > self.action.min_value),
                                (self._plus, rect.x + rect.width - 100, self.action.current_value < self.action.max_value)):
       button.set_enabled(self.enabled and self.allowed() and allowed)
-      button.render(rl.Rectangle(x, rect.y + HEADER_HEIGHT + 12, 88, 88))
+      button.render(rl.Rectangle(x, rect.y + HEADER_HEIGHT + 8, 88, 60))
+    width = (rect.width - 48) / 3
+    for index, button in enumerate((self._input, self._default, self._undo)):
+      available = self.allowed() and (index != 1 or default is not None) and (index != 2 or self._history is not None)
+      button.set_enabled(self.enabled and available)
+      button.render(rl.Rectangle(rect.x + 12 + index * (width + 12), rect.y + 186, width, 46))
     self._help.set_enabled(self.enabled)
 
   def _display(self, value):
@@ -416,8 +698,13 @@ class CompactSelectPage(CompactPage):
   def _select(self, index, choose, allowed):
     self.refresh()
     if allowed(index) and gui_app.get_active_widget() is self:
-      choose(index)
-      gui_app.pop_widget()
+      try:
+        choose(index)
+      except (OSError, ValueError) as error:
+        from openpilot.system.ui.widgets.confirm_dialog import alert_dialog
+        gui_app.push_widget(alert_dialog(tr("Unable to save setting: {error}").format(error=error)))
+      else:
+        gui_app.pop_widget()
 
   def _update_state(self):
     self.refresh()

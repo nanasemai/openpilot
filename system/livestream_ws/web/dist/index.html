@@ -796,7 +796,7 @@ function renderSettings() {
           html += '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="select" data-val="' + o.v + '" style="padding:6px 12px;border-radius:8px;border:var(--bw);font-size:.85rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';' + sel + '" onclick="selectSetting(this)">' + o.l + '</button>';
         }
         html += '</div>';
-      } else if (p.type === 'int') {
+      } else if (p.type === 'int' || p.type === 'float') {
         const curVal = p.value != null ? p.value : 0;
         html += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
           '<button ' + d + ' data-key="' + p.key + '" data-label="' + p.label + '" data-type="int" data-delta="-1" style="width:36px;height:36px;border-radius:50%;border:var(--bw);background:var(--card);color:var(--txt);font-size:1.2rem;cursor:' + (locked ? 'not-allowed' : 'pointer') + ';" onclick="adjustSetting(this)">−</button>' +

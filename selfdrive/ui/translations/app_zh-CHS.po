@@ -2578,7 +2578,7 @@ msgstr "启动车辆以检查车辆兼容性。"
 
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "State"
-msgstr "状态"
+msgstr "州/省"
 
 #: selfdrive/selfdrived/events.py
 msgid "Steer Left"
@@ -6443,3 +6443,204 @@ msgstr "要下载{region}的地图吗？下载可能需要一段时间。"
 #: selfdrive/ui/sunnypilot/layouts/settings/osm.py
 msgid "Map settings changed. Reopen the map page and try again."
 msgstr "地图设置已变化，请重新打开地图页面后重试。"
+
+msgid "All Parameters"
+msgstr "全部参数"
+
+msgid "Check vehicle compatibility and prerequisites."
+msgstr "请检查车型支持及启用条件"
+
+msgid "Choose a Speed Limit Offset first."
+msgstr "请先选择限速偏移方式"
+
+msgid "Disable Live Learning Steer Delay first."
+msgstr "请先关闭实时转向延迟学习"
+
+msgid "Enable Custom ACC Increments first."
+msgstr "请先开启自定义巡航增量"
+
+msgid "Enable Custom Torque Params first."
+msgstr "请先开启自定义扭矩参数"
+
+msgid "Enable Enforce Torque Lateral Control first."
+msgstr "请先开启强制扭矩横向控制"
+
+msgid "Enable Hands-on Turn Detection first."
+msgstr "请先开启人工转向检测"
+
+msgid "Enable MADS first."
+msgstr "请先开启 MADS"
+
+msgid "Enable Pause Lateral Control with Blinker first."
+msgstr "请先开启转向灯暂停横向控制"
+
+msgid "Enable Self-Tune first."
+msgstr "请先开启自动调校"
+
+msgid "Enable Use Lane Turn Desires first."
+msgstr "请先开启车道转向意图"
+
+msgid "Enter Value"
+msgstr "输入数值"
+
+msgid "Enter a value within the range and precision shown."
+msgstr "请输入范围内的数值，整数参数不可输入小数"
+
+msgid "Lane Change"
+msgstr "变道"
+
+msgid "More"
+msgstr "更多"
+
+msgid "Park the vehicle to change this setting."
+msgstr "停车后可修改"
+
+msgid "Saved"
+msgstr "已保存"
+
+msgid "Search Parameters"
+msgstr "搜索参数"
+
+msgid "Setting changed. Reopen the editor and try again."
+msgstr "参数已被其他操作修改，请重新打开编辑器"
+
+msgid "Torque Parameters"
+msgstr "扭矩参数"
+
+msgid "Unable to save setting: {error}"
+msgstr "保存失败：{error}"
+
+msgid "Unavailable for this vehicle."
+msgstr "当前车型不支持"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Swipe up or down"
+msgstr "上下滑动翻页"
+
+msgid "An operating system update is required. Connect your device to Wi-Fi for the fastest update experience. The download size is approximately 1GB."
+msgstr "需要更新操作系统。建议连接 Wi-Fi 以加快更新，下载大小约为 1 GB。"
+
+msgid "Are you sure you want to reset your device?"
+msgstr "确定要重置设备吗？"
+
+msgid "Before we get on the road, let's finish installation and cover some details."
+msgstr "开始驾驶前，请先完成安装并了解相关说明。"
+
+msgid "Branch"
+msgstr "分支"
+
+msgid "Choose Software to Use"
+msgstr "选择要使用的软件"
+
+msgid "Commit"
+msgstr "提交"
+
+msgid "Connect to Wi-Fi"
+msgstr "连接 Wi-Fi"
+
+msgid "Continue without Wi-Fi"
+msgstr "不连接 Wi-Fi，继续"
+
+msgid "Custom Software"
+msgstr "自定义软件"
+
+msgid "Device Information"
+msgstr "设备信息"
+
+msgid "Download Failed"
+msgstr "下载失败"
+
+msgid "Downloading..."
+msgstr "正在下载…"
+
+msgid "Ensure the entered URL is valid, and the device's internet connection is good."
+msgstr "请检查输入的网址是否有效，以及设备网络连接是否正常。"
+
+msgid "Enter URL"
+msgstr "输入网址"
+
+msgid "Getting Started"
+msgstr "开始设置"
+
+msgid "Install"
+msgstr "安装"
+
+msgid "Installing {partition}"
+msgstr "正在安装 {partition}"
+
+msgid "Local Changes"
+msgstr "本地修改"
+
+msgid "No custom software found at this URL."
+msgstr "此网址未找到自定义软件。"
+
+msgid "Power your device in a car with a harness or proceed at your own risk."
+msgstr "请使用车内线束为设备供电；如继续操作，请自行承担风险。"
+
+msgid "Reboot device"
+msgstr "重启设备"
+
+msgid "Reset failed. Reboot to try again."
+msgstr "重置失败，请重启后重试。"
+
+msgid "Resetting device...\nThis may take up to a minute."
+msgstr "正在重置设备…\n此过程可能需要一分钟。"
+
+msgid "Scroll to continue"
+msgstr "向下滑动后继续"
+
+msgid "Start over"
+msgstr "重新开始"
+
+msgid "System Reset"
+msgstr "系统重置"
+
+msgid "System reset triggered. Press confirm to erase all content and settings. Press cancel to resume boot."
+msgstr "已触发系统重置。点击确认将清除所有内容和设置；点击取消将继续启动。"
+
+msgid "Tap the version number above to close."
+msgstr "点击顶部版本号关闭"
+
+msgid "Unable to mount data partition. Partition may be corrupted. Press confirm to erase and reset your device."
+msgstr "无法挂载数据分区，分区可能已损坏。点击确认将清除数据并重置设备。"
+
+msgid "Update Required"
+msgstr "需要更新"
+
+msgid "Update failed"
+msgstr "更新失败"
+
+msgid "Use caution when installing third-party software.\n\n⚠️ It has not been tested by comma.\n\n⚠️ It may not comply with relevant safety standards.\n\n⚠️ It may cause damage to your device and/or vehicle.\n\nIf you'd like to proceed, use https://flash.comma.ai to restore your device to a factory state later."
+msgstr "安装第三方软件时请谨慎。\n\n⚠️ 此软件未经 comma 测试。\n\n⚠️ 此软件可能不符合相关安全标准。\n\n⚠️ 此软件可能损坏设备或车辆。\n\n如选择继续，之后可通过 https://flash.comma.ai 将设备恢复至出厂状态。"
+
+msgid "WARNING: Custom Software"
+msgstr "警告：自定义软件"
+
+msgid "WARNING: Low Voltage"
+msgstr "警告：电压过低"
+
+msgid "Waiting for internet"
+msgstr "等待网络连接"
+
+msgid "for Custom Software"
+msgstr "用于自定义软件"
+
+msgid "Previous Page"
+msgstr "上一页"
+
+msgid "Next Page"
+msgstr "下一页"
+
+msgid "ADB / SSH"
+msgstr "ADB / SSH"
+
+msgid "Current State: {state}"
+msgstr "当前状态：{state}"
+
+msgid "Add to Favorites"
+msgstr "加入收藏"
+
+msgid "Remove from Favorites"
+msgstr "取消收藏"

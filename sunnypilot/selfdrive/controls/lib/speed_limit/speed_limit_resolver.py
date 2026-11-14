@@ -66,7 +66,8 @@ class SpeedLimitResolver:
       OffsetType.max().value,
       self.params
     )
-    self.offset_value = self.params.get("SpeedLimitValueOffset", return_default=True)
+    from openpilot.sunnypilot.speed_settings import read_speed_limit_settings
+    self.is_metric, self.offset_type, self.offset_value, self._offset_in_kph = read_speed_limit_settings(self.params)
 
     self.speed_limit = 0.
     self.speed_limit_last = 0.
@@ -92,15 +93,14 @@ class SpeedLimitResolver:
   def update_params(self):
     if self.frame % int(PARAMS_UPDATE_PERIOD / DT_MDL) == 0:
       self.policy = self.params.get("SpeedLimitPolicy", return_default=True)
-      self.is_metric = self.params.get_bool("IsMetric")
-      self.offset_type = self.params.get("SpeedLimitOffsetType", return_default=True)
-      self.offset_value = self.params.get("SpeedLimitValueOffset", return_default=True)
+      from openpilot.sunnypilot.speed_settings import read_speed_limit_settings
+      self.is_metric, self.offset_type, self.offset_value, self._offset_in_kph = read_speed_limit_settings(self.params)
 
   def _get_speed_limit_offset(self) -> float:
     if self.offset_type == OffsetType.off:
       return 0
     elif self.offset_type == OffsetType.fixed:
-      return float(self.offset_value * (CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS))
+      return float(self.offset_value) * (CV.KPH_TO_MS if self._offset_in_kph or self.is_metric else CV.MPH_TO_MS)
     elif self.offset_type == OffsetType.percentage:
       return float(self.offset_value * 0.01 * self.speed_limit)
     else:

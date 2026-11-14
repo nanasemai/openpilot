@@ -8,6 +8,7 @@ from cereal import car
 
 from openpilot.common.constants import CV
 from openpilot.common.params import Params
+from openpilot.sunnypilot.speed_settings import speed_kph
 
 
 class BlinkerPauseLateral:
@@ -23,7 +24,7 @@ class BlinkerPauseLateral:
   def get_params(self) -> None:
     self.enabled = self.params.get_bool("BlinkerPauseLateralControl")
     self.is_metric = self.params.get_bool("IsMetric")
-    self.min_speed = self.params.get("BlinkerMinLateralControlSpeed", return_default=True)
+    self.min_speed = speed_kph(self.params, "BlinkerMinLateralControlSpeed", self.is_metric)
     self.reengage_delay = self.params.get("BlinkerLateralReengageDelay", return_default=True)
 
   def update(self, CS: car.CarState, DT_CTRL: float = 0.01) -> bool:
@@ -31,8 +32,7 @@ class BlinkerPauseLateral:
       return False
 
     one_blinker = CS.leftBlinker != CS.rightBlinker
-    speed_factor = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
-    min_speed_ms = self.min_speed * speed_factor
+    min_speed_ms = self.min_speed * CV.KPH_TO_MS
 
     below_speed = CS.vEgo < min_speed_ms
 

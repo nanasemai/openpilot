@@ -261,7 +261,7 @@ SETTINGS_DEFS = [
     {"key": "SpeedLimitMode", "label": "限速模式", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "关闭"}, {"v": 1, "l": "提示"}, {"v": 2, "l": "警告"}, {"v": 3, "l": "辅助"}]},
     {"key": "SpeedLimitPolicy", "label": "限速数据源", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "仅车辆"}, {"v": 1, "l": "仅地图"}, {"v": 2, "l": "车辆优先"}, {"v": 3, "l": "地图优先"}, {"v": 4, "l": "综合"}]},
     {"key": "SpeedLimitOffsetType", "label": "限速偏移类型", "type": "select", "safety": "not_engaged", "options": [{"v": 0, "l": "无"}, {"v": 1, "l": "固定值"}, {"v": 2, "l": "百分比"}]},
-    {"key": "SpeedLimitValueOffset", "label": "限速偏移值", "type": "int", "safety": "not_engaged"},
+    {"key": "SpeedLimitValueOffset", "label": "限速偏移值 (固定: km/h; 比例: %)", "type": "float", "safety": "not_engaged"},
   ]},
   # Steering - 转向页面 (selfdrive/ui/sunnypilot/layouts/settings/steering.py)
   {"group": "Steering", "params": [
@@ -270,7 +270,7 @@ SETTINGS_DEFS = [
     {"key": "MadsUnifiedEngagementMode", "label": "MADS 统一接合模式 (UEM)", "type": "bool", "safety": "offroad"},
     {"key": "MadsSteeringMode", "label": "制动踏板转向模式", "type": "select", "safety": "offroad", "options": [{"v": 0, "l": "保持活跃"}, {"v": 1, "l": "暂停"}, {"v": 2, "l": "脱离"}]},
     {"key": "BlinkerPauseLateralControl", "label": "拨杆时暂停横向控制", "type": "bool", "safety": "always"},
-    {"key": "BlinkerMinLateralControlSpeed", "label": "暂停横向最低速度", "type": "int", "safety": "always"},
+    {"key": "BlinkerMinLateralControlSpeed", "label": "暂停横向最低速度 (km/h)", "type": "float", "safety": "always"},
     {"key": "BlinkerLateralReengageDelay", "label": "拨杆后重接延迟 (秒)", "type": "int", "safety": "always"},
     {"key": "EnforceTorqueControl", "label": "强制扭矩横向控制", "type": "bool", "safety": "offroad"},
     {"key": "NeuralNetworkLateralControl", "label": "神经网络横向控制 (NNLC)", "type": "bool", "safety": "offroad"},
@@ -399,7 +399,7 @@ async def get_settings_api(request):
                     raw = params.get(key)
                     if raw is not None:
                         try:
-                            val = int(float(raw))
+                            val = float(raw) if p["type"] == "float" else int(float(raw))
                         except (ValueError, TypeError):
                             val = 0
                     else:
@@ -452,7 +452,14 @@ async def save_setting_api(request):
 
     value = body.get("value")
     try:
-        if pdef["type"] == "bool":
+        if param_name == "SpeedLimitOffsetType":
+            from openpilot.sunnypilot.speed_settings import change_offset_type
+            change_offset_type(params, int(value))
+        elif pdef["type"] == "float":
+            from openpilot.sunnypilot.speed_settings import ensure_speed_settings
+            ensure_speed_settings(params)
+            params.put(param_name, float(value), block=True)
+        elif pdef["type"] == "bool":
             params.put_bool(param_name, bool(value))
         else:
             # 部分 Params 键为 INT 类型（如 LongitudinalPersonality），

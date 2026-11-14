@@ -1,5 +1,7 @@
 """C4 views of the same setting controls and policy used by the large display."""
 from html import escape
+from openpilot.selfdrive.ui.ui_state import ui_state
+import pyray as rl
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.widgets.compact import (
@@ -33,6 +35,19 @@ class SettingsPanel(CompactPage):
     self._lists = {controller: self._list}
     self._active = controller
     self._source_items = []
+    self._notification = ''
+    self._notification_until = 0
+
+  def _notify(self, message):
+    self._notification = message
+    self._notification_until = rl.get_time() + 3
+
+  def _render(self, rect):
+    super()._render(rect)
+    if self._notification and rl.get_time() < self._notification_until:
+      from openpilot.system.ui.widgets.label import gui_label
+      rl.draw_rectangle_rec(rl.Rectangle(rect.x + 8, rect.y + rect.height - 30, rect.width - 16, 28), rl.BLACK)
+      gui_label(rl.Rectangle(rect.x + 12, rect.y + rect.height - 30, rect.width - 24, 28), self._notification, 22)
 
   def _chain(self):
     chain = [self.controller]
@@ -60,27 +75,7 @@ class SettingsPanel(CompactPage):
   def refresh(self):
     chain = self._chain()
     for controller in chain:
-      scroller = getattr(controller, "_scroller", None)
-      if scroller:
-        for item in scroller._items:
-          action = getattr(item, "action_item", None)
-          if action is not None:
-            action._update_state()
-          if isinstance(action, ToggleAction) and getattr(action.toggle, "param_key", None):
-            action.set_state(action.toggle.params.get_bool(action.toggle.param_key))
-          if isinstance(action, MultipleButtonAction) and getattr(action, "param_key", None):
-            value = action.params.get(action.param_key, return_default=True)
-            if value is not None:
-              action.set_selected_button(int(value))
-          if isinstance(action, OptionControlSP):
-            raw_value = action.params.get(action.param_key, return_default=True)
-            if raw_value is not None:
-              if action.value_map:
-                value = next((key for key, value in action.value_map.items() if value == raw_value), action.current_value)
-              else:
-                value = int(round(float(raw_value) * (100 if action.use_float_scaling else 1)))
-              action.current_value = max(action.min_value, min(action.max_value, value))
-      controller._update_state()
+      self._refresh_controller(controller)
     active = chain[-1]
     if active is not self._active:
       from openpilot.system.ui.widgets.compact import CompactList
@@ -107,6 +102,27 @@ class SettingsPanel(CompactPage):
         action = getattr(item, "action_item", None)
         if hasattr(action, "present_error"):
           action.present_error()
+
+  @staticmethod
+  def _refresh_controller(controller):
+    scroller = getattr(controller, "_scroller", None)
+    if scroller:
+      for item in scroller._items:
+        action = getattr(item, "action_item", None)
+        if action is not None:
+          action._update_state()
+        if isinstance(action, ToggleAction) and getattr(action.toggle, "param_key", None):
+          action.set_state(action.toggle.params.get_bool(action.toggle.param_key))
+        if isinstance(action, MultipleButtonAction) and getattr(action, "param_key", None):
+          value = action.params.get(action.param_key, return_default=True)
+          if value is not None:
+            action.set_selected_button(int(value))
+        if isinstance(action, OptionControlSP):
+          raw_value = action.params.get(action.param_key, return_default=True)
+          if raw_value is not None:
+            value = action.decode_value(raw_value)
+            action.current_value = max(action.min_value, min(action.max_value, value))
+    controller._update_state()
 
   def _update_state(self):
     self.refresh()
@@ -206,16 +222,33 @@ class SettingsPanel(CompactPage):
                          help_page, enabled=lambda: available() and getattr(action, "_state", None).name != "LOADING", visible=visible)]
     return [CompactRow(title, callback=help_page, help_callback=help_page, visible=visible)]
 
-  def _toggle(self, item):
+  def _toggle(self, item, active_page=None):
     self.refresh()
     action = item.action_item
-    if self._item_available(item) and gui_app.get_active_widget() is self:
+    active_page = active_page or self
+    if self._item_available(item) and gui_app.get_active_widget() is active_page:
       toggle = action.toggle
       toggle.set_enabled(True)
-      toggle._handle_mouse_release(None)
-      # List callbacks are independent of the toggle's state callback.
-      if item.callback:
-        item.callback()
+      try:
+        if getattr(toggle, 'param_key', None):
+          state = not toggle.get_state()
+          toggle.params.put_bool(toggle.param_key, state, block=True)
+          toggle.set_state(state)
+          if toggle._callback:
+            toggle._callback(state)
+        else:
+          toggle._handle_mouse_release(None)
+        # List callbacks are independent of the toggle's state callback.
+        if item.callback:
+          item.callback()
+        if gui_app.get_active_widget() is active_page:
+          self._notify(tr('Saved'))
+      except (OSError, ValueError) as error:
+        key = getattr(toggle, 'param_key', None) or getattr(item, '_c4_param_key', None)
+        if key:
+          action.set_state(ui_state.params.get_bool(key))
+        self.refresh()
+        self._notify(tr('Unable to save setting: {error}').format(error=error))
 
   def _open_number(self, item, title, help_text):
     action = item.action_item
@@ -248,11 +281,17 @@ class SettingsPanel(CompactPage):
               (getattr(action, "enabled_buttons", None) is None or index in action.enabled_buttons))
 
     def choose(index):
-      action.set_selected_button(index)
-      if action.callback:
-        action.callback(index)
-      if getattr(action, "param_key", None):
-        action.params.put(action.param_key, index, block=True)
+      before = action.get_selected_button()
+      try:
+        if action.callback:
+          action.callback(index)
+        if getattr(action, "param_key", None):
+          action.params.put(action.param_key, index, block=True)
+        action.set_selected_button(index)
+        self._notify(tr('Saved'))
+      except (OSError, ValueError):
+        action.set_selected_button(before)
+        raise
 
     sources = [text if callable(text) else translation_source(text) for text in action.buttons]
     choices = [lambda text=text: tr(str(resolve(text))) for text in sources]

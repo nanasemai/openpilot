@@ -102,6 +102,7 @@ class ModelsLayout(Widget):
     self.lane_turn_value_control.action_item.step_label_callback = (
       lambda step: f"{step / 100 * (CV.MPH_TO_KPH if ui_state.is_metric else 1):.2f} " + (tr("km/h") if ui_state.is_metric else tr("mph"))
     )
+    self.lane_turn_value_control.action_item.input_factor = lambda: CV.MPH_TO_KPH if ui_state.is_metric else 1.0
 
     self.lane_turn_desire_toggle = toggle_item_sp(tr("Use Lane Turn Desires"),
                                                   tr("If you're driving at 20 mph (32 km/h) or below and have your blinker on," +

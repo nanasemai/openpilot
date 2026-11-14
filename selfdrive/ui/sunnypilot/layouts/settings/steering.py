@@ -67,11 +67,14 @@ class SteeringLayout(Widget):
       param="BlinkerMinLateralControlSpeed",
       title=lambda: tr("Minimum Speed to Pause Lateral Control"),
       min_value=0,
-      max_value=255,
-      value_change_step=5,
+      max_value=25500,
+      value_change_step=500,
+      use_float_scaling=True,
       description="",
-      label_callback=lambda speed: f'{speed} ' + (tr("km/h") if ui_state.is_metric else tr("mph")),
+      label_callback=lambda speed: f'{speed / 100:g} ' + (tr("km/h") if ui_state.is_metric else tr("mph")),
     )
+    from openpilot.sunnypilot.speed_settings import configure_speed_action
+    configure_speed_action(self._blinker_control_options.action_item)
     self._blinker_reengage_delay = option_item_sp(
       param="BlinkerLateralReengageDelay",
       title=lambda: tr("Post-Blinker Delay"),
@@ -131,6 +134,8 @@ class SteeringLayout(Widget):
 
   def _update_state(self):
     super()._update_state()
+    action = self._blinker_control_options.action_item
+    action.current_value = action.decode_value(action.params.get(action.param_key, return_default=True))
 
     torque_allowed = ui_state.CP is not None and ui_state.CP.steerControlType != car.CarParams.SteerControlType.angle
     if ui_state.CP is not None:

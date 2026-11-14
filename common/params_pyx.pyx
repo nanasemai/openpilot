@@ -53,6 +53,7 @@ PYTHON_2_CPP = {
   (builtins.bool, BOOL): lambda v: "1" if v else "0",
   (int, INT): str,
   (float, FLOAT): str,
+  (int, FLOAT): lambda value: str(float(value)),
   (datetime.datetime, TIME): lambda v: v.isoformat(),
   (dict, JSON): json.dumps,
   (list, JSON): json.dumps,
@@ -153,19 +154,25 @@ cdef class Params:
     """
     cdef string k = self.check_key(key)
     cdef string dat_bytes = self._put_cast(key, dat)
+    cdef int result = 0
     with nogil:
       if block:
-        self.p.put(k, dat_bytes)
+        result = self.p.put(k, dat_bytes)
       else:
         self.p.putNonBlocking(k, dat_bytes)
+    if result < 0:
+      raise OSError("Failed to write parameter " + str(key))
 
   def put_bool(self, key, bool val, bool block = False):
     cdef string k = self.check_key(key)
+    cdef int result = 0
     with nogil:
       if block:
-        self.p.putBool(k, val)
+        result = self.p.putBool(k, val)
       else:
         self.p.putBoolNonBlocking(k, val)
+    if result < 0:
+      raise OSError("Failed to write parameter " + str(key))
 
   def remove(self, key):
     cdef string k = self.check_key(key)

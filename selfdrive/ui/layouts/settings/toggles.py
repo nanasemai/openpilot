@@ -298,6 +298,9 @@ class TogglesLayout(Widget):
       self._handle_experimental_mode_toggle(state)
       return
 
+    if param == 'IsMetric':
+      from openpilot.sunnypilot.speed_settings import ensure_speed_settings
+      ensure_speed_settings(self._params)
     self._params.put_bool(param, state, block=True)
     self._toggles[param].action_item.set_state(state)
     if self._toggle_defs[param][3]:

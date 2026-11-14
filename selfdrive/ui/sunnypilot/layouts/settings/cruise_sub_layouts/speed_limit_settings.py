@@ -80,11 +80,17 @@ class SpeedLimitSettingsLayout(Widget):
     self._speed_limit_value_offset = option_item_sp(
       title=lambda: tr("Speed Limit Offset Value"),
       param="SpeedLimitValueOffset",
-      min_value=-30,
-      max_value=30,
+      min_value=-3000,
+      max_value=3000,
+      value_change_step=100,
+      use_float_scaling=True,
       description=self._get_offset_description,
       label_callback=self._get_offset_label,
     )
+    from openpilot.sunnypilot.speed_settings import configure_speed_action, change_offset_type
+    configure_speed_action(self._speed_limit_value_offset.action_item, percentage=True)
+    action = self._speed_limit_offset_type.action_item
+    action.callback = lambda selected: change_offset_type(action.params, selected)
 
     items = [
       self._speed_limit_mode,
@@ -111,17 +117,20 @@ class SpeedLimitSettingsLayout(Widget):
 
   @staticmethod
   def _get_offset_label(value):
+    value /= 100
     offset_type = int(ui_state.params.get("SpeedLimitOffsetType", return_default=True))
     unit = tr("km/h") if ui_state.is_metric else tr("mph")
 
     if offset_type == int(SpeedLimitOffsetType.percentage):
-      return f"{value}%"
+      return f"{value:g}%"
     elif offset_type == int(SpeedLimitOffsetType.fixed):
-      return f"{value} {unit}"
-    return str(value)
+      return f"{value:g} {unit}"
+    return f"{value:g}"
 
   def _update_state(self):
     super()._update_state()
+    action = self._speed_limit_value_offset.action_item
+    action.current_value = action.decode_value(action.params.get(action.param_key, return_default=True))
 
     speed_limit_mode_param = ui_state.params.get("SpeedLimitMode", return_default=True)
     if ui_state.CP is not None and ui_state.CP_SP is not None:

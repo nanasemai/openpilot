@@ -38,6 +38,10 @@ class OptionControlSP(ItemAction):
     self.use_float_scaling = use_float_scaling
     self.current_value = min_value
     self.label_callback = label_callback
+    self.value_from_storage = None
+    self.value_to_storage = None
+    self.input_scale = 100 if use_float_scaling else 1
+    self.input_factor = lambda: 1.0
     self.step_label_callback: Callable[[int], str] | None = None
     if self.value_map:
       for key in self.value_map:
@@ -69,15 +73,45 @@ class OptionControlSP(ItemAction):
       return
     if value == self.current_value:
       return
+    self.params.put(self.param_key, self.encode_value(value), block=True)
     self.current_value = value
-    if self.value_map:
-      self.params.put(self.param_key, self.value_map[value], block=True)
-    elif self.use_float_scaling:
-      self.params.put(self.param_key, value / 100.0, block=True)
-    else:
-      self.params.put(self.param_key, value, block=True)
     if self.on_value_changed:
       self.on_value_changed(value)
+
+  def encode_value(self, value):
+    if self.value_to_storage:
+      return self.value_to_storage(value)
+    if self.value_map:
+      return self.value_map[value]
+    return value / 100 if self.use_float_scaling else value
+
+  def decode_value(self, value):
+    if self.value_from_storage:
+      return self.value_from_storage(value)
+    if self.value_map:
+      return next((index for index, stored in self.value_map.items() if stored == value), self.current_value)
+    return int(round(float(value) * (100 if self.use_float_scaling else 1)))
+
+  def default_index(self):
+    value = self.params.get_default_value(self.param_key)
+    return None if value is None else self.decode_value(value)
+
+  def restore_raw(self, value):
+    raw = self.params.get_default_value(self.param_key) if value is None else value
+    if raw is None:
+      raise ValueError('No default available')
+    index = self.decode_value(raw)
+    if not self.min_value <= index <= self.max_value:
+      raise ValueError('Value outside range')
+    if value is None:
+      self.params.remove(self.param_key)
+      if self.params.get(self.param_key) is not None:
+        raise OSError('Failed to restore parameter')
+    else:
+      self.params.put(self.param_key, value, block=True)
+    self.current_value = index
+    if self.on_value_changed:
+      self.on_value_changed(index)
 
   def get_displayed_value(self) -> str:
     """Get the displayed value, handling value mapping if present"""

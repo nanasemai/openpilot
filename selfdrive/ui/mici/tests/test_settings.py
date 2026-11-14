@@ -23,10 +23,12 @@ def window():
 
 
 @pytest.fixture(autouse=True)
-def state(monkeypatch):
+def state(monkeypatch, openpilot_function_fixture):
   gui_app._nav_stack.clear()
   monkeypatch.setattr(gui_app, '_mouse_events', [])
   monkeypatch.setattr(ui_state, 'params', Params())
+  monkeypatch.setattr(ui_state, 'is_metric', True)
+  ui_state.params.put_bool('IsMetric', True, block=True)
   monkeypatch.setattr(ui_state, 'started', False)
   monkeypatch.setattr(ui_state, 'force_onroad', False)
   monkeypatch.setattr(ui_state, 'CP', None)
@@ -872,24 +874,26 @@ def test_horizontal_swipe_moves_cards_without_toggling(monkeypatch):
   assert gui_app.get_active_widget() is panel
 
 
-def test_category_navigation_preserves_card_positions():
+def test_home_grid_navigation_preserves_parameter_scroll():
   from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP
   root = SettingsLayoutSP()
   gui_app.push_widget(root)
   draw(root)
-  root._list._scroller.scroll_panel.set_offset(-422)
-  root._list._scroller.items[0].callback()
-  category = gui_app.get_active_widget()
-  draw(category)
-  category._list._scroller.scroll_panel.set_offset(-422)
-  category._list._scroller.items[1].callback()
-  assert gui_app.get_active_widget() is root._panels['steering']
+  root.buttons[0]._click_callback()
+  panel = gui_app.get_active_widget()
+  draw(panel)
+  panel._list.change_page(1)
+  panel._rows[panel.controller._lat_position_offset][0].callback()
+  assert isinstance(gui_app.get_active_widget(), CompactNumberPage)
   gui_app.pop_widget()
-  draw(category)
-  assert category._list._scroller.scroll_panel.get_offset() == -422
+  draw(panel)
+  assert panel._list.page == 1
   gui_app.pop_widget()
   draw(root)
-  assert root._list._scroller.scroll_panel.get_offset() == -422
+  root.buttons[0]._click_callback()
+  draw(panel)
+  assert gui_app.get_active_widget() is panel
+  assert panel._list.page == 1
 
 
 def test_tree_confirmation_cancel_keeps_dialog_and_original_selection():
@@ -4434,11 +4438,14 @@ def test_numeric_details_show_units_and_language_without_changing_storage(monkey
     multilang.setup()
     gui_app.on_language_changed(language)
     monkeypatch.setattr(ui_state, 'is_metric', metric)
+    ui_state.params.put_bool('IsMetric', metric, block=True)
     labels.clear()
     draw(detail)
     units = {'seconds': '秒' if language == 'zh-CHS' else 's', 'length': '厘米' if language == 'zh-CHS' else 'cm',
              'speed': 'km/h' if metric else 'mph'}
     value, minimum, maximum, step = [label.format(**units) for label in expected]
+    if setting == 'blinker_speed':
+      value = f'{round(stored / (1 if metric else 1.609344) * 100) / 100:g} {units["speed"]}'
     text = [label for label, _, _ in labels]
     assert value in text
     assert tr('Range: {minimum}–{maximum}').format(minimum=minimum, maximum=maximum) in text
@@ -4475,15 +4482,18 @@ def test_speed_limit_offset_card_has_title_units_and_live_detail(monkeypatch, of
     multilang.setup()
     gui_app.on_language_changed(language)
     monkeypatch.setattr(ui_state, 'is_metric', metric)
+    ui_state.params.put_bool('IsMetric', metric, block=True)
     labels.clear()
     draw(detail)
     unit = '%' if offset_type == 2 else (' km/h' if metric else ' mph')
-    assert '-3' + unit in labels
+    displayed = -3 if offset_type == 2 or metric else round(-3 / 1.609344 * 100) / 100
+    assert f'{displayed:g}' + unit in labels
     assert tr('Step: {step}').format(step='1' + unit) in labels
     assert resolve(detail._header.title) == tr('Speed Limit Offset Value')
     assert ui_state.params.get('SpeedLimitValueOffset') == -3
+  expected = detail.action.encode_value(detail.action.current_value + detail.action.value_change_step)
   detail.change(1)
-  wait_param('SpeedLimitValueOffset', -2)
+  wait_param('SpeedLimitValueOffset', pytest.approx(expected))
 
 
 @pytest.mark.parametrize('choice,stored', [(0, 1), (1, 5), (2, 10)])

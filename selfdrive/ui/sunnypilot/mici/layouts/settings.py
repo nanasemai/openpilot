@@ -4,7 +4,7 @@ from openpilot.selfdrive.ui.sunnypilot.ui_state import OnroadTimerStatus
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
-from openpilot.system.ui.widgets.compact import CompactButton, CompactPage, CompactRow
+from openpilot.system.ui.widgets.compact import CompactButton, CompactGridPage, CompactPage, CompactRow
 from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog, alert_dialog
 from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_panel import SettingsPanel
 
@@ -52,24 +52,39 @@ def make_panel(key):
   return SettingsPanel(TITLES[key], controllers[key]())
 
 
-class SettingsLayoutSP(CompactPage):
+class SettingsLayoutSP(CompactGridPage):
   def __init__(self):
-    super().__init__(lambda: tr("Settings"))
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import Favorites, PARAMETER_TITLES
+    self._favorites = Favorites()
+    self._parameters = {}
+    self._search_page = None
+    self.menu_keys = tuple(PARAMETER_TITLES) + ('network', 'device', 'software', 'developer', 'visuals', 'osm', 'sunnylink', 'trips', 'firehose')
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ALL_PARAMETER_TITLES
+    entries = [(lambda key=key: tr(ALL_PARAMETER_TITLES.get(key, TITLES.get(key, key))), lambda key=key: self.open_more_panel(key))
+               for key in self.menu_keys]
+    entries += [(lambda: tr('Search Parameters'), self.open_search), (lambda: tr('Favorites'), lambda: self.open_search(True)),
+                (lambda: tr('Exit Offroad') if ui_state.always_offroad else tr('Offroad Mode'), self._handle_always_offroad)]
+    super().__init__(lambda: tr("Settings"), entries, button_paging=True)
     self._category = 0
     self._panels = {}
     self._categories = [CompactPage(lambda name=name: tr(name)) for name, _ in GROUPS]
-    self._list.set_items([CompactRow(lambda name=name: tr(name), callback=lambda index=index: self._set_category(index), title_size=52)
-                          for index, (name, _) in enumerate(GROUPS)])
-    self._header.action_width = 152
-    self._header.action = CompactButton(lambda: tr("Exit Offroad") if ui_state.always_offroad else tr("Offroad Mode"), self._handle_always_offroad)
+    self._header.action_width = 168
+    self._header.action = CompactButton(lambda: tr('ADB / SSH'), lambda: self.open_parameters('remote'))
+    more_keys = ("visuals", "device", "network", "software", "developer", "sunnylink", "osm", "trips", "firehose")
+    self._more = CompactGridPage(lambda: tr("More"), [(lambda key=key: tr(TITLES[key]), lambda key=key: self.open_more_panel(key))
+                                                     for key in more_keys])
+    self._more._header.action_width = 152
+    self._more._header.action = CompactButton(lambda: tr("Exit Offroad") if ui_state.always_offroad else tr("Offroad Mode"), self._handle_always_offroad)
     for page, (_, keys) in zip(self._categories, GROUPS, strict=True):
       page._list.set_items([CompactRow(lambda key=key: tr(TITLES[key]), callback=lambda key=key: self.open_panel(key), title_size=52)
                             for key in keys])
 
   def show_event(self):
+    super().show_event()
     ui_state.reset_onroad_sleep_timer(OnroadTimerStatus.PAUSE)
 
   def hide_event(self):
+    super().hide_event()
     ui_state.reset_onroad_sleep_timer(OnroadTimerStatus.RESUME)
 
   def _set_category(self, index):
@@ -80,6 +95,35 @@ class SettingsLayoutSP(CompactPage):
     if key not in self._panels:
       self._panels[key] = make_panel(key)
     gui_app.push_widget(self._panels[key])
+
+  def open_more_panel(self, key):
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import SECONDARY_PARAMETERS
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import PARAMETER_TITLES
+    self.open_parameters(key) if key in PARAMETER_TITLES or key in SECONDARY_PARAMETERS else self.open_panel(key)
+
+  def parameter_panel(self, kind):
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ParameterPanel
+    if kind not in self._parameters:
+      key = 'steering' if kind in ('lane', 'torque') else 'developer' if kind == 'remote' else kind
+      if key not in self._panels:
+        self._panels[key] = make_panel(key)
+      self._parameters[kind] = ParameterPanel(kind, self._panels[key].controller, self._favorites, self.open_search)
+    return self._parameters[kind]
+
+  def open_parameters(self, kind, focus_key=None):
+    panel = self.parameter_panel(kind)
+    if focus_key:
+      panel.focus_parameter(focus_key)
+    gui_app.push_widget(panel)
+
+  def open_search(self, favorites_only=None):
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ParameterSearch
+    if self._search_page is None:
+      self._search_page = ParameterSearch(self)
+    if favorites_only is not None and favorites_only != self._search_page.favorites_only:
+      self._search_page.favorites_only = favorites_only
+      self._search_page._list.page = 0
+    gui_app.push_widget(self._search_page)
 
   def _handle_always_offroad(self):
     if ui_state.engaged:

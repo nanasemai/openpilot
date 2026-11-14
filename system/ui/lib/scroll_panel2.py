@@ -63,7 +63,7 @@ class GuiScrollPanel2:
   def enabled(self) -> bool:
     return self._enabled() if callable(self._enabled) else self._enabled
 
-  def update(self, bounds: rl.Rectangle, content_size: float, snap_target: float | None = None) -> float:
+  def update(self, bounds: rl.Rectangle, content_size: float, snap_target: float | Callable[[], float] | None = None) -> float:
     if DEBUG:
       print('Old state:', self._state)
 
@@ -75,7 +75,8 @@ class GuiScrollPanel2:
       self._drag_in_update = self._drag_in_update or self._state == ScrollState.MANUAL_SCROLL
       self._previous_mouse_event = mouse_event
 
-    self._update_state(bounds_size, content_size, snap_target)
+    # Resolve after this frame's touch batch so a swipe release snaps to the new page.
+    self._update_state(bounds_size, content_size, snap_target() if callable(snap_target) else snap_target)
 
     if DEBUG:
       print('Velocity:', self._velocity)

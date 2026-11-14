@@ -1,8 +1,8 @@
 import os
 import pyray as rl
-from openpilot.system.ui.lib.application import gui_app, FontWeight, FONT_SCALE
+from openpilot.system.ui.lib.application import gui_app, FontWeight
 from openpilot.system.ui.lib.multilang import tr
-from openpilot.system.ui.lib.wrap_text import wrap_text
+from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
 
 
@@ -80,9 +80,9 @@ class DeviceInfoWidget(Widget):
     # ── 版本信息 ──
     lines.append(("", ""))
     lines.append(("版本信息", ""))
-    lines.append(("· Branch", os.environ.get("GIT_BRANCH", "?")))
-    lines.append(("· Commit", os.environ.get("GIT_COMMIT", "?")[:8]))
-    lines.append(("· Dirty", "是" if os.environ.get("CLEAN") is None else "否"))
+    lines.append(("· " + tr("Branch"), os.environ.get("GIT_BRANCH", "?")))
+    lines.append(("· " + tr("Commit"), os.environ.get("GIT_COMMIT", "?")[:8]))
+    lines.append(("· " + tr("Local Changes"), "是" if os.environ.get("CLEAN") is None else "否"))
 
     return lines
 
@@ -99,12 +99,12 @@ class DeviceInfoWidget(Widget):
     small_font = gui_app.font(FontWeight.MEDIUM)
 
     # 标题
-    rl.draw_text_ex(bold_font, tr("设备信息"), rl.Vector2(x, y), 72, 0, rl.WHITE)
+    rl.draw_text_ex(bold_font, tr("Device Information"), rl.Vector2(x, y), 72, 0, rl.WHITE)
     y += 100
 
     # 提示：点击顶部版本号关闭
     hint_font = gui_app.font(FontWeight.NORMAL)
-    rl.draw_text_ex(hint_font, tr("点击顶部版本号关闭"), rl.Vector2(x, y), 28, 0, rl.Color(180, 180, 180, 255))
+    rl.draw_text_ex(hint_font, tr("Tap the version number above to close."), rl.Vector2(x, y), 28, 0, rl.Color(180, 180, 180, 255))
     y += 50
 
     lines = self._get_info_lines()
@@ -121,7 +121,7 @@ class DeviceInfoWidget(Widget):
       else:
         # 普通条目
         rl.draw_text_ex(normal_font, tr(label), rl.Vector2(x, y), 40, 0, rl.Color(200, 200, 200, 255))
-        value_width = rl.measure_text_ex(small_font, value, 40).x
+        value_width = measure_text_cached(small_font, value, 40).x
         rl.draw_text_ex(small_font, value, rl.Vector2(x + w - value_width, y), 40, 0, rl.WHITE)
         y += 48
 
