@@ -4,7 +4,7 @@ from openpilot.selfdrive.ui.sunnypilot.ui_state import OnroadTimerStatus
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
-from openpilot.system.ui.widgets.compact import CompactButton, CompactGridPage, CompactPage, CompactRow
+from openpilot.system.ui.widgets.compact import CompactButton, CompactPage, CompactRow, CompactSwipeList
 from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog, alert_dialog
 from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings_panel import SettingsPanel
 
@@ -22,6 +22,8 @@ TITLES = {
   "network": tr_noop("Network"), "sunnylink": tr_noop("sunnylink"), "osm": tr_noop("Offline Maps"),
   "firehose": tr_noop("Firehose Mode"), "software": tr_noop("Software"), "developer": tr_noop("Developer"),
 }
+MENU_ORDER = ('toggles', 'steering', 'lane', 'torque', 'cruise', 'models', 'vehicle', 'display', 'visuals',
+              'network', 'remote', 'device', 'software', 'developer', 'osm', 'sunnylink', 'trips', 'firehose')
 
 
 def make_panel(key):
@@ -52,32 +54,28 @@ def make_panel(key):
   return SettingsPanel(TITLES[key], controllers[key]())
 
 
-class SettingsLayoutSP(CompactGridPage):
+class SettingsLayoutSP(CompactPage):
   def __init__(self):
-    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import Favorites, PARAMETER_TITLES
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import Favorites
     self._favorites = Favorites()
     self._parameters = {}
     self._search_page = None
-    self.menu_keys = tuple(PARAMETER_TITLES) + ('network', 'device', 'software', 'developer', 'visuals', 'osm', 'sunnylink', 'trips', 'firehose')
+    self.menu_keys = MENU_ORDER
     from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ALL_PARAMETER_TITLES
     entries = [(lambda key=key: tr(ALL_PARAMETER_TITLES.get(key, TITLES.get(key, key))), lambda key=key: self.open_more_panel(key))
                for key in self.menu_keys]
     entries += [(lambda: tr('Search Parameters'), self.open_search), (lambda: tr('Favorites'), lambda: self.open_search(True)),
                 (lambda: tr('Exit Offroad') if ui_state.always_offroad else tr('Offroad Mode'), self._handle_always_offroad)]
-    super().__init__(lambda: tr("Settings"), entries, button_paging=True)
-    self._category = 0
+    super().__init__(lambda: tr("Settings"))
+    self._list = CompactSwipeList()
+    self._list.set_enabled(lambda: self.enabled)
+    self.buttons = [CompactRow(text, callback=callback, title_size=52) for text, callback in entries]
+    for button in self.buttons:
+      button.set_click_callback(button.callback)
+    self._list.set_items(self.buttons)
     self._panels = {}
-    self._categories = [CompactPage(lambda name=name: tr(name)) for name, _ in GROUPS]
     self._header.action_width = 168
     self._header.action = CompactButton(lambda: tr('ADB / SSH'), lambda: self.open_parameters('remote'))
-    more_keys = ("visuals", "device", "network", "software", "developer", "sunnylink", "osm", "trips", "firehose")
-    self._more = CompactGridPage(lambda: tr("More"), [(lambda key=key: tr(TITLES[key]), lambda key=key: self.open_more_panel(key))
-                                                     for key in more_keys])
-    self._more._header.action_width = 152
-    self._more._header.action = CompactButton(lambda: tr("Exit Offroad") if ui_state.always_offroad else tr("Offroad Mode"), self._handle_always_offroad)
-    for page, (_, keys) in zip(self._categories, GROUPS, strict=True):
-      page._list.set_items([CompactRow(lambda key=key: tr(TITLES[key]), callback=lambda key=key: self.open_panel(key), title_size=52)
-                            for key in keys])
 
   def show_event(self):
     super().show_event()
@@ -86,10 +84,6 @@ class SettingsLayoutSP(CompactGridPage):
   def hide_event(self):
     super().hide_event()
     ui_state.reset_onroad_sleep_timer(OnroadTimerStatus.RESUME)
-
-  def _set_category(self, index):
-    self._category = index
-    gui_app.push_widget(self._categories[index])
 
   def open_panel(self, key):
     if key not in self._panels:

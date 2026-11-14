@@ -4,7 +4,7 @@ from openpilot.common.time_helpers import system_time_valid
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
-from openpilot.system.ui.widgets.compact import CompactPage, CompactRow, CompactActionRow, CompactInfoPage
+from openpilot.system.ui.widgets.compact import CompactPage, CompactRow, CompactActionRow, CompactInfoPage, CompactSwipeList
 from openpilot.system.ui.widgets.list_view import button_item, text_item
 from openpilot.selfdrive.ui.sunnypilot.layouts.settings.device import DeviceLayoutSP
 from openpilot.selfdrive.ui.sunnypilot.layouts.settings.trips import TripsLayout
@@ -58,8 +58,17 @@ class DeviceController(DeviceLayoutSP):
 
 
 class VehicleController(VehicleLayout):
+  PARAMETER_KEYS = {
+    'hyundai': {'longitudinal_tuning_item': 'HyundaiLongitudinalTuning'},
+    'subaru': {'stop_and_go_toggle': 'SubaruStopAndGo', 'stop_and_go_manual_parking_brake_toggle': 'SubaruStopAndGoManualParkingBrake'},
+    'tesla': {'coop_steering_toggle': 'TeslaCoopSteering'},
+    'toyota': {'enforce_stock_longitudinal': 'ToyotaEnforceStockLongitudinal', 'stop_and_go_hack': 'ToyotaStopAndGoHack',
+               'auto_lock': 'ToyotaDoorAutoLockUnlock'},
+  }
+
   def __init__(self):
     super().__init__()
+    self._vehicle_item._c4_param_key = 'CarPlatformBundle'
     self._legend_item = text_item(lambda: tr("Vehicle fingerprint status"), self._status)
 
   @staticmethod
@@ -73,6 +82,8 @@ class VehicleController(VehicleLayout):
 
   def _update_state(self):
     super()._update_state()
+    for attribute, key in self.PARAMETER_KEYS.get(self._current_brand, {}).items():
+      getattr(self._brand_settings, attribute)._c4_param_key = key
     self._scroller._items = [item for item in self._scroller._items if item is not self._legend_widget]
     if self._legend_item not in self._scroller._items:
       self._scroller._items.insert(1, self._legend_item)
@@ -96,7 +107,15 @@ class SunnylinkController(SunnylinkLayout):
     from openpilot.system.ui.sunnypilot.widgets.progress_bar import progress_item
     self._transfer_item = progress_item(lambda: tr("Backup & Restore Status"))
     self._transfer_item.set_description(self._transfer_detail)
-    return [text_item(lambda: tr("Dongle ID"), self._get_sunnylink_dongle_id), self._transfer_item] + [item for item in items if isinstance(item, ListItem)]
+    self._intro_item = button_item(lambda: tr('About sunnylink'), lambda: tr('VIEW'), callback=self._show_intro)
+    return [self._intro_item, text_item(lambda: tr("Dongle ID"), self._get_sunnylink_dongle_id),
+            self._transfer_item] + [item for item in items if isinstance(item, ListItem)]
+
+  @staticmethod
+  def _show_intro():
+    gui_app.push_widget(CompactInfoPage(lambda: tr('About sunnylink'), lambda:
+      tr('For secure backup, restore, and remote configuration') + '\n\n' +
+      tr("Sponsorship isn't required for basic backup/restore") + '\n' + tr('Click the Sponsor button for more details')))
 
   def handle_backup_restore_progress(self):
     super().handle_backup_restore_progress()
@@ -126,7 +145,11 @@ class SunnylinkController(SunnylinkLayout):
           ui_state.params.put_bool("SunnylinkEnabled", True, block=True)
         self._sunnylink_toggle.action_item.set_state(ui_state.params.get_bool("SunnylinkEnabled"))
 
-      gui_app.push_widget(ConfirmDialog(tr("sunnylink enables secured remote access to your comma device from anywhere."),
+      gui_app.push_widget(ConfirmDialog(tr("sunnylink enables secured remote access to your comma device from anywhere, " +
+                                          "including settings management, remote monitoring, real-time dashboard, etc.") + '\n\n' +
+                                        tr("sunnylink is designed to be enabled as part of sunnypilot's core functionality. " +
+                                           "If sunnylink is disabled, features such as settings management, remote monitoring, " +
+                                           "real-time dashboards will be unavailable."),
                                         tr("Enable sunnylink"), callback=confirm))
     else:
       ui_state.params.put_bool("SunnylinkEnabled", state, block=True)
@@ -143,6 +166,8 @@ class SunnylinkController(SunnylinkLayout):
 class TripsPanel(CompactPage):
   def __init__(self):
     super().__init__(lambda: tr("Trips"))
+    self._list = CompactSwipeList()
+    self._list.set_enabled(lambda: self.enabled)
     self.controller = TripsLayout()
     self._list.set_items([
       CompactActionRow(lambda: tr("Refresh Trip Statistics"), self.controller.status, self.controller.request_refresh,
@@ -172,6 +197,8 @@ class TripsPanel(CompactPage):
 class FirehosePanel(CompactPage):
   def __init__(self):
     super().__init__(lambda: tr("Firehose Mode"))
+    self._list = CompactSwipeList()
+    self._list.set_enabled(lambda: self.enabled)
     from openpilot.selfdrive.ui.mici.layouts.settings.firehose import FirehoseLayoutBase, DESCRIPTION, INSTRUCTIONS_INTRO, FAQ_ITEMS
     self.controller = FirehoseLayoutBase()
     self._list.set_items([

@@ -10,7 +10,8 @@ from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult
 from openpilot.system.ui.widgets.compact import (
-  ACCENT, MUTED, PANEL, CompactButton, CompactInfoPage, CompactPagedList, CompactPage, CompactRow, resolve, translation_source,
+  ACCENT, MUTED, PANEL, CompactButton, CompactInfoButton, CompactInfoPage, CompactSwipeList, CompactPage, CompactRow,
+  resolve, translation_source,
 )
 from openpilot.system.ui.widgets.label import UnifiedLabel, gui_label
 from openpilot.system.ui.widgets.list_view import MultipleButtonAction, ToggleAction
@@ -21,7 +22,10 @@ PARAMETER_TITLES = {
   'cruise': tr_noop('Cruise'), 'models': tr_noop('Models'), 'display': tr_noop('Display'),
   'vehicle': tr_noop('Vehicle'), 'toggles': tr_noop('Toggles'),
 }
-SECONDARY_PARAMETERS = {'remote': tr_noop('ADB / SSH'), 'visuals': tr_noop('Visuals'), 'developer': tr_noop('Developer')}
+SECONDARY_PARAMETERS = {
+  'remote': tr_noop('ADB / SSH'), 'visuals': tr_noop('Visuals'), 'developer': tr_noop('Developer'),
+  'device': tr_noop('Device'), 'software': tr_noop('Software'), 'osm': tr_noop('Offline Maps'), 'sunnylink': tr_noop('sunnylink'),
+}
 ALL_PARAMETER_TITLES = PARAMETER_TITLES | SECONDARY_PARAMETERS
 DEPENDENCIES = {
   'BlinkerMinLateralControlSpeed': ('BlinkerPauseLateralControl', True, tr_noop('Enable Pause Lateral Control with Blinker first.')),
@@ -91,7 +95,7 @@ class ParameterTools(CompactButton):
 class ParameterRow(CompactRow):
   """A full-width browse card; changing a toggle requires its separate large control."""
   def __init__(self, *args, reason=lambda: '', favorite=None, toggle_favorite=None, browse_only=False, **kwargs):
-    super().__init__(*args, row_height=144, title_size=34, **kwargs)
+    super().__init__(*args, row_height=164, title_size=40, **kwargs)
     self.reason, self.favorite, self.toggle_favorite = reason, favorite, toggle_favorite
     self.browse_only = browse_only
     self._value_label = UnifiedLabel('', font_size=36, scroll=True)
@@ -125,17 +129,17 @@ class ParameterRow(CompactRow):
     available = bool(resolve(self.available))
     color = rl.WHITE if available else MUTED
     rl.draw_rectangle_rounded(rect, 0.15, 10, PANEL)
-    title_width = rect.width - 48
+    title_width = self._title_width()
     title = str(resolve(self.title))
-    lines = wrap_text(gui_app.font(), title, 34, int(title_width))
-    gui_label(rl.Rectangle(rect.x + 24, rect.y + 8, title_width, 38), lines[0] if lines else '', 34, color)
+    lines = wrap_text(gui_app.font(), title, 40, int(title_width))
+    gui_label(rl.Rectangle(rect.x + 24, rect.y + 8, title_width, 44), lines[0] if lines else '', 40, color)
     if len(lines) > 1:
       overflow = title.strip()[len(lines[0]):].lstrip()
       if overflow != self._overflow_title.text:
         self._overflow_title.set_text(overflow)
         self._overflow_title.reset_scroll()
       self._overflow_title.set_text_color(color)
-      self._overflow_title.render(rl.Rectangle(rect.x + 24, rect.y + 46, title_width, 38))
+      self._overflow_title.render(rl.Rectangle(rect.x + 24, rect.y + 52, title_width, 44))
     if not available and not self.browse_only:
       value = tr('Unavailable')
     elif self.checked is not None:
@@ -190,11 +194,35 @@ class ParameterTogglePage(CompactPage):
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
 
 
+class ParameterActionRow(ParameterRow):
+  """Keep an action's status and description accessible before it is invoked."""
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self._info = self._child(CompactInfoButton(lambda: self.help_callback() if self.help_callback else None))
+    self._info.set_enabled(lambda: self.enabled)
+    self._info.set_touch_valid_callback(self._touch_valid)
+
+  def _title_width(self):
+    return super()._title_width() - 72
+
+  def _info_rect(self):
+    return rl.Rectangle(self.rect.x + self.rect.width - 80, self.rect.y, 80, 80)
+
+  def _render(self, rect):
+    super()._render(rect)
+    self._info.set_parent_rect(self._parent_rect or rect)
+    self._info.render(self._info_rect())
+
+  def _handle_mouse_release(self, pos):
+    if not rl.check_collision_point_rec(pos, self._info_rect()):
+      super()._handle_mouse_release(pos)
+
+
 class ParameterPanel(SettingsPanel):
   def __init__(self, kind, controller, favorites, search):
     super().__init__(ALL_PARAMETER_TITLES[kind], controller)
     self.kind, self.favorites = kind, favorites
-    self._list = CompactPagedList(per_page=1)
+    self._list = CompactSwipeList()
     self._list.set_enabled(lambda: self.enabled)
     self._header.position = None
     self._header.action_width = 184
@@ -213,6 +241,10 @@ class ParameterPanel(SettingsPanel):
     if kind == 'toggles':
       for key, item in controller._toggles.items():
         item._c4_param_key = key
+    if kind == 'software':
+      controller.disable_updates_toggle._c4_param_key = 'DisableUpdates'
+    if kind == 'sunnylink':
+      controller._sunnylink_toggle._c4_param_key = 'SunnylinkEnabled'
     if kind in ('steering', 'lane', 'torque'):
       self._excluded = {controller._mads_settings_button, controller._lane_change_settings_button, controller._torque_customization_button}
       if kind == 'steering':
@@ -286,8 +318,15 @@ class ParameterPanel(SettingsPanel):
     action = item.action_item
     if not item.enabled or (action is not None and not action.enabled):
       return tr('Park the vehicle to change this setting.') if not ui_state.is_offroad() else tr('Check vehicle compatibility and prerequisites.')
-    # Only model display gating is lifted; actual feature dependencies above remain enforced.
-    if not item.is_visible and key not in ('LaneTurnValue', 'LagdToggleDelay'):
+    if key == 'QuickBootToggle':
+      if not ui_state.params.get_bool('ShowAdvancedControls'):
+        return tr('Enable Show Advanced Controls first.')
+      if self.controller._is_release_branch or self.controller._is_development_branch:
+        return tr('Unavailable on this software branch.')
+    if key == 'EnableGithubRunner' and self.controller._is_release_branch:
+      return tr('Unavailable on this software branch.')
+    # Lift presentation gating only. Controller availability and feature prerequisites still apply.
+    if not item.is_visible and key not in ('LaneTurnValue', 'LagdToggleDelay', 'DisableUpdates', 'EnableCopyparty', 'EnableGithubRunner'):
       return tr('Check vehicle compatibility and prerequisites.')
     return ''
 
@@ -325,9 +364,10 @@ class ParameterPanel(SettingsPanel):
           page = gui_app.get_active_widget()
           if hasattr(page, '_help'):
             page._help.set_click_callback(help_page)
-      converted = ParameterRow(row.title, row.value, open_detail if row.callback else None, help_page, row.checked, enabled=row.available,
-                               visible=True if configurable else lambda row=row: row.is_visible,
-                               reason=lambda: self._unavailable_reason(item))
+      row_type = ParameterRow if configurable else ParameterActionRow
+      converted = row_type(row.title, row.value, open_detail if row.callback else None, help_page, row.checked, enabled=row.available,
+                           visible=True if configurable else lambda row=row: row.is_visible,
+                           reason=lambda: self._unavailable_reason(item))
       result.append(converted)
     return result
 
@@ -337,14 +377,14 @@ class ParameterPanel(SettingsPanel):
   def _render(self, rect):
     from openpilot.system.ui.widgets.compact import BACKGROUND
     rl.draw_rectangle_rec(rect, BACKGROUND)
-    self._header.render(rl.Rectangle(rect.x, rect.y, rect.width, 48))
+    self._header.render(rl.Rectangle(rect.x, rect.y, rect.width, 56))
     if self._focus_key:
       for item, rows in self._rows.items():
         if parameter_key(item) == self._focus_key:
           self._list.focus_item(rows[0])
           break
       self._focus_key = None
-    self._list.render(rl.Rectangle(rect.x, rect.y + 48, rect.width, rect.height - 48))
+    self._list.render(rl.Rectangle(rect.x, rect.y + 56, rect.width, rect.height - 56))
     if self._notification and rl.get_time() < self._notification_until:
       rl.draw_rectangle_rec(rl.Rectangle(rect.x + 12, rect.y + 48, rect.width - 24, 28), PANEL)
       gui_label(rl.Rectangle(rect.x + 16, rect.y + 48, rect.width - 32, 28), self._notification, 22)
@@ -354,16 +394,22 @@ class ParameterSearch(CompactPage):
   def __init__(self, root):
     super().__init__(lambda: tr('Search Parameters'), horizontal=False)
     self.root = root
-    self._list = self._child(CompactPagedList(per_page=1))
+    self._list = self._child(CompactSwipeList())
     self._list.set_enabled(lambda: self.enabled)
     self.query = ''
     self.favorites_only = False
     self._header.action_width = 184
     self._header.action = ParameterTools(self.search, self.toggle_filter, lambda: self.favorites_only)
     self._entries = []
+    self._result_rows = {}
+    self._empty_row = ParameterRow(lambda: tr('No matching options'), callback=self.search, browse_only=True)
+    self._refresh_entries()
+
+  def _refresh_entries(self):
+    self._entries = []
     seen = set()
     for kind in ALL_PARAMETER_TITLES:
-      panel = root.parameter_panel(kind)
+      panel = self.root.parameter_panel(kind)
       panel.refresh()
       for item in panel._source_items:
         key = parameter_key(item)
@@ -392,11 +438,16 @@ class ParameterSearch(CompactPage):
             and (not self.favorites_only or self.root._favorites.contains(entry[1]))]
 
   def refresh(self):
-    rows = [ParameterRow(lambda entry=entry: str(resolve(entry[3].title)), lambda entry=entry: tr(ALL_PARAMETER_TITLES[entry[0]]),
-                         callback=lambda entry=entry: self.open_result(entry), browse_only=True,
-                         favorite=lambda entry=entry: self.root._favorites.contains(entry[1]),
-                         toggle_favorite=lambda entry=entry: self.toggle_favorite(entry[1])) for entry in self.matching_entries()]
-    self._list.set_items(rows or [ParameterRow(lambda: tr('No matching options'), callback=self.search, browse_only=True)])
+    self._refresh_entries()
+    rows = []
+    for entry in self.matching_entries():
+      identity = (entry[0], entry[1], entry[3])
+      if identity not in self._result_rows:
+        self._result_rows[identity] = ParameterRow(lambda entry=entry: str(resolve(entry[3].title)),
+                                                  lambda entry=entry: tr(ALL_PARAMETER_TITLES[entry[0]]),
+                                                  callback=lambda entry=entry: self.open_result(entry), browse_only=True)
+      rows.append(self._result_rows[identity])
+    self._list.set_items(rows or [self._empty_row])
 
   def toggle_favorite(self, key):
     try:
@@ -415,5 +466,5 @@ class ParameterSearch(CompactPage):
   def _render(self, rect):
     rl.draw_rectangle_rec(rect, rl.BLACK)
     self._header.title = lambda: tr('Favorites') if self.favorites_only else tr('Search Parameters')
-    self._header.render(rl.Rectangle(rect.x, rect.y, rect.width, 48))
-    self._list.render(rl.Rectangle(rect.x, rect.y + 48, rect.width, rect.height - 48))
+    self._header.render(rl.Rectangle(rect.x, rect.y, rect.width, 56))
+    self._list.render(rl.Rectangle(rect.x, rect.y + 56, rect.width, rect.height - 56))

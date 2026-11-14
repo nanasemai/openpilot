@@ -12,7 +12,7 @@ from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.html_render import ElementType, HtmlRenderer
 from openpilot.system.ui.widgets.label import gui_label, UnifiedLabel
-from openpilot.system.ui.widgets.scroller import Scroller
+from openpilot.system.ui.widgets.scroller import Scroller, _Scroller
 
 HEADER_HEIGHT = 56
 ROW_HEIGHT = 168
@@ -265,6 +265,128 @@ class CompactPagedList(Widget):
     gui_label(rl.Rectangle(rect.x + 8 + width, y, 112, 44), self.position, 26, MUTED,
               alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
     self._next.render(rl.Rectangle(rect.x + rect.width - width - 8, y, width, 44))
+
+
+class _CompactSwipeScroller(_Scroller):
+  def _layout(self):
+    # One card plus its surrounding space occupies exactly one viewport.
+    index = 0
+    for item in self.items:
+      item.set_parent_rect(self.rect)
+      item._rect.width, item._rect.height = self.rect.width - 24, self.rect.height
+      if item.is_visible:
+        # Establish content positions before resolving the first frame's snap target.
+        item.set_position(self.rect.x + 12 + index * self.rect.width + self._scroll_offset, self.rect.y)
+        index += 1
+    super()._layout()
+    for item in self._visible_items:
+      item._rect.width, item._rect.height = self.rect.width - 24, self.rect.height
+
+
+class CompactSwipeList(CompactList):
+  """One large card per horizontal swipe, with shared swipe and snap rejection."""
+  def __init__(self):
+    super().__init__(horizontal=True, paged=True)
+    self._children.remove(self._scroller)
+    self._scroller = self._child(_CompactSwipeScroller([], horizontal=True, spacing=24, pad=12,
+                                                      snap_items=True, scroll_indicator=False, edge_shadows=False))
+    self._scroller.set_enabled(lambda: self.enabled)
+    self._scroller.set_reset_scroll_at_show(False)
+    self._known_items = set()
+    self._last_visible = []
+    self._pending_page = None
+    self._touch_start = None
+    self._touch_dragged = False
+    self._touch_active = False
+
+  @property
+  def items(self):
+    return self._scroller.items
+
+  @property
+  def visible_items(self):
+    return [item for item in self.items if item.is_visible]
+
+  @property
+  def page_count(self):
+    return max(1, len(self.visible_items))
+
+  @property
+  def page(self):
+    index = self._pending_page if self._pending_page is not None else self._current_index()
+    return max(0, min(self.page_count - 1, index))
+
+  def _current_index(self):
+    return round(-self._scroller.scroll_panel.get_offset() / self.rect.width) if self.rect.width else 0
+
+  @page.setter
+  def page(self, index):
+    index = max(0, min(self.page_count - 1, index))
+    self._pending_page = index if not self.rect.width else None
+    if self.rect.width:
+      self._scroller.scroll_panel.set_offset(-index * self.rect.width)
+      self._scroller._scrolling_to = None, False, False
+
+  @property
+  def position(self):
+    return f'{self.page + 1}/{self.page_count}'
+
+  def set_items(self, items):
+    index = self._pending_page if self._pending_page is not None else self._current_index()
+    anchor = self._last_visible[index] if 0 <= index < len(self._last_visible) else None
+    if list(items) != self.items:
+      for item in self.items:
+        if item not in items:
+          item.hide_event()
+      self._scroller._items = []
+      for item in items:
+        if item not in self._known_items:
+          self._known_items.add(item)
+          item.set_enabled(lambda: self.enabled)
+          self._scroller.add_widget(item)
+          original = item._touch_valid_callback
+          item.set_touch_valid_callback(lambda original=original: original() and self._page_aligned() and not self._touch_dragged)
+        else:
+          self._scroller._items.append(item)
+    visible = self.visible_items
+    if visible != self._last_visible:
+      self.page = visible.index(anchor) if anchor in visible else index
+      self._last_visible = visible
+
+  def change_page(self, direction):
+    self.page += direction
+
+  def focus_item(self, item):
+    if item in self.visible_items:
+      self.page = self.visible_items.index(item)
+
+  def _render(self, rect):
+    if not self._touch_active:
+      self._touch_dragged = False
+    for event in gui_app.mouse_events:
+      if event.slot != 0:
+        continue
+      if event.left_pressed:
+        self._touch_start = event.pos if rl.check_collision_point_rec(event.pos, rect) else None
+        self._touch_active = self._touch_start is not None
+        self._touch_dragged = False
+      if self._touch_start is not None:
+        dx, dy = event.pos.x - self._touch_start.x, event.pos.y - self._touch_start.y
+        self._touch_dragged |= dx * dx + dy * dy > 12 * 12
+      if event.left_released:
+        self._touch_active = False
+    self.set_items(self.items)
+    if self._pending_page is not None:
+      self.page = self._pending_page
+    self._scroller.render(rl.Rectangle(rect.x, rect.y, rect.width, rect.height - 20))
+    gui_label(rl.Rectangle(rect.x, rect.y + rect.height - 20, rect.width, 20),
+              self.position + ' · ' + tr('Swipe left or right'), 20, MUTED, alignment=rl.GuiTextAlignment.TEXT_ALIGN_CENTER)
+
+  def hide_event(self):
+    super().hide_event()
+    self._touch_start = None
+    self._touch_active = False
+    self._touch_dragged = False
 
 
 class CompactRow(Widget):

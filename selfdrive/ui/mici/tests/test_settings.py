@@ -70,7 +70,11 @@ def test_all_pages_are_reachable_and_render(key):
   if key not in ('network', 'sunnylink'):
     assert panel._list.rect.height == 240 - HEADER_HEIGHT
     assert panel._list.horizontal
-    assert all(row.rect.width <= 402 for row in panel._list._scroller.items)
+    if key in ('trips', 'firehose'):
+      assert panel._list.page_count == len(panel._list.visible_items)
+      assert panel._list.visible_items[0].rect.width >= 500
+    else:
+      assert all(row.rect.width <= 402 for row in panel._list._scroller.items)
 
 
 def test_steering_subpages_and_number_write():
@@ -874,12 +878,12 @@ def test_horizontal_swipe_moves_cards_without_toggling(monkeypatch):
   assert gui_app.get_active_widget() is panel
 
 
-def test_home_grid_navigation_preserves_parameter_scroll():
+def test_home_swipe_navigation_preserves_parameter_scroll():
   from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP
   root = SettingsLayoutSP()
   gui_app.push_widget(root)
   draw(root)
-  root.buttons[0]._click_callback()
+  root.buttons[root.menu_keys.index('steering')]._click_callback()
   panel = gui_app.get_active_widget()
   draw(panel)
   panel._list.change_page(1)
@@ -890,7 +894,7 @@ def test_home_grid_navigation_preserves_parameter_scroll():
   assert panel._list.page == 1
   gui_app.pop_widget()
   draw(root)
-  root.buttons[0]._click_callback()
+  root.buttons[root.menu_keys.index('steering')]._click_callback()
   draw(panel)
   assert gui_app.get_active_widget() is panel
   assert panel._list.page == 1
@@ -5378,8 +5382,8 @@ def test_c4_settings_navigation_pauses_brightness_until_settings_exit(monkeypatc
   gui_app.push_widget(settings)
   assert ui_state.onroad_brightness_timer == -1
   assert DeviceSP.set_onroad_brightness(ui_state, True, 65) == 65
-  settings._set_category(1)
-  settings.open_panel('display')
+  settings._list.focus_item(settings.buttons[settings.menu_keys.index('display')])
+  settings.buttons[settings.menu_keys.index('display')]._click_callback()
   panel = gui_app.get_active_widget()
   item = panel.controller._onroad_brightness
   panel._open_number(item, lambda: item.title, lambda: item.description)

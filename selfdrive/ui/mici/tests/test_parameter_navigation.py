@@ -30,25 +30,24 @@ def root():
 @pytest.mark.parametrize('kind', list(PARAMETER_TITLES))
 def test_parameter_destinations_render_directly_from_home(kind):
   home = root()
-  index = list(PARAMETER_TITLES).index(kind)
+  index = home.menu_keys.index(kind)
   home.buttons[index]._click_callback()
   page = gui_app.get_active_widget()
   assert isinstance(page, ParameterPanel)
   draw(page)
-  assert not page._list.horizontal
+  assert page._list.horizontal
   visible = page._list.visible_items[:1]
-  assert all(row.rect.width >= 500 and row.rect.height == 144 for row in visible)
+  assert all(row.rect.width >= 500 and row.rect.height == 164 for row in visible)
   assert len(visible) == 1
-  assert all(row.rect.y >= 48 and row.rect.y + row.rect.height <= 192 for row in visible)
-  assert page._list._previous.rect.height == 44 and page._list._next.rect.height == 44
-  assert len(home.buttons) == 20
-  assert len(home._list._scroller.items) == 5
-  assert all(button.rect.height >= 80 and button.rect.width >= 180 for button in home.buttons[:4])
+  assert all(row.rect.y >= 56 and row.rect.y + row.rect.height <= 220 for row in visible)
+  assert len(home.buttons) == 21
+  assert home._list.page_count == len(home.buttons)
+  assert home.buttons[0].rect.height == 164 and home.buttons[0].rect.width >= 500
 
 
 def test_two_click_numeric_access_and_scroll_survives_editor():
   home = root()
-  home.buttons[0]._click_callback()
+  home.buttons[home.menu_keys.index('steering')]._click_callback()
   panel = gui_app.get_active_widget()
   draw(panel)
   panel._list.change_page(1)
@@ -326,17 +325,27 @@ def swipe(widget, x, ys, monkeypatch):
   settle(widget, monkeypatch)
 
 
-def test_grid_page_buttons_reach_every_menu_without_swiping(monkeypatch):
+def horizontal_swipe(widget, xs, monkeypatch):
+  events = [MouseEvent(MousePos(x, 150), 0, index == 0, index == len(xs) - 1, index < len(xs) - 1, index * .1)
+            for index, x in enumerate(xs)]
+  monkeypatch.setattr(gui_app, '_mouse_events', events)
+  draw(widget)
+  settle(widget, monkeypatch)
+
+
+def test_home_horizontal_swipes_reach_every_menu_without_opening_it(monkeypatch):
   home = root()
-  for index in range(5):
-    assert home._grid_page() == index
-    tap(home, home._next.rect, monkeypatch)
-  assert home._grid_page() == 4
-  for _ in range(5):
-    tap(home, home._previous.rect, monkeypatch)
-  assert home._grid_page() == 0
+  for index in range(len(home.buttons) - 1):
+    assert home._list.page == index
+    horizontal_swipe(home, (480, 425, 250, 80, 80, 80), monkeypatch)
+    assert gui_app.get_active_widget() is home
+  assert home._list.page == len(home.buttons) - 1
+  horizontal_swipe(home, (80, 140, 305, 480, 480, 480), monkeypatch)
+  assert home._list.page == len(home.buttons) - 2
+  home._list.page = 0
+  draw(home)
   assert gui_app.get_active_widget() is home
-  assert all(button.rect.height >= 80 for button in home.buttons[:4])
+  assert home.buttons[0].rect.height >= 160
 
 
 def test_all_original_main_menus_have_direct_home_entries():
@@ -395,7 +404,7 @@ def tap(widget, area, monkeypatch):
   draw(gui_app.get_active_widget())
 
 
-def test_page_buttons_visit_all_cards_and_preserve_params(monkeypatch):
+def test_horizontal_swipes_visit_all_cards_and_preserve_params(monkeypatch):
   home = root()
   home.open_parameters('steering')
   panel = gui_app.get_active_widget()
@@ -407,12 +416,12 @@ def test_page_buttons_visit_all_cards_and_preserve_params(monkeypatch):
     assert panel._list.page == index
     current = panel._list.visible_items[index:index + 1]
     seen.extend(current)
-    assert all(row.rect.y >= 48 and row.rect.y + row.rect.height <= 192 for row in current)
-    tap(panel, panel._list._next.rect, monkeypatch)
+    assert all(row.rect.y >= 56 and row.rect.y + row.rect.height <= 220 for row in current)
+    horizontal_swipe(panel, (480, 425, 250, 80, 80, 80), monkeypatch)
   assert seen == panel._list.visible_items
   assert panel._list.page == panel._list.page_count - 1
   for _ in range(panel._list.page_count + 1):
-    tap(panel, panel._list._previous.rect, monkeypatch)
+    horizontal_swipe(panel, (80, 140, 305, 480, 480, 480), monkeypatch)
   assert panel._list.page == 0
   assert all(ui_state.params.get(key) == value for key, value in before.items())
   assert gui_app.get_active_widget() is panel
@@ -466,19 +475,18 @@ def test_favorite_filter_handles_empty_and_odd_last_page(monkeypatch):
   draw(search)
   assert search._list.page_count == 1
   assert len(search._list.visible_items) == 1
-  assert not search._list._previous.enabled and not search._list._next.enabled
   keys = [entry[1] for entry in search._entries[:3]]
   ui_state.params.put('C4FavoriteSettings', keys, block=True)
   search.refresh()
   draw(search)
-  tap(search, search._list._next.rect, monkeypatch)
+  horizontal_swipe(search, (480, 425, 250, 80, 80, 80), monkeypatch)
   assert search._list.page == 1
-  tap(search, search._list._next.rect, monkeypatch)
+  horizontal_swipe(search, (480, 425, 250, 80, 80, 80), monkeypatch)
   assert search._list.page == 2
   search.toggle_favorite(keys[2])
   draw(search)
   assert search._list.page == 1 and search._list.page_count == 2
-  tap(search, search._list._next.rect, monkeypatch)
+  horizontal_swipe(search, (480, 425, 250, 80, 80, 80), monkeypatch)
   assert search._list.page == 1
 
 

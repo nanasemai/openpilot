@@ -6644,3 +6644,18 @@ msgstr "加入收藏"
 
 msgid "Remove from Favorites"
 msgstr "取消收藏"
+
+msgid "About sunnylink"
+msgstr "关于 sunnylink"
+
+msgid "Enable Show Advanced Controls first."
+msgstr "请先开启显示高级设置。"
+
+msgid "Swipe left or right"
+msgstr "左右滑动切换"
+
+msgid "Unavailable on this software branch."
+msgstr "当前软件分支不支持此设置。"
+
+msgid "Unavailable with the current cellular subscription."
+msgstr "当前蜂窝网络服务不允许修改此设置。"
