@@ -1,4 +1,6 @@
-"""Complete settings navigation for the C4 display."""
+"""C3X categories with large secondary setting cards on the C4 display."""
+import pyray as rl
+
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.selfdrive.ui.sunnypilot.ui_state import OnroadTimerStatus
 from openpilot.system.ui.lib.application import gui_app
@@ -22,8 +24,22 @@ TITLES = {
   "network": tr_noop("Network"), "sunnylink": tr_noop("sunnylink"), "osm": tr_noop("Offline Maps"),
   "firehose": tr_noop("Firehose Mode"), "software": tr_noop("Software"), "developer": tr_noop("Developer"),
 }
-MENU_ORDER = ('toggles', 'steering', 'lane', 'torque', 'cruise', 'models', 'vehicle', 'display', 'visuals',
-              'network', 'remote', 'device', 'software', 'developer', 'osm', 'sunnylink', 'trips', 'firehose')
+# Match the registered C3X sidebar, including its order. Subsections stay inside their category.
+MENU_ORDER = ('device', 'network', 'sunnylink', 'toggles', 'software', 'models', 'steering', 'cruise',
+              'visuals', 'display', 'osm', 'trips', 'vehicle', 'firehose', 'developer')
+
+
+class SettingsTools(CompactButton):
+  def __init__(self, remote, search):
+    super().__init__(lambda: tr('ADB / SSH'), lambda: None)
+    self._remote = self._child(CompactButton(lambda: tr('ADB / SSH'), remote))
+    self._search = self._child(CompactButton(lambda: tr('Search'), search))
+    for button in (self._remote, self._search):
+      button.set_enabled(lambda: self.enabled)
+
+  def _render(self, rect):
+    self._remote.render(rl.Rectangle(rect.x, rect.y, rect.width - 84, rect.height))
+    self._search.render(rl.Rectangle(rect.x + rect.width - 76, rect.y, 76, rect.height))
 
 
 def make_panel(key):
@@ -61,12 +77,9 @@ class SettingsLayoutSP(CompactPage):
     self._parameters = {}
     self._search_page = None
     self.menu_keys = MENU_ORDER
-    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ALL_PARAMETER_TITLES
-    entries = [(lambda key=key: tr(ALL_PARAMETER_TITLES.get(key, TITLES.get(key, key))), lambda key=key: self.open_more_panel(key))
+    entries = [(lambda key=key: tr(TITLES[key]), lambda key=key: self.open_more_panel(key))
                for key in self.menu_keys]
-    entries += [(lambda: tr('Search Parameters'), self.open_search), (lambda: tr('Favorites'), lambda: self.open_search(True)),
-                (lambda: tr('Exit Offroad') if ui_state.always_offroad else tr('Offroad Mode'), self._handle_always_offroad)]
-    super().__init__(lambda: tr("Settings"))
+    super().__init__(lambda: tr('Settings'))
     self._list = CompactSwipeList()
     self._list.set_enabled(lambda: self.enabled)
     self.buttons = [CompactRow(text, callback=callback, title_size=52) for text, callback in entries]
@@ -74,8 +87,11 @@ class SettingsLayoutSP(CompactPage):
       button.set_click_callback(button.callback)
     self._list.set_items(self.buttons)
     self._panels = {}
-    self._header.action_width = 168
-    self._header.action = CompactButton(lambda: tr('ADB / SSH'), lambda: self.open_parameters('remote'))
+    self._header.action_width = 244
+    self._header.action = SettingsTools(lambda: self.open_parameters('remote'), lambda: self.open_search(False))
+
+  def focus_category(self, key):
+    self._list.focus_item(self.buttons[self.menu_keys.index(key)])
 
   def show_event(self):
     super().show_event()

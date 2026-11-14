@@ -231,6 +231,7 @@ class ParameterPanel(SettingsPanel):
     self._focus_key = None
     self._controllers = [controller]
     self._excluded = set()
+    self._child_panels = {}
     if kind in ('developer', 'remote'):
       for key, attribute in (('AdbEnabled', '_adb_toggle'), ('SshEnabled', '_ssh_toggle'), ('GithubSshKeys', '_ssh_keys'),
                              ('ShowDebugInfo', '_ui_debug_toggle'), ('ForceOnroad', '_force_onroad_toggle'),
@@ -245,10 +246,16 @@ class ParameterPanel(SettingsPanel):
       controller.disable_updates_toggle._c4_param_key = 'DisableUpdates'
     if kind == 'sunnylink':
       controller._sunnylink_toggle._c4_param_key = 'SunnylinkEnabled'
+    if kind == 'device':
+      controller._always_offroad_btn._c4_param_key = 'OffroadMode'
     if kind in ('steering', 'lane', 'torque'):
       self._excluded = {controller._mads_settings_button, controller._lane_change_settings_button, controller._torque_customization_button}
       if kind == 'steering':
-        self._controllers.append(controller._mads_settings_layout)
+        self._child_panels = {controller._mads_settings_button: controller._mads_settings_layout,
+                              controller._lane_change_settings_button: controller._lane_change_settings_layout,
+                              controller._torque_customization_button: controller._torque_control_layout}
+        self._controllers.extend(self._child_panels.values())
+        self._header.title = self._section_title
       else:
         self._controllers.append(controller._lane_change_settings_layout if kind == 'lane' else controller._torque_control_layout)
     elif kind == 'cruise':
@@ -274,9 +281,14 @@ class ParameterPanel(SettingsPanel):
       self._refresh_controller(controller)
     visible_controllers = self._controllers[1:] if self.kind == 'lane' else self._controllers
     self._source_items = []
-    for controller in visible_controllers:
+
+    def collect(controller):
       for item in controller._scroller._items:
-        if item in self._excluded or not hasattr(item, 'action_item'):
+        if item in self._excluded:
+          if item in self._child_panels:
+            collect(self._child_panels[item])
+          continue
+        if not hasattr(item, 'action_item'):
           continue
         if self.kind == 'remote' and item not in (self.controller._adb_toggle, self.controller._ssh_toggle, self.controller._ssh_keys):
           continue
@@ -285,6 +297,9 @@ class ParameterPanel(SettingsPanel):
           continue
         self._owners[item] = controller
         self._source_items.append(item)
+
+    for controller in ([self.controller] if self._child_panels else visible_controllers):
+      collect(controller)
     rows = []
     for item in self._source_items:
       if item not in self._rows:
@@ -373,6 +388,21 @@ class ParameterPanel(SettingsPanel):
 
   def focus_parameter(self, key):
     self._focus_key = key
+
+  def _section_title(self):
+    title = tr(ALL_PARAMETER_TITLES[self.kind])
+    visible = self._list.visible_items
+    current = visible[self._list.page] if visible else None
+    for item in self._source_items:
+      if current in self._rows.get(item, ()):
+        owner = self._owners.get(item)
+        for controller, label in ((self.controller._mads_settings_layout, 'Customize MADS'),
+                                  (self.controller._lane_change_settings_layout, 'Lane Change'),
+                                  (self.controller._torque_control_layout, 'Torque Parameters')):
+          if owner is controller:
+            return title + ' · ' + tr(label)
+        break
+    return title
 
   def _render(self, rect):
     from openpilot.system.ui.widgets.compact import BACKGROUND

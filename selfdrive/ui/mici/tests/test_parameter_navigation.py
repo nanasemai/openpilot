@@ -27,8 +27,8 @@ def root():
   return widget
 
 
-@pytest.mark.parametrize('kind', list(PARAMETER_TITLES))
-def test_parameter_destinations_render_directly_from_home(kind):
+@pytest.mark.parametrize('kind', [key for key in PARAMETER_TITLES if key not in ('lane', 'torque')])
+def test_parameter_destinations_render_in_their_c3x_category(kind):
   home = root()
   index = home.menu_keys.index(kind)
   home.buttons[index]._click_callback()
@@ -40,7 +40,7 @@ def test_parameter_destinations_render_directly_from_home(kind):
   assert all(row.rect.width >= 500 and row.rect.height == 164 for row in visible)
   assert len(visible) == 1
   assert all(row.rect.y >= 56 and row.rect.y + row.rect.height <= 220 for row in visible)
-  assert len(home.buttons) == 21
+  assert len(home.buttons) == 15
   assert home._list.page_count == len(home.buttons)
   assert home.buttons[0].rect.height == 164 and home.buttons[0].rect.width >= 500
 
@@ -333,10 +333,11 @@ def horizontal_swipe(widget, xs, monkeypatch):
   settle(widget, monkeypatch)
 
 
-def test_home_horizontal_swipes_reach_every_menu_without_opening_it(monkeypatch):
+def test_category_horizontal_swipes_reach_every_c3x_menu_without_opening_it(monkeypatch):
   home = root()
   for index in range(len(home.buttons) - 1):
     assert home._list.page == index
+    assert home.buttons[index].rect.height == 164 and home.buttons[index].rect.width >= 500
     horizontal_swipe(home, (480, 425, 250, 80, 80, 80), monkeypatch)
     assert gui_app.get_active_widget() is home
   assert home._list.page == len(home.buttons) - 1
@@ -345,7 +346,6 @@ def test_home_horizontal_swipes_reach_every_menu_without_opening_it(monkeypatch)
   home._list.page = 0
   draw(home)
   assert gui_app.get_active_widget() is home
-  assert home.buttons[0].rect.height >= 160
 
 
 def test_all_original_main_menus_have_direct_home_entries():

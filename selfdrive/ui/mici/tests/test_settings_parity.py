@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from openpilot.selfdrive.ui.ui_state import ui_state
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP
-from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import parameter_key
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP, MENU_ORDER
+from openpilot.selfdrive.ui.sunnypilot.mici.layouts.parameters import ParameterPanel, ParameterSearch, parameter_key
 from openpilot.selfdrive.ui.sunnypilot.layouts.settings.vehicle.brands.factory import BrandSettingsFactory
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
@@ -67,8 +67,75 @@ def home():
 def test_every_registered_c3x_destination_is_on_home():
   page = home()
   assert len(registered_controllers()) == 15
-  assert set(registered_controllers()) <= set(page.menu_keys)
-  assert page.menu_keys[:9] == ('toggles', 'steering', 'lane', 'torque', 'cruise', 'models', 'vehicle', 'display', 'visuals')
+  assert tuple(registered_controllers()) == page.menu_keys
+  assert len(page.buttons) == 15
+
+
+@pytest.mark.parametrize('kind', MENU_ORDER)
+def test_c3x_category_touch_opens_secondary_settings_and_remembers_menu_page(kind, monkeypatch):
+  root = home()
+  root.focus_category(kind)
+  draw(root)
+  index = root.menu_keys.index(kind)
+  assert root._list.page == index
+  button = root.buttons[index]
+  assert button.rect.width >= 500 and button.rect.height == 164
+  tap(root, button.rect, monkeypatch)
+  page = gui_app.get_active_widget()
+  assert page is not root
+  assert page._list.horizontal
+  if kind not in ('network', 'trips', 'firehose'):
+    assert isinstance(page, ParameterPanel) and page.kind == kind
+  gui_app.pop_widget()
+  draw(root)
+  assert gui_app.get_active_widget() is root
+  assert root._list.page == index
+
+
+def test_steering_subsections_stay_in_the_secondary_page_with_c3x_order():
+  root = home()
+  root.open_more_panel('steering')
+  panel = gui_app.get_active_widget()
+  controller = panel.controller
+  expected = []
+  for item in controller._scroller._items:
+    if item in panel._child_panels:
+      expected.extend(child for child in panel._child_panels[item]._scroller._items if isinstance(child, ListItem))
+    elif isinstance(item, ListItem):
+      expected.append(item)
+  assert panel._source_items == expected
+  assert 'lane' not in root.menu_keys and 'torque' not in root.menu_keys
+  for key, section in (('MadsSteeringMode', 'Customize MADS'), ('AutoLaneChangeTimer', 'Lane Change'),
+                       ('TorqueParamsOverrideFriction', 'Torque Parameters')):
+    panel.focus_parameter(key)
+    draw(panel)
+    assert tr(section) in str(resolve(panel._header.title))
+    assert any(parameter_key(item) == key for item in panel._source_items)
+
+
+def test_home_search_is_a_direct_shortcut_and_opens_the_existing_category(monkeypatch):
+  root = home()
+  tap(root, root._header.action._search.rect, monkeypatch)
+  search = gui_app.get_active_widget()
+  assert isinstance(search, ParameterSearch)
+  search.query = 'TorqueParamsOverrideFriction'
+  search.refresh()
+  entries = search.matching_entries()
+  assert len(entries) == 1 and entries[0][0] == 'steering'
+  search.open_result(entries[0])
+  page = gui_app.get_active_widget()
+  assert isinstance(page, ParameterPanel) and page.kind == 'steering'
+
+
+def test_offroad_mode_stays_in_device_settings_and_search():
+  root = home()
+  root.open_more_panel('device')
+  panel = gui_app.get_active_widget()
+  assert panel._rows[panel.controller._always_offroad_btn][0].is_visible
+  root.open_search()
+  search = gui_app.get_active_widget()
+  search.query = 'OffroadMode'
+  assert [(entry[0], entry[1]) for entry in search.matching_entries()] == [('device', 'OffroadMode')]
 
 
 @pytest.mark.parametrize('kind', ['device', 'sunnylink', 'toggles', 'software', 'models', 'steering', 'cruise', 'visuals', 'display', 'osm', 'developer'])
@@ -240,14 +307,15 @@ def test_actions_keep_separate_description_access_before_execution(monkeypatch):
   assert ui_state.params.get('OnroadCycleRequested') is None
 
 
-def test_home_vertical_drag_and_horizontal_swipe_cannot_open_a_menu(monkeypatch):
+def test_category_button_drags_cannot_open_a_menu(monkeypatch):
   root = home()
-  swipe(root, 250, (180, 125, 75, 75), monkeypatch)
+  area = root.buttons[0].rect
+  x, y = area.x + area.width / 2, area.y + area.height / 2
+  swipe(root, x, (y, y + 22, y, y), monkeypatch)
+  assert gui_app.get_active_widget() is root
+  horizontal_swipe(root, (x, x + 22, x, x), monkeypatch)
   assert gui_app.get_active_widget() is root
   assert root._list.page == 0
-  horizontal_swipe(root, (480, 425, 250, 80, 80, 80), monkeypatch)
-  assert gui_app.get_active_widget() is root
-  assert root._list.page == 1
 
 
 def test_search_focus_on_first_visit_opens_exact_parameter():

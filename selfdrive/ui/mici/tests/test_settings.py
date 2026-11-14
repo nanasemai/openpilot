@@ -5382,7 +5382,8 @@ def test_c4_settings_navigation_pauses_brightness_until_settings_exit(monkeypatc
   gui_app.push_widget(settings)
   assert ui_state.onroad_brightness_timer == -1
   assert DeviceSP.set_onroad_brightness(ui_state, True, 65) == 65
-  settings._list.focus_item(settings.buttons[settings.menu_keys.index('display')])
+  draw(settings)
+  settings.focus_category('display')
   settings.buttons[settings.menu_keys.index('display')]._click_callback()
   panel = gui_app.get_active_widget()
   item = panel.controller._onroad_brightness
