@@ -2,6 +2,7 @@
 from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
 from html import escape
+import math
 
 import pyray as rl
 
@@ -9,6 +10,7 @@ from openpilot.system.ui.lib.application import FontWeight, gui_app, MousePos
 from openpilot.system.ui.lib.multilang import multilang, tr
 from openpilot.system.ui.lib.wrap_text import wrap_text
 from openpilot.system.ui.lib.text_measure import measure_text_cached
+from openpilot.system.ui.lib.scroll_panel2 import GuiScrollPanel2, ScrollState
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.html_render import ElementType, HtmlRenderer
 from openpilot.system.ui.widgets.label import gui_label, UnifiedLabel
@@ -267,7 +269,101 @@ class CompactPagedList(Widget):
     self._next.render(rl.Rectangle(rect.x + rect.width - width - 8, y, width, 44))
 
 
+class _CompactSwipeScrollPanel(GuiScrollPanel2):
+  """A short, deliberate swipe advances one card; settling never fights a fling."""
+  DRAG_START = 8
+  PAGE_DISTANCE = 64
+  FLICK_DISTANCE = 32
+  FLICK_SPEED = 450
+  SNAP_RATE = 18
+
+  def __init__(self):
+    super().__init__(horizontal=True)
+    self._press_offset = 0.0
+    self._press_page = 0
+    self._axis = None
+    self._snap_offset = 0.0
+    self._page_size = 0.0
+
+  def jump_to(self, offset):
+    self.set_offset(offset)
+    self._snap_offset = offset
+    self._state = ScrollState.STEADY
+    self._initial_click_event = None
+    self._velocity = 0.0
+
+  def cancel_touch(self):
+    self._initial_click_event = None
+    if self._page_size:
+      if self._state != ScrollState.AUTO_SCROLL:
+        self._snap_offset = -round(-self.get_offset() / self._page_size) * self._page_size
+      self._state = ScrollState.AUTO_SCROLL
+
+  def _handle_mouse_event(self, event, bounds, bounds_size, content_size):
+    if event.slot != 0 or not self.enabled:
+      return
+    self._page_size = bounds_size
+    maximum, minimum = self._get_offset_bounds(bounds_size, content_size)
+    # The page indicator belongs to the same swipe area as the card above it.
+    touch_bounds = rl.Rectangle(bounds.x, bounds.y, bounds.width, bounds.height + 20)
+    if event.left_pressed and rl.check_collision_point_rec(event.pos, touch_bounds):
+      self._initial_click_event = event
+      self._press_offset = self.get_offset()
+      origin = self._snap_offset if self._state == ScrollState.AUTO_SCROLL else self._press_offset
+      self._press_page = round(-origin / bounds_size)
+      self._axis = None
+      self._velocity = 0.0
+      self._state = ScrollState.PRESSED
+    start = self._initial_click_event
+    if start is None:
+      return
+
+    dx, dy = event.pos.x - start.pos.x, event.pos.y - start.pos.y
+    if self._axis is None and max(abs(dx), abs(dy)) > self.DRAG_START:
+      if abs(dx) >= abs(dy) * 1.2:
+        self._axis = 'horizontal'
+      elif abs(dy) >= abs(dx) * 1.2:
+        self._axis = 'vertical'
+    if self._axis is not None:
+      self._state = ScrollState.MANUAL_SCROLL
+      self._drag_in_update = True
+    if self._axis == 'horizontal':
+      # Apply the complete displacement, including the first drag and release samples.
+      offset = self._press_offset + dx
+      edge = max(minimum, min(maximum, offset))
+      offset = edge + (offset - edge) * .25
+      self.set_offset(max(-(self._press_page + 1) * bounds_size, min(-(self._press_page - 1) * bounds_size, offset)))
+    if event.left_released:
+      duration = max(.02, event.t - start.t)
+      advance = self._axis == 'horizontal' and (abs(dx) >= self.PAGE_DISTANCE or
+                (abs(dx) >= self.FLICK_DISTANCE and abs(dx) / duration >= self.FLICK_SPEED))
+      direction = (-1 if dx > 0 else 1) if advance else 0
+      self._snap_offset = max(minimum, min(maximum, -(self._press_page + direction) * bounds_size))
+      self._state = ScrollState.AUTO_SCROLL
+      self._initial_click_event = None
+
+  def _update_state(self, bounds_size, content_size, snap_target):
+    # The release chooses a stable target instead of requiring the nearest card to change.
+    if self._state in (ScrollState.PRESSED, ScrollState.MANUAL_SCROLL):
+      return
+    maximum, minimum = self._get_offset_bounds(bounds_size, content_size)
+    target = max(minimum, min(maximum, self._snap_offset))
+    if self._state == ScrollState.STEADY:
+      target = max(minimum, min(maximum, self.get_offset()))
+    distance = target - self.get_offset()
+    if abs(distance) < 1:
+      self.set_offset(target)
+      self._state = ScrollState.STEADY
+    else:
+      self.set_offset(self.get_offset() + distance * (1 - math.exp(-self.SNAP_RATE * (rl.get_frame_time() or 1e-6))))
+      self._state = ScrollState.AUTO_SCROLL
+
+
 class _CompactSwipeScroller(_Scroller):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.scroll_panel = _CompactSwipeScrollPanel()
+
   def _layout(self):
     # One card plus its surrounding space occupies exactly one viewport.
     index = 0
@@ -324,7 +420,7 @@ class CompactSwipeList(CompactList):
     index = max(0, min(self.page_count - 1, index))
     self._pending_page = index if not self.rect.width else None
     if self.rect.width:
-      self._scroller.scroll_panel.set_offset(-index * self.rect.width)
+      self._scroller.scroll_panel.jump_to(-index * self.rect.width)
       self._scroller._scrolling_to = None, False, False
 
   @property
@@ -384,6 +480,7 @@ class CompactSwipeList(CompactList):
 
   def hide_event(self):
     super().hide_event()
+    self._scroller.scroll_panel.cancel_touch()
     self._touch_start = None
     self._touch_active = False
     self._touch_dragged = False
