@@ -71,9 +71,13 @@ class MiciMainLayout(Scroller):
     # For scroll_to
     return self._body_onroad_layout if ui_state.is_body else self._car_onroad_layout
 
+  def _return_home(self):
+    gui_app.pop_widgets_to(self, lambda: self._scroll_to(self._home_layout))
+
   def _setup_callbacks(self):
+    self._settings_layout.set_home_callback(self._return_home)
     self._home_layout.set_callbacks(
-      on_settings=lambda: gui_app.push_widget(self._settings_layout),
+      on_settings=self._settings_layout.open_from_home,
       on_alerts=lambda: self._scroll_to(self._alerts_layout),
       alert_count_callback=self._alerts_layout.active_alerts,
       max_severity_callback=self._alerts_layout.max_severity,

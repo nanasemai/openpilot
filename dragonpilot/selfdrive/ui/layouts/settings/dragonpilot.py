@@ -31,6 +31,7 @@ LITE = os.getenv("LITE") is not None
 MICI = HARDWARE.get_device_type() == "mici"
 
 class DragonpilotLayout(Widget):
+  _blocking_param_writes = False
   def __init__(self):
     super().__init__()
 
@@ -185,11 +186,14 @@ class DragonpilotLayout(Widget):
     primary_action = None
     if param_name:
       if item_type == "toggle_item":
-        primary_action = lambda val, p=param_name: ui_state.params.put_bool(p, bool(val))
+        def primary_action(val, p=param_name):
+          return ui_state.params.put_bool(p, bool(val), block=self._blocking_param_writes)
       elif item_type == "double_spin_button_item":
-        primary_action = lambda val, p=param_name: ui_state.params.put(p, float(val))
+        def primary_action(val, p=param_name):
+          return ui_state.params.put(p, float(val), block=self._blocking_param_writes)
       else: # spin_button_item, text_spin_button_item
-        primary_action = lambda val, p=param_name: ui_state.params.put(p, int(val))
+        def primary_action(val, p=param_name):
+          return ui_state.params.put(p, int(val), block=self._blocking_param_writes)
 
     # When this item changes, re-evaluate every child that depends on it
     parent_deps = self._reverse_deps.get(key, [])

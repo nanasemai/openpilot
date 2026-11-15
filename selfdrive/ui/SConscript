@@ -1,19 +1,27 @@
 from pathlib import Path
 import importlib.util
+import json
 
 Import('env', 'arch', 'common')
 
 # build the fonts
 generator = File("#selfdrive/assets/fonts/process.py")
 source_files = Glob("#selfdrive/assets/fonts/*.ttf") + Glob("#selfdrive/assets/fonts/*.otf")
-output_files = [
-  (f"#{Path(f.path).with_suffix('.fnt')}", f"#{Path(f.path).with_suffix('.png')}")
-  for f in source_files
-  if "NotoColor" not in f.name
-]
+languages_file = File("#selfdrive/ui/translations/languages.json")
+language_codes = json.loads(Path(languages_file.abspath).read_text()).values()
+cjk_codes = [code for code in language_codes if code in {"th", "zh-CHT", "zh-CHS", "ko", "ja"}]
+output_files = []
+for font in source_files:
+  if "NotoColor" in font.name or font.name == "unifont.otf":
+    continue
+  stems = [font.name.rsplit('.', 1)[0]]
+  if font.name.startswith("OpFont"):
+    stems = [f"{stems[0]}-{suffix}" for suffix in ["Labels", *cjk_codes]]
+  output_files.extend(f"#selfdrive/assets/fonts/{stem}.{ext}" for stem in stems for ext in ("fnt", "png"))
 env.Command(
   target=output_files,
-  source=[generator, source_files],
+  source=[generator, source_files, languages_file,
+          Glob("#selfdrive/ui/translations/app_*.po"), Glob("#selfdrive/ui/translations/dragonpilot_*.mo")],
   action=f"python3 {generator}",
 )
 

@@ -2276,7 +2276,7 @@ msgid "Select a Make"
 msgstr "选择品牌"
 
 msgid "Select a Model"
-msgstr "选择模型"
+msgstr "选择车型"
 
 msgid "Select a branch"
 msgstr "选择分支"
@@ -2612,3 +2612,189 @@ msgstr "请切换原车 LKAS 状态以启用"
 msgid "to engage"
 msgstr "以启用"
 
+
+msgid "Steering"
+msgstr "转向控制"
+
+msgid "Cruise"
+msgstr "巡航控制"
+
+msgid "Everyday Driving"
+msgstr "常用驾驶"
+
+msgid "Driver Monitoring"
+msgstr "驾驶员监控"
+
+msgid "Steering Basics"
+msgstr "转向基础"
+
+msgid "Lane Change & Blinkers"
+msgstr "变道与拨杆"
+
+msgid "Cruise Modes"
+msgstr "巡航模式"
+
+msgid "Radar"
+msgstr "雷达"
+
+msgid "Vehicle"
+msgstr "车辆"
+
+msgid "Language & Use"
+msgstr "语言与使用"
+
+msgid "Calibration & Device"
+msgstr "校准与设备"
+
+msgid "Power & Privacy"
+msgstr "电源与隐私"
+
+msgid "Wireless Networks"
+msgstr "无线网络"
+
+msgid "Hotspot Sharing"
+msgstr "热点共享"
+
+msgid "Cellular Network"
+msgstr "蜂窝网络"
+
+msgid "Visuals"
+msgstr "视觉效果"
+
+msgid "Data & Services"
+msgstr "数据与服务"
+
+msgid "Remote Services"
+msgstr "远程服务"
+
+msgid "Logging & Privacy"
+msgstr "日志与隐私"
+
+msgid "Operation & Statistics"
+msgstr "运行与统计"
+
+msgid "Help & Questions"
+msgstr "说明与问题"
+
+msgid "ADB / SSH"
+msgstr "ADB / SSH"
+
+msgid "Debugging & Controls"
+msgstr "调试与控制"
+
+msgid "Home"
+msgstr "首页"
+
+msgid "Directory"
+msgstr "目录"
+
+msgid "Favorites"
+msgstr "收藏"
+
+msgid "Tap to view settings"
+msgstr "点按查看设置"
+
+msgid "No active tasks"
+msgstr "暂无可用选项"
+
+msgid "Swipe left or right"
+msgstr "左右滑动切换"
+
+msgid "Enter Value"
+msgstr "输入数值"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Saved"
+msgstr "已保存"
+
+msgid "Setting Description"
+msgstr "设置说明"
+
+msgid "Current State: {state}"
+msgstr "当前状态：{state}"
+
+msgid "Range: {minimum}–{maximum}"
+msgstr "范围：{minimum}–{maximum}"
+
+msgid "Step: {step}"
+msgstr "步进：{step}"
+
+msgid "Enter a value within the range and precision shown."
+msgstr "请输入符合范围和精度的数值。"
+
+msgid "Setting changed. Reopen the editor and try again."
+msgstr "设置已改变，请重新打开编辑页再试。"
+
+msgid "Unable to save setting: {error}"
+msgstr "无法保存设置：{error}"
+
+msgid "Information"
+msgstr "信息"
+
+msgid "Add to Favorites"
+msgstr "加入收藏"
+
+msgid "Remove from Favorites"
+msgstr "移除收藏"
+
+msgid "No favorites yet"
+msgstr "暂无收藏"
+
+msgid "This setting is currently unavailable. Check vehicle compatibility and device state."
+msgstr "此项暂不可用，请检查车型兼容性、设备状态和前置开关。"
+
+msgid "Vehicle fingerprint status"
+msgstr "车辆识别状态"
+
+msgid "Training Data Contributions"
+msgstr "训练数据贡献"
+
+msgid "Instructions"
+msgstr "使用说明"
+
+msgid "Unavailable with the current cellular subscription."
+msgstr "当前蜂窝订阅不支持此项。"
+
+msgid "Description"
+msgstr "说明"
+
+msgid "Basic Toggles"
+msgstr "基础开关"
+
+msgid "Terms & Conditions"
+msgstr "条款与条件"
+
+msgid "Wi-Fi Networks"
+msgstr "无线网络"
+
+msgid "Scan"
+msgstr "扫描"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Reset DP Settings"
+msgstr "重置 DP 设置"
+
+msgid "Start the vehicle to load compatible settings."
+msgstr "启动车辆完成识别后，显示可用设置。"
+
+msgid "These settings require openpilot longitudinal control."
+msgstr "这些设置需要由 openpilot 控制纵向巡航。"
+
+msgid "No settings available for this vehicle or state."
+msgstr "当前车型或状态下暂无可用设置。"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "On"
+msgstr "开启"
+
+msgid "Off"
+msgstr "关闭"
