@@ -7,7 +7,7 @@ from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.gm.carcontroller import CarController
 from opendbc.car.gm.carstate import CarState
 from opendbc.car.gm.radar_interface import RadarInterface, RADAR_HEADER_MSG, CAMERA_DATA_HEADER_MSG
-from opendbc.car.gm.values import CAR, CarControllerParams, EV_CAR, CAMERA_ACC_CAR, SDGM_CAR, ALT_ACCS, CanBus, GMSafetyFlags
+from opendbc.car.gm.values import CAR, CarControllerParams, EV_CAR, CAMERA_ACC_CAR, SDGM_CAR, ALT_ACCS, CAMERA_INT_CAR, CanBus, GMSafetyFlags
 from opendbc.car.interfaces import CarInterfaceBase, TorqueFromLateralAccelCallbackType, LateralAccelFromTorqueCallbackType
 
 from opendbc.sunnypilot.car.gm.interface_ext import CarInterfaceExt
@@ -137,6 +137,35 @@ class CarInterface(CarInterfaceBase, CarInterfaceExt):
         ret.alphaLongitudinalAvailable = False
         ret.openpilotLongitudinalControl = False
         ret.minEnableSpeed = -1.  # engage speed is decided by PCM
+
+    elif candidate in CAMERA_INT_CAR:
+      # Camera integration mode with radar retention (ASCM interception harness)
+      # 摄像头集成模式，保留雷达（ASCM拦截线束）
+      ret.networkLocation = NetworkLocation.fwdCamera
+      ret.radarUnavailable = False  # 保留雷达
+      ret.alphaLongitudinalAvailable = True  # 允许切换到OP纵向控制
+      ret.pcmCruise = True  # 默认使用原车纵向控制
+      ret.safetyConfigs[0].safetyParam |= GMSafetyFlags.HW_CAM_INT.value  # 使用专用标志
+      ret.minEnableSpeed = 5 * CV.KPH_TO_MS  # 5 km/h
+      ret.minSteerSpeed = 10 * CV.KPH_TO_MS  # 10 km/h
+      ret.openpilotLongitudinalControl = False
+
+      # Longitudinal tuning for stock PCM
+      ret.longitudinalTuning.kpV = [2.0, 1.5]
+      ret.longitudinalTuning.kiV = [0.72]
+      ret.stoppingDecelRate = 2.0
+      ret.vEgoStopping = 0.25
+      ret.vEgoStarting = 0.25
+
+      if alpha_long:
+        # Switch to openpilot longitudinal control
+        # 切换到openpilot纵向控制
+        ret.pcmCruise = False
+        ret.openpilotLongitudinalControl = True
+        ret.safetyConfigs[0].safetyParam |= GMSafetyFlags.HW_CAM_INT_LONG.value
+
+        # Longitudinal tuning for openpilot control
+        ret.longitudinalTuning.kiV = [2.0, 1.5]
 
     else:  # ASCM, OBD-II harness
       ret.openpilotLongitudinalControl = True

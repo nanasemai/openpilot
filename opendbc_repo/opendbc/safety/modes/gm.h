@@ -174,6 +174,8 @@ static bool gm_tx_hook(const CANPacket_t *msg) {
 static safety_config gm_init(uint16_t param) {
   const uint16_t GM_PARAM_HW_CAM = 1;
   const uint16_t GM_PARAM_EV = 4;
+  const uint16_t GM_PARAM_HW_CAM_INT = 8;  // Camera integration with radar retention (ASCM interception harness)
+  const uint16_t GM_PARAM_HW_CAM_INT_LONG = 16;  // Camera integration with radar retention + OP longitudinal control
 
   // common safety checks assume unscaled integer values
   static const int GM_GAS_TO_CAN = 8;  // 1 / 0.125
@@ -228,6 +230,11 @@ static safety_config gm_init(uint16_t param) {
   if (GET_FLAG(param, GM_PARAM_HW_CAM)) {
     gm_hw = GM_CAM;
     gm_long_limits = &GM_CAM_LONG_LIMITS;
+  } else if (GET_FLAG(param, GM_PARAM_HW_CAM_INT)) {
+    // Camera integration mode with radar retention (ASCM interception harness)
+    // 摄像头集成模式，保留雷达（ASCM拦截线束）
+    gm_hw = GM_CAM;
+    gm_long_limits = &GM_CAM_LONG_LIMITS;
   } else {
     gm_hw = GM_ASCM;
     gm_long_limits = &GM_ASCM_LONG_LIMITS;
@@ -239,6 +246,14 @@ static safety_config gm_init(uint16_t param) {
   const uint16_t GM_PARAM_HW_CAM_LONG = 2;
   gm_cam_long = GET_FLAG(param, GM_PARAM_HW_CAM_LONG);
 #endif
+
+  // Camera integration with radar retention + OP longitudinal control
+  // 摄像头集成+保留雷达+OP纵向控制
+  const uint16_t GM_PARAM_HW_CAM_INT_LONG = 16;
+  if (GET_FLAG(param, GM_PARAM_HW_CAM_INT_LONG)) {
+    gm_cam_long = true;
+  }
+
   gm_pcm_cruise = (gm_hw == GM_CAM) && !gm_cam_long;
 
   const uint16_t GM_PARAM_SP_NON_ACC = 1;

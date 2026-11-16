@@ -65,6 +65,8 @@ class GMSafetyFlags(IntFlag):
   HW_CAM = 1
   HW_CAM_LONG = 2
   EV = 4
+  HW_CAM_INT = 8  # Camera integration with radar retention (ASCM interception harness)
+  HW_CAM_INT_LONG = 16  # Camera integration with radar retention + OP longitudinal control
 
 
 class Footnote(Enum):
@@ -127,6 +129,14 @@ class GMSDGMPlatformConfig(GMPlatformConfig):
 class GMNonSccPlatformConfig(GMPlatformConfig):
   def init(self):
     self.sp_flags |= GMFlagsSP.NON_ACC
+
+
+@dataclass
+class GMCameraIntPlatformConfig(GMPlatformConfig):
+  """Platform config for camera integration vehicles with radar retention (ASCM interception harness)"""
+  def init(self):
+    # Camera integration vehicles are not shown in docs by default
+    self.car_docs = []
 
 
 class CAR(Platforms):
@@ -256,6 +266,11 @@ class CAR(Platforms):
     CarSpecs(mass=1810, wheelbase=2.86, steerRatio=16.34, centerToFrontRatio=0.5),
   )
 
+  CADILLAC_CT5 = GMCameraIntPlatformConfig(
+    [GMCarDocs("Cadillac CT5 2020-23", "Driver Assist Package")],
+    GMCarSpecs(mass=1714, wheelbase=2.94, steerRatio=15.5),
+  )
+
 
 class CruiseButtons:
   INIT = 0
@@ -344,6 +359,10 @@ ALT_ACCS = {CAR.GMC_YUKON}
 
 # We're integrated at the Safety Data Gateway Module on these cars
 SDGM_CAR = {CAR.CADILLAC_XT4, CAR.CHEVROLET_VOLT_2019, CAR.CHEVROLET_TRAVERSE}
+
+# Camera integration vehicles with radar retention (ASCM interception harness)
+# 摄像头集成但保留雷达的车型（使用ASCM拦截线束）
+CAMERA_INT_CAR = {CAR.CADILLAC_CT5}
 
 STEER_THRESHOLD = 1.0
 
