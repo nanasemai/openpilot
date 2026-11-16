@@ -4,6 +4,8 @@ import os
 import threading
 import time
 import uuid
+import fcntl
+from pathlib import Path
 
 from openpilot.common.params import Params, ParamKeyFlag, UnknownKeyName
 
@@ -66,6 +68,80 @@ class TestParams:
     assert self.params.get("CarParams") is None
     self.params.remove("CarParams")
     assert self.params.get("CarParams") is None
+
+  @pytest.mark.parametrize('operation', ['put', 'remove'])
+  @pytest.mark.parametrize('change', ['unchanged', 'same_value', 'cancelled', 'clear_onroad'])
+  def test_conditional_operation_uses_file_snapshot(self, operation, change):
+    self.params.put('ModelManager_DownloadIndex', 7, block=True)
+    self.params.put('ModelManager_ActiveBundle', {'ref': 'active'}, block=True)
+    with open(self.params.get_param_path('ModelManager_DownloadIndex'), 'rb') as snapshot:
+      if change == 'same_value':
+        self.params.remove('ModelManager_DownloadIndex')
+        self.params.put('ModelManager_DownloadIndex', 7, block=True)
+      elif change == 'cancelled':
+        self.params.remove('ModelManager_DownloadIndex')
+      elif change == 'clear_onroad':
+        self.params.clear_all(ParamKeyFlag.CLEAR_ON_ONROAD_TRANSITION)
+      if operation == 'put':
+        saved = self.params.put_if_unchanged('ModelManager_ActiveBundle', {'ref': 'new'},
+                                            'ModelManager_DownloadIndex', snapshot.fileno())
+        assert self.params.get('ModelManager_ActiveBundle') == {'ref': 'new' if change == 'unchanged' else 'active'}
+      else:
+        saved = self.params.remove_if_unchanged('ModelManager_DownloadIndex', snapshot.fileno())
+        assert self.params.get('ModelManager_DownloadIndex') == (7 if change == 'same_value' else None)
+      assert saved == (change == 'unchanged')
+    root = Path(self.params.get_param_path()).parent
+    assert not list(root.glob('.tmp_value_*'))
+
+  @pytest.mark.parametrize('operation', ['put', 'remove'])
+  def test_conditional_operation_checks_after_acquiring_params_lock(self, operation):
+    self.params.put('ModelManager_DownloadIndex', 7, block=True)
+    self.params.put('ModelManager_ActiveBundle', {'ref': 'active'}, block=True)
+    root = Path(self.params.get_param_path()).parent
+    results, errors = [], []
+    started, finished = threading.Event(), threading.Event()
+    with open(self.params.get_param_path('ModelManager_DownloadIndex'), 'rb') as snapshot, open(root / '.lock', 'rb') as lock:
+      fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+      def worker():
+        started.set()
+        try:
+          if operation == 'put':
+            results.append(self.params.put_if_unchanged('ModelManager_ActiveBundle', {'ref': 'old-result'},
+                                                       'ModelManager_DownloadIndex', snapshot.fileno()))
+          else:
+            results.append(self.params.remove_if_unchanged('ModelManager_DownloadIndex', snapshot.fileno()))
+        except Exception as error:
+          errors.append(error)
+        finally:
+          finished.set()
+      thread = threading.Thread(target=worker)
+      thread.start()
+      try:
+        assert started.wait(1)
+        assert not finished.wait(.05)
+        # Replace while owning the real Params lock, exactly as Params.put does.
+        replacement = root / '.replacement'
+        replacement.write_bytes(b'7')
+        os.replace(replacement, self.params.get_param_path('ModelManager_DownloadIndex'))
+      finally:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+        thread.join(timeout=2)
+      assert not thread.is_alive()
+      assert not errors
+      assert results == [False]
+    assert self.params.get('ModelManager_DownloadIndex') == 7
+    assert self.params.get('ModelManager_ActiveBundle') == {'ref': 'active'}
+    assert not list(root.glob('.tmp_value_*'))
+
+  @pytest.mark.parametrize('operation', ['put', 'remove'])
+  def test_conditional_operation_rejects_invalid_snapshot(self, operation):
+    self.params.put('ModelManager_DownloadIndex', 7, block=True)
+    with pytest.raises(OSError):
+      if operation == 'put':
+        self.params.put_if_unchanged('ModelManager_ActiveBundle', {'ref': 'new'}, 'ModelManager_DownloadIndex', -1)
+      else:
+        self.params.remove_if_unchanged('ModelManager_DownloadIndex', -1)
+    assert self.params.get('ModelManager_DownloadIndex') == 7
 
   def test_get_bool(self):
     self.params.remove("IsMetric")

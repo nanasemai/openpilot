@@ -1,4 +1,5 @@
 import math
+import weakref
 import numpy as np
 import qrcode
 import pyray as rl
@@ -71,7 +72,11 @@ class TrainingGuidePreDMTutorial(NavScroller):
   def show_event(self):
     super().show_event()
     # Get driver monitoring model ready for next step
-    ui_state.params.put_bool("IsDriverViewEnabled", True)
+    ui_state.params.put_bool("IsDriverViewEnabled", True, block=True)
+
+  def hide_event(self):
+    super().hide_event()
+    ui_state.params.put_bool("IsDriverViewEnabled", False, block=True)
 
 
 class DMBadFaceDetected(NavScroller):
@@ -93,8 +98,12 @@ class TrainingGuideDMTutorial(NavWidget):
   PROGRESS_DURATION = 4
   LOOKING_THRESHOLD_DEG = 30.0
 
-  def __init__(self, continue_callback: Callable[[], None]):
+  def __init__(self, continue_callback: Callable[[], None], timeout_owner: Widget | None = None):
     super().__init__()
+    self._dm_open = False
+    self._opened_frame = 0
+    self._previous_timeout: int | None = None
+    self._timeout_owner = weakref.ref(timeout_owner) if timeout_owner is not None else None
 
     self._back_button = SmallCircleIconButton(gui_app.texture("icons_mici/setup/driver_monitoring/dm_question.png", 28, 48))
     self._back_button.set_click_callback(lambda: gui_app.push_widget(self._bad_face_page))
@@ -109,24 +118,48 @@ class TrainingGuideDMTutorial(NavWidget):
     self._dialog = DriverCameraSetupDialog()
     self._bad_face_page = DMBadFaceDetected()
 
-    # Disable driver monitoring model when device times out for inactivity
-    def inactivity_callback():
-      ui_state.params.put_bool("IsDriverViewEnabled", False)
-
-    device.add_interactive_timeout_callback(inactivity_callback)
-
   def show_event(self):
     super().show_event()
+    self._dm_open = True
+    self._opened_frame = getattr(ui_state.sm, 'frame', 0)
+    self._previous_timeout = device._override_interactive_timeout
     self._dialog.show_event()
+    device.add_interactive_timeout_callback(self._on_timeout)
     self._progress.x = 0.0
+    self._good_button.set_enabled(False)
+
+  def hide_event(self):
+    super().hide_event()
+    self.close()
+
+  def close(self):
+    if self._dm_open:
+      self._dm_open = False
+      device.remove_interactive_timeout_callback(self._on_timeout)
+      self._dialog.hide_event()
+      if self._timeout_owner is None or gui_app.widget_in_stack(self._timeout_owner()):
+        device.set_override_interactive_timeout(self._previous_timeout)
+    self._dialog.close()
+
+  def _on_timeout(self):
+    if self._dm_open:
+      ui_state.params.put_bool("IsDriverViewEnabled", False, block=True)
 
   def _update_state(self):
+    if not self._dm_open:
+      return
     super()._update_state()
+    if not self._dm_open:
+      return
     if device.awake and not ui_state.params.get_bool("IsDriverViewEnabled"):
       ui_state.params.put_bool("IsDriverViewEnabled", True)
 
     sm = ui_state.sm
-    if sm.recv_frame.get("driverMonitoringState", 0) == 0:
+    if (self._dialog._camera_view.frame is None or
+        sm.recv_frame.get("driverMonitoringState", 0) <= self._opened_frame or
+        sm.recv_frame.get("driverStateV2", 0) <= self._opened_frame):
+      self._progress.x = 0.0
+      self._good_button.set_enabled(False)
       return
 
     dm_state = sm["driverMonitoringState"]
@@ -151,6 +184,8 @@ class TrainingGuideDMTutorial(NavWidget):
     self._good_button.set_enabled(self._progress.x >= 0.999)
 
   def _render(self, _):
+    if not self._dm_open:
+      return
     self._dialog.render(self._rect)
 
     gradient_y = int(self._rect.y + self._rect.height - 80)
@@ -232,10 +267,14 @@ class TrainingGuideRecordFront(NavScroller):
     self._decline_button = BigConfirmationCircleButton(tr("no, don't upload"), gui_app.texture("icons_mici/setup/cancel.png", 64, 64), on_decline,
                                                        exit_on_confirm=False)
 
+    sharing_card = GreyBigButton("", tr("Sharing your data with comma helps improve openpilot and sunnypilot for everyone."))
+    sharing_card.set_rect(rl.Rectangle(0, 0, 476, 210))
+
     self._scroller.add_widgets([
-      GreyBigButton(tr("driver camera data"), tr("do you want to share video data for training?"),
+      GreyBigButton(tr("driver camera data"), tr("scroll to continue"),
                     gui_app.texture("icons_mici/setup/green_dm.png", 64, 64)),
-      GreyBigButton("", tr("Sharing your data with comma helps improve openpilot and sunnypilot for everyone.")),
+      GreyBigButton("", tr("do you want to share video data for training?")),
+      sharing_card,
       self._accept_button,
       self._decline_button,
     ])
@@ -260,18 +299,23 @@ class TrainingGuideAttentionNotice(Scroller):
 
 
 class TrainingGuide(NavWidget):
-  def __init__(self, completed_callback: Callable[[], None]):
+  def __init__(self, completed_callback: Callable[[], None], timeout_owner: Widget | None = None):
     super().__init__()
 
     self._steps = [
       TrainingGuideAttentionNotice(continue_callback=lambda: gui_app.push_widget(self._steps[1])),
       TrainingGuidePreDMTutorial(continue_callback=lambda: gui_app.push_widget(self._steps[2])),
-      TrainingGuideDMTutorial(continue_callback=lambda: gui_app.push_widget(self._steps[3])),
+      TrainingGuideDMTutorial(continue_callback=lambda: gui_app.push_widget(self._steps[3]),
+                              timeout_owner=timeout_owner if timeout_owner is not None else self),
       TrainingGuideRecordFront(continue_callback=completed_callback),
     ]
 
     self._child(self._steps[0])
     self._steps[0].set_enabled(lambda: self.enabled and not self.is_dismissing)  # for nav stack
+
+  def hide_event(self):
+    super().hide_event()
+    self._steps[2].close()
 
   def _render(self, _):
     self._steps[0].render(self._rect)
@@ -282,15 +326,30 @@ class QRCodeWidget(Widget):
     super().__init__()
     self.set_rect(rl.Rectangle(0, 0, size, size))
     self._size = size
+    self._url = url
     self._qr_texture: rl.Texture | None = None
     self._generate_qr(url)
 
+  def show_event(self):
+    super().show_event()
+    if self._qr_texture is None:
+      self._generate_qr(self._url)
+
+  def hide_event(self):
+    super().hide_event()
+    self.close()
+
+  def close(self):
+    if self._qr_texture and self._qr_texture.id != 0 and rl.is_window_ready():
+      rl.unload_texture(self._qr_texture)
+    self._qr_texture = None
+
   def _generate_qr(self, url: str):
-    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=0)
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
     qr.add_data(url)
     qr.make(fit=True)
 
-    pil_img = qr.make_image(fill_color="white", back_color="black").convert('RGBA')
+    pil_img = qr.make_image(fill_color="black", back_color="white").convert('RGBA')
     img_array = np.array(pil_img, dtype=np.uint8)
 
     rl_image = rl.Image()
@@ -301,33 +360,40 @@ class QRCodeWidget(Widget):
     rl_image.format = rl.PixelFormat.PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
 
     self._qr_texture = rl.load_texture_from_image(rl_image)
+    self._qr_modules = len(qr.get_matrix())
 
   def _render(self, _):
     if self._qr_texture:
-      scale = self._size / self._qr_texture.height
-      rl.draw_texture_ex(self._qr_texture, rl.Vector2(round(self._rect.x), round(self._rect.y)), 0.0, scale, rl.WHITE)
+      size = max(1, self._size // self._qr_modules) * self._qr_modules
+      destination = rl.Rectangle(round(self._rect.x + (self._size - size) / 2),
+                                 round(self._rect.y + (self._size - size) / 2), size, size)
+      rl.draw_rectangle_rec(rl.Rectangle(self._rect.x, self._rect.y, self._size, self._size), rl.WHITE)
+      rl.draw_texture_pro(self._qr_texture, rl.Rectangle(0, 0, self._qr_texture.width, self._qr_texture.height),
+                          destination, rl.Vector2(0, 0), 0, rl.WHITE)
 
   def __del__(self):
-    if self._qr_texture and self._qr_texture.id != 0:
-      rl.unload_texture(self._qr_texture)
+    self.close()
 
 
 class TermsPage(Scroller):
   def __init__(self, on_accept, on_decline):
     super().__init__()
 
-    self._accept_button = BigConfirmationCircleButton(tr("accept\nterms"), gui_app.texture("icons_mici/setup/driver_monitoring/dm_check.png", 64, 64), on_accept)
+    self._accept_button = BigConfirmationCircleButton(tr("accept\nterms"),
+                                                      gui_app.texture("icons_mici/setup/driver_monitoring/dm_check.png", 64, 64), on_accept)
     self._decline_button = BigConfirmationCircleButton(tr("decline &\nuninstall"), gui_app.texture("icons_mici/setup/cancel.png", 64, 64), on_decline,
                                                        red=True, exit_on_confirm=False)
 
     self._terms_header = GreyBigButton(tr("terms of\nservice"), tr("scroll to continue"),
                                        gui_app.texture("icons_mici/setup/green_info.png", 64, 64))
     self._must_accept_card = GreyBigButton("", tr("You must accept the Terms of Service to use sunnypilot."))
+    self._terms_link_card = GreyBigButton(tr("swipe for QR code"), tr("or visit sunnypilot.ai/terms"),
+                                          gui_app.texture("icons_mici/setup/small_slider/slider_arrow.png", 64, 56, flip_x=True))
+    self._terms_link_card._sub_label.set_font_size(28)
 
     self._scroller.add_widgets([
       self._terms_header,
-      GreyBigButton(tr("swipe for QR code"), tr("or go to https://sunnypilot.ai/terms"),
-                    gui_app.texture("icons_mici/setup/small_slider/slider_arrow.png", 64, 56, flip_x=True)),
+      self._terms_link_card,
       QRCodeWidget("https://sunnypilot.ai/terms"),
       self._must_accept_card,
       self._accept_button,
@@ -361,7 +427,7 @@ class OnboardingWindow(Widget):
       on_decline=self._on_sunnylink_declined,
     )
 
-    self._training_guide = TrainingGuide(completed_callback=self._on_completed_training)
+    self._training_guide = TrainingGuide(completed_callback=self._on_completed_training, timeout_owner=self)
     self._training_guide.set_enabled(lambda: self.enabled)  # for nav stack
 
     self._needs_initial_push = False

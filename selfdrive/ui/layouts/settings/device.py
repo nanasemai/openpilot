@@ -126,7 +126,8 @@ class DeviceLayout(Widget):
       try:
         calib = messaging.log_from_bytes(calib_bytes, log.Event).liveCalibration
 
-        if calib.calStatus != log.LiveCalibrationData.Status.uncalibrated:
+        if (calib.calStatus != log.LiveCalibrationData.Status.uncalibrated and len(calib.rpyCalib) >= 3 and
+            all(math.isfinite(angle) for angle in calib.rpyCalib)):
           pitch = math.degrees(calib.rpyCalib[1])
           yaw = math.degrees(calib.rpyCalib[2])
           desc += tr(" Your device is pointed {:.1f}° {} and {:.1f}° {}.").format(abs(pitch), tr("down") if pitch > 0 else tr("up"),
@@ -138,7 +139,7 @@ class DeviceLayout(Widget):
     lag_bytes = self._params.get("LiveDelay")
     if lag_bytes:
       try:
-        lag_perc = messaging.log_from_bytes(lag_bytes, log.Event).liveDelay.calPerc
+        lag_perc = max(0, min(100, messaging.log_from_bytes(lag_bytes, log.Event).liveDelay.calPerc))
       except Exception:
         cloudlog.exception("invalid LiveDelay")
     if lag_perc < 100:
@@ -152,7 +153,7 @@ class DeviceLayout(Widget):
         torque = messaging.log_from_bytes(torque_bytes, log.Event).liveTorqueParameters
         # don't add for non-torque cars
         if torque.useParams:
-          torque_perc = torque.calPerc
+          torque_perc = max(0, min(100, torque.calPerc))
           if torque_perc < 100:
             desc += tr(" Steering torque response calibration is {}% complete.").format(torque_perc)
           else:
@@ -173,7 +174,7 @@ class DeviceLayout(Widget):
 
     def perform_reboot(result: DialogResult):
       if not ui_state.engaged and result == DialogResult.CONFIRM:
-        self._params.put_bool("DoReboot", True)
+        self._params.put_bool("DoReboot", True, block=True)
 
     dialog = ConfirmDialog(tr("Are you sure you want to reboot?"), tr("Reboot"), callback=perform_reboot)
     gui_app.push_widget(dialog)
@@ -182,10 +183,12 @@ class DeviceLayout(Widget):
     if ui_state.engaged:
       gui_app.push_widget(alert_dialog(tr("Disengage to Power Off")))
       return
+    if not ui_state.is_offroad():
+      return
 
     def perform_power_off(result: DialogResult):
-      if not ui_state.engaged and result == DialogResult.CONFIRM:
-        self._params.put_bool("DoShutdown", True)
+      if ui_state.is_offroad() and not ui_state.engaged and result == DialogResult.CONFIRM:
+        self._params.put_bool("DoShutdown", True, block=True)
 
     dialog = ConfirmDialog(tr("Are you sure you want to power off?"), tr("Power Off"), callback=perform_power_off)
     gui_app.push_widget(dialog)

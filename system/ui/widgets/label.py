@@ -11,6 +11,7 @@ from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.lib.utils import GuiStyleContext
 from openpilot.system.ui.lib.emoji import find_emoji, emoji_tex
 from openpilot.system.ui.lib.wrap_text import wrap_text
+from openpilot.system.ui.lib.multilang import multilang
 
 ICON_PADDING = 15
 
@@ -304,6 +305,7 @@ class UnifiedLabel(Widget):
     self._cached_line_emojis: list[list[tuple[int, int, str]]] = []
     self._cached_total_height: float | None = None
     self._cached_width: int = -1
+    self._cached_language: str | None = None
 
     # If max_width is set, initialize rect size for Scroller support
     if max_width is not None:
@@ -402,11 +404,13 @@ class UnifiedLabel(Widget):
 
     # Check if cache is still valid
     if (self._cached_text == text and
+        self._cached_language == multilang.language and
         self._cached_width == available_width and
         self._cached_wrapped_lines):
       return
 
     self._cached_text = text
+    self._cached_language = multilang.language
     self._cached_width = available_width
 
     # Determine wrapping width

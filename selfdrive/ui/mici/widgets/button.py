@@ -107,7 +107,7 @@ class BigButton(Widget):
 
   """A lightweight stand-in for the Qt BigButton, drawn & updated each frame."""
 
-  def __init__(self, text: str, value: str = "", icon: Union[rl.Texture, None] = None, scroll: bool = False):
+  def __init__(self, text: str | Callable[[], str], value: str | Callable[[], str] = "", icon: Union[rl.Texture, None] = None, scroll: bool = False):
     super().__init__()
     self.set_rect(rl.Rectangle(0, 0, 402, 180))
     self.text = text
@@ -149,37 +149,41 @@ class BigButton(Widget):
 
   def _width_hint(self) -> int:
     # Single line if scrolling, so hide behind icon if exists
-    icon_size = self._txt_icon.width if self._txt_icon and self._scroll and self.value else 0
+    icon_size = self._txt_icon.width if self._txt_icon and self._scroll and self.get_value() else 0
     return int(self._rect.width - self.LABEL_HORIZONTAL_PADDING * 2 - icon_size)
 
   def _get_label_font_size(self):
-    if len(self.text) <= 18:
+    if len(self.get_text()) <= 18:
       return 48
     else:
       return 42
 
   def _update_label_layout(self):
     self._label.set_font_size(self._get_label_font_size())
-    if self.value:
+    if self.get_value():
       self._label.set_alignment_vertical(rl.GuiTextAlignmentVertical.TEXT_ALIGN_TOP)
     else:
       self._label.set_alignment_vertical(rl.GuiTextAlignmentVertical.TEXT_ALIGN_BOTTOM)
 
-  def set_text(self, text: str):
+  def set_text(self, text: str | Callable[[], str]):
     self.text = text
     self._label.set_text(text)
     self._update_label_layout()
 
-  def set_value(self, value: str):
+  def set_value(self, value: str | Callable[[], str]):
     self.value = value
     self._sub_label.set_text(value)
     self._update_label_layout()
 
   def get_value(self) -> str:
-    return self.value
+    return self.value() if callable(self.value) else self.value
 
   def get_text(self):
-    return self.text
+    return self.text() if callable(self.text) else self.text
+
+  def _update_state(self):
+    super()._update_state()
+    self._update_label_layout()
 
   def trigger_shake(self):
     self._shake_start = rl.get_time()
@@ -230,7 +234,7 @@ class BigButton(Widget):
                               self._rect.height - self.LABEL_VERTICAL_PADDING * 2)
     self._label.render(label_rect)
 
-    if self.value:
+    if self.get_value():
       label_y = btn_y + self.LABEL_VERTICAL_PADDING + self._label.get_content_height(self._width_hint())
       sub_label_height = btn_y + self._rect.height - self.LABEL_VERTICAL_PADDING - label_y
       sub_label_rect = rl.Rectangle(label_x, label_y, self._width_hint(), sub_label_height)
@@ -266,7 +270,7 @@ class BigButton(Widget):
 
 
 class BigToggle(BigButton):
-  def __init__(self, text: str, value: str = "", initial_state: bool = False, toggle_callback: Callable | None = None):
+  def __init__(self, text: str | Callable[[], str], value: str | Callable[[], str] = "", initial_state: bool = False, toggle_callback: Callable | None = None):
     super().__init__(text, value, "")
     self._checked = initial_state
     self._toggle_callback = toggle_callback
@@ -301,19 +305,33 @@ class BigToggle(BigButton):
 
 
 class BigMultiToggle(BigToggle):
-  def __init__(self, text: str, options: list[str], toggle_callback: Callable | None = None,
+  def __init__(self, text: str | Callable[[], str], options: list[str | Callable[[], str]], toggle_callback: Callable | None = None,
                select_callback: Callable | None = None):
     super().__init__(text, "", toggle_callback=toggle_callback)
     assert len(options) > 0
-    self._options = options
+    self._option_labels = options
+    self._options = [option() if callable(option) else option for option in options]
     self._select_callback = select_callback
 
     self.set_value(self._options[0])
+
+  def refresh_options(self):
+    options = [option() if callable(option) else option for option in self._option_labels]
+    if options != self._options:
+      index = self._options.index(self.value) if self.value in self._options else None
+      self._options = options
+      if index is not None:
+        self.set_value(options[index])
+
+  def _update_state(self):
+    self.refresh_options()
+    super()._update_state()
 
   def _width_hint(self) -> int:
     return int(self._rect.width - self.LABEL_HORIZONTAL_PADDING * 2 - self._txt_enabled_toggle.width)
 
   def _handle_mouse_release(self, mouse_pos: MousePos):
+    self.refresh_options()
     super()._handle_mouse_release(mouse_pos)
     cur_idx = self._options.index(self.value)
     new_idx = (cur_idx + 1) % len(self._options)
@@ -362,7 +380,8 @@ class GreyBigButton(BigButton):
     return BigButton.LABEL_VERTICAL_PADDING if self._label.text else 18
 
   def _width_hint(self) -> int:
-    return int(self._rect.width - self.LABEL_HORIZONTAL_PADDING * 2)
+    icon_width = self._txt_icon.width + 20 if self._txt_icon else 0
+    return int(self._rect.width - self.LABEL_HORIZONTAL_PADDING * 2 - icon_width)
 
   def _get_label_font_size(self):
     return 36
@@ -373,7 +392,7 @@ class GreyBigButton(BigButton):
 
 
 class BigMultiParamToggle(BigMultiToggle):
-  def __init__(self, text: str, param: str, options: list[str], toggle_callback: Callable | None = None,
+  def __init__(self, text: str | Callable[[], str], param: str, options: list[str | Callable[[], str]], toggle_callback: Callable | None = None,
                select_callback: Callable | None = None):
     super().__init__(text, options, toggle_callback, select_callback)
     self._param = param
@@ -391,7 +410,7 @@ class BigMultiParamToggle(BigMultiToggle):
 
 
 class BigParamControl(BigToggle):
-  def __init__(self, text: str, param: str, toggle_callback: Callable | None = None):
+  def __init__(self, text: str | Callable[[], str], param: str, toggle_callback: Callable | None = None):
     super().__init__(text, "", toggle_callback=toggle_callback)
     self.param = param
     self.params = Params()

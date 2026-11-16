@@ -17,8 +17,14 @@ KM_TO_MILE = 0.621371
 class TeslaSettings(BrandSettings):
   def __init__(self):
     super().__init__()
-    self.coop_steering_toggle = toggle_item_sp(tr("Cooperative Steering (Beta)"), "", param="TeslaCoopSteering")
+    self.coop_steering_toggle = toggle_item_sp(lambda: tr("Cooperative Steering (Beta)"), "",
+      initial_state=ui_state.params.get_bool("TeslaCoopSteering"), callback=self._on_coop_steering)
     self.items = [self.coop_steering_toggle]
+
+  def _on_coop_steering(self, state):
+    if self.is_current("tesla") and ui_state.is_offroad():
+      ui_state.params.put_bool("TeslaCoopSteering", state, block=True)
+    self.update_settings()
 
   def update_settings(self):
     is_metric = ui_state.is_metric
@@ -28,7 +34,7 @@ class TeslaSettings(BrandSettings):
     display_value_oem = OEM_STEERING_MIN_KMH if is_metric else round(OEM_STEERING_MIN_KMH * KM_TO_MILE)
 
     coop_steering_disabled_msg = tr("Enable \"Always Offroad\" in Device panel, or turn vehicle off to toggle.")
-    coop_steering_warning = tr("Warning: May experience steering oscillations below {} {} during turns, "
+    coop_steering_warning = tr("Warning: May experience steering oscillations below {} {} during turns, " +
                                "recommend disabling this feature if you experience these.").format(display_value_oem, unit)
     coop_steering_desc = (
       f"<b>{coop_steering_warning}</b><br><br>" +
@@ -40,4 +46,5 @@ class TeslaSettings(BrandSettings):
       coop_steering_desc = f"<b>{coop_steering_disabled_msg}</b><br><br>{coop_steering_desc}"
 
     self.coop_steering_toggle.set_description(coop_steering_desc)
-    self.coop_steering_toggle.action_item.set_enabled(ui_state.is_offroad())
+    self.coop_steering_toggle.action_item.set_enabled(self.is_current("tesla") and ui_state.is_offroad())
+    self.coop_steering_toggle.action_item.set_state(ui_state.params.get_bool("TeslaCoopSteering"))

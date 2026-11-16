@@ -8,6 +8,7 @@ See the LICENSE.md file in the root directory for more details.
 import asyncio
 import os
 import time
+from contextlib import contextmanager
 
 import aiohttp
 from openpilot.common.params import Params
@@ -18,6 +19,10 @@ from openpilot.system.hardware.hw import Paths
 from cereal import messaging, custom
 from openpilot.sunnypilot.models.fetcher import ModelFetcher
 from openpilot.sunnypilot.models.helpers import get_active_bundle, validate_active_bundle, verify_file
+
+
+class ModelDownloadCancelled(Exception):
+  pass
 
 
 class ModelManagerSP:
@@ -32,6 +37,7 @@ class ModelManagerSP:
     self.active_bundle: custom.ModelManagerSP.ModelBundle = get_active_bundle(self.params)
     self._chunk_size = 128 * 1000  # 128 KB chunks
     self._download_start_times: dict[str, float] = {}  # Track start time per model
+    self._download_request = None
 
   def _sync_artifact_progress(self, source_artifact) -> None:
     """Mirror download progress to all artifacts sharing the same filename in the selected bundle."""
@@ -59,6 +65,36 @@ class ModelManagerSP:
 
     return max(1, int(eta))  # Return at least 1 second if download is ongoing
 
+  @contextmanager
+  def _request_snapshot(self):
+    if self._download_request is not None:
+      yield self._download_request
+      return
+    try:
+      request = open(self.params.get_param_path("ModelManager_DownloadIndex"), 'rb')
+    except FileNotFoundError:
+      yield None
+      return
+    # Params.put replaces the file even when the index stays the same. Keeping
+    # this file open distinguishes a fast cancel/retry and prevents inode reuse.
+    self._download_request = request
+    try:
+      yield request
+    finally:
+      self._download_request = None
+      request.close()
+
+  def _check_download_request(self) -> None:
+    if not self.selected_bundle or self._download_request is None:
+      raise ModelDownloadCancelled("Download cancelled or replaced")
+    expected = os.fstat(self._download_request.fileno())
+    try:
+      current = os.stat(self.params.get_param_path("ModelManager_DownloadIndex"))
+    except FileNotFoundError:
+      raise ModelDownloadCancelled("Download cancelled or replaced") from None
+    if (current.st_dev, current.st_ino) != (expected.st_dev, expected.st_ino):
+      raise ModelDownloadCancelled("Download cancelled or replaced")
+
   async def _download_file(self, url: str, path: str, model) -> None:
     """Downloads a file with progress tracking"""
     self._download_start_times[model.fileName] = time.monotonic()
@@ -74,8 +110,7 @@ class ModelManagerSP:
             f.write(chunk)
             bytes_downloaded += len(chunk)
 
-            if self.params.get("ModelManager_DownloadIndex") is None:
-              raise Exception("Download cancelled")
+            self._check_download_request()
 
             if total_size > 0:
               progress = (bytes_downloaded / total_size) * 100
@@ -114,8 +149,7 @@ class ModelManagerSP:
             async for data in response.content.iter_chunked(self._chunk_size):
               f.write(data)
               chunk_downloaded += len(data)
-              if self.params.get("ModelManager_DownloadIndex") is None:
-                raise Exception("Download cancelled")
+              self._check_download_request()
               intra = chunk_downloaded / max(chunk_size, 1)
               progress = min(99, (i + intra) / num_chunks * 100)
               artifact.downloadProgress.status = custom.ModelManagerSP.DownloadStatus.downloading
@@ -163,16 +197,18 @@ class ModelManagerSP:
       self._report_status()
 
     except Exception as e:
-      cloudlog.error(f"Error downloading {filename}: {str(e)}")
       for f in [full_path] + [p for p in (os.path.join(destination_path, f) for f in os.listdir(destination_path)) if filename in p]:
         if os.path.isfile(f):
           os.remove(f)
+      self._download_start_times.pop(artifact.fileName, None)
+      if isinstance(e, ModelDownloadCancelled):
+        raise
+      cloudlog.error(f"Error downloading {filename}: {str(e)}")
       artifact.downloadProgress.status = custom.ModelManagerSP.DownloadStatus.failed
       artifact.downloadProgress.eta = 0
       self._sync_artifact_progress(artifact)
       self.selected_bundle.status = custom.ModelManagerSP.DownloadStatus.failed
       self._report_status()
-      self._download_start_times.pop(artifact.fileName, None)
       raise
 
   async def _process_model(self, model, destination_path: str) -> None:
@@ -198,11 +234,18 @@ class ModelManagerSP:
 
   async def _download_bundle(self, model_bundle: custom.ModelManagerSP.ModelBundle, destination_path: str) -> None:
     """Downloads all models in a bundle"""
+    with self._request_snapshot():
+      await self._download_requested_bundle(model_bundle, destination_path)
+
+  async def _download_requested_bundle(self, model_bundle: custom.ModelManagerSP.ModelBundle, destination_path: str) -> None:
     self.selected_bundle = model_bundle
     self.selected_bundle.status = custom.ModelManagerSP.DownloadStatus.downloading
     os.makedirs(destination_path, exist_ok=True)
 
     try:
+      self._check_download_request()
+      if self.params.get("ModelManager_DownloadIndex") != model_bundle.index:
+        raise ModelDownloadCancelled("Download cancelled or replaced")
       seen_artifacts: set[str] = set()
       for model in self.selected_bundle.models:
         for artifact in (model.metadata, model.artifact):
@@ -214,13 +257,20 @@ class ModelManagerSP:
             artifact.downloadProgress.eta = 0
           else:
             seen_artifacts.add(artifact.fileName)
+            self._check_download_request()
             await self._process_artifact(artifact, destination_path)
 
+      self._check_download_request()
+      self.selected_bundle.status = custom.ModelManagerSP.DownloadStatus.downloaded
+      if not self.params.put_if_unchanged("ModelManager_ActiveBundle", self.selected_bundle.to_dict(),
+                                          "ModelManager_DownloadIndex", self._download_request.fileno()):
+        raise ModelDownloadCancelled("Download cancelled or replaced")
       self.active_bundle = self.selected_bundle
-      self.active_bundle.status = custom.ModelManagerSP.DownloadStatus.downloaded
-      self.params.put("ModelManager_ActiveBundle", self.active_bundle.to_dict(), block=True)
       self.selected_bundle = None
 
+    except ModelDownloadCancelled:
+      self.selected_bundle = None
+      raise
     except Exception:
       self.selected_bundle.status = custom.ModelManagerSP.DownloadStatus.failed
       raise
@@ -240,17 +290,27 @@ class ModelManagerSP:
       try:
         self.available_models = self.model_fetcher.get_available_bundles()
         validate_active_bundle(self.params, self.available_models)
+        previous_active_ref = self.active_bundle.ref if self.active_bundle else None
         self.active_bundle = get_active_bundle(self.params)
+        if previous_active_ref != (self.active_bundle.ref if self.active_bundle else None):
+          self.selected_bundle = None
 
-        if (index_to_download := self.params.get("ModelManager_DownloadIndex")) is not None:
-          if model_to_download := next((model for model in self.available_models if model.index == index_to_download), None):
-            try:
-              self.download(model_to_download, Paths.model_root())
-            except Exception as e:
-              cloudlog.exception(e)
-            finally:
-              self.params.remove("ModelManager_DownloadIndex")
-              self.selected_bundle = None
+        with self._request_snapshot() as request:
+          if request is not None:
+            index_to_download = int(request.read())
+            if model_to_download := next((model for model in self.available_models if model.index == index_to_download), None):
+              try:
+                self.download(model_to_download, Paths.model_root())
+              except ModelDownloadCancelled:
+                pass
+              except Exception as e:
+                cloudlog.exception(e)
+              finally:
+                self.params.remove_if_unchanged("ModelManager_DownloadIndex", request.fileno())
+                # Retain a failed bundle for status display and retry until the
+                # next selection. Successful and cancelled downloads clear it.
+                if self.selected_bundle and self.selected_bundle.status != custom.ModelManagerSP.DownloadStatus.failed:
+                  self.selected_bundle = None
 
         if self.params.get("ModelManager_ClearCache"):
           self.clear_model_cache()
@@ -279,6 +339,8 @@ class ModelManagerSP:
 
     # Remove all files except active ones (including their chunk files)
     model_dir = Paths.model_root()
+    if not os.path.exists(model_dir):
+      return
     try:
       for filename in os.listdir(model_dir):
         base = filename.split('.chunk')[0] if '.chunk' in filename else filename
@@ -289,6 +351,9 @@ class ModelManagerSP:
       cloudlog.info("Model cache cleared, keeping active model files")
     except Exception as e:
       cloudlog.exception(f"Error clearing model cache: {str(e)}")
+      # Keep the request pending so the UI cannot report a failed cleanup as
+      # completed. The main loop retries it after the filesystem recovers.
+      raise
 
 def main():
   ModelManagerSP().main_thread()

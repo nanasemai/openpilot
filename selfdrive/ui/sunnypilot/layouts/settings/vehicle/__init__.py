@@ -33,16 +33,18 @@ class VehicleLayout(Widget):
 
   @staticmethod
   def get_brand():
-    if bundle := ui_state.params.get("CarPlatformBundle"):
-      return bundle.get("brand", "")
+    if (bundle := ui_state.params.get("CarPlatformBundle")) is not None:
+      brand = bundle.get("brand", "") if isinstance(bundle, dict) else ""
+      return brand if isinstance(brand, str) else ""
     elif ui_state.CP is not None and ui_state.CP.carFingerprint != "MOCK":
       return ui_state.CP.brand
     return ""
 
   def _update_brand_settings(self):
+    self._platform_selector.refresh()
     self._vehicle_item._title = self._platform_selector.text
     self._vehicle_item.title_color = self._platform_selector.color
-    vehicle_text = tr("REMOVE") if ui_state.params.get("CarPlatformBundle") else tr("SELECT")
+    vehicle_text = tr("REMOVE") if ui_state.params.get("CarPlatformBundle") is not None else tr("SELECT")
     self._vehicle_item.action_item.set_text(vehicle_text)
 
     brand = self.get_brand()
@@ -58,7 +60,6 @@ class VehicleLayout(Widget):
     self._update_brand_settings()
     if self._brand_settings:
       self._brand_settings.update_settings()
-    self._platform_selector.refresh()
 
   def _render(self, rect):
     self._scroller.render(rect)

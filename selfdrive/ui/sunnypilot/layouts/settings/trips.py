@@ -6,7 +6,7 @@ See the LICENSE.md file in the root directory for more details.
 """
 import requests
 import threading
-import time
+import math
 import pyray as rl
 
 from openpilot.common.api import api_get
@@ -17,7 +17,7 @@ from openpilot.selfdrive.ui.lib.api_helpers import get_token
 from openpilot.selfdrive.ui.ui_state import ui_state, device
 from openpilot.system.athena.registration import UNREGISTERED_DONGLE_ID
 from openpilot.system.ui.lib.application import gui_app, FontWeight, FONT_SCALE
-from openpilot.system.ui.lib.multilang import tr
+from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.lib.text_measure import measure_text_cached
 from openpilot.system.ui.widgets import Widget
 
@@ -30,7 +30,12 @@ class TripsLayout(Widget):
     super().__init__()
     self._params = Params()
     self._session = requests.Session()
+    self._status = tr_noop("Drive statistics unavailable")
+    self._loading = False
+    self._refresh_event = threading.Event()
     self._stats = self._get_stats()
+    if self._stats:
+      self._status = tr_noop("Cached drive statistics")
 
     self._icon_distance = gui_app.texture("icons/road.png", 100, 100, keep_aspect_ratio=True)
     self._icon_drives = gui_app.texture("icons_mici/wheel.png", 80, 80, keep_aspect_ratio=True)
@@ -42,6 +47,7 @@ class TripsLayout(Widget):
 
   def __del__(self):
     self._running = False
+    self._refresh_event.set()
     try:
       if self._update_thread and self._update_thread.is_alive():
         self._update_thread.join(timeout=1.0)
@@ -49,34 +55,77 @@ class TripsLayout(Widget):
       pass
 
   def _get_stats(self):
-    stats = self._params.get(self.PARAM_KEY)
-    if not stats:
-      return {}
     try:
-      return stats
-    except Exception:
-      cloudlog.exception(f"Failed to decode drive stats: {stats}")
+      stats = self._params.get(self.PARAM_KEY)
+      if stats is None:
+        return {}
+      return self._validate_stats(stats)
+    except ValueError:
+      self._status = tr_noop("Invalid drive statistics data")
+      cloudlog.exception("Failed to decode drive stats")
       return {}
 
+  @staticmethod
+  def _validate_stats(stats):
+    if not isinstance(stats, dict) or not any(period in stats for period in ("all", "week")):
+      raise ValueError("Missing drive statistics periods")
+    result = {}
+    for period in ("all", "week"):
+      if period not in stats:
+        continue
+      data = stats[period]
+      if not isinstance(data, dict):
+        raise ValueError("Invalid drive statistics period")
+      values = {}
+      for field in ("routes", "distance", "minutes"):
+        value = data.get(field)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+          raise ValueError("Invalid drive statistics value")
+        if field == "routes" and int(value) != value:
+          raise ValueError("Invalid route count")
+        values[field] = int(value) if field == "routes" else value
+      result[period] = values
+    return result
+
+  def request_refresh(self):
+    if not self._loading and ui_state.is_offroad():
+      self._refresh_event.set()
+
+  def status(self):
+    return tr(self._status)
+
   def _fetch_drive_stats(self):
+    self._loading = True
     try:
       dongle_id = self._params.get("DongleId")
       if not dongle_id or dongle_id == UNREGISTERED_DONGLE_ID:
+        self._status = tr_noop("Device is not registered")
         return
+      self._status = tr_noop("Fetching drive statistics")
       identity_token = get_token(dongle_id)
       response = api_get(f"v1.1/devices/{dongle_id}/stats", access_token=identity_token, session=self._session)
       if response.status_code == 200:
-        data = response.json()
+        data = self._validate_stats(response.json())
+        self._params.put(self.PARAM_KEY, data, block=True)
         self._stats = data
-        self._params.put(self.PARAM_KEY, data)
+        self._status = tr_noop("Drive statistics updated")
+      else:
+        self._status = tr_noop("Unable to fetch drive statistics")
+    except ValueError:
+      self._status = tr_noop("Invalid drive statistics data")
+      cloudlog.exception("Invalid drive statistics response")
     except Exception as e:
+      self._status = tr_noop("Unable to fetch drive statistics")
       cloudlog.error(f"Failed to fetch drive stats: {e}")
+    finally:
+      self._loading = False
 
   def _update_loop(self):
     while self._running:
-      if not ui_state.started and device._awake:
+      self._refresh_event.clear()
+      if ui_state.is_offroad() and device._awake:
         self._fetch_drive_stats()
-      time.sleep(self.UPDATE_INTERVAL)
+      self._refresh_event.wait(self.UPDATE_INTERVAL)
 
   def _render_stat_group(self, x, y, width, height, title, data, is_metric):
     # Card Background

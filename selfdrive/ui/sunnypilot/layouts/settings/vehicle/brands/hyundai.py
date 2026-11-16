@@ -16,23 +16,26 @@ class HyundaiSettings(BrandSettings):
     super().__init__()
     self.alpha_long_available = False
 
-    tuning_texts = [tr("Off"), tr("Dynamic"), tr("Predictive")]
-    self.longitudinal_tuning_item = multiple_button_item_sp(tr("Custom Longitudinal Tuning"), "", tuning_texts,
+    tuning_texts = [lambda: tr("Off"), lambda: tr("Dynamic"), lambda: tr("Predictive")]
+    self.longitudinal_tuning_item = multiple_button_item_sp(lambda: tr("Custom Longitudinal Tuning"), "", tuning_texts,
                                                             button_width=300, callback=self._on_tuning_selected,
-                                                            param="HyundaiLongitudinalTuning", inline=False)
+                                                            inline=False)
     self.items = [self.longitudinal_tuning_item]
 
-  @staticmethod
-  def _on_tuning_selected(index):
-    ui_state.params.put("HyundaiLongitudinalTuning", index)
+  def _on_tuning_selected(self, index):
+    self.update_settings()
+    if self.longitudinal_tuning_item.is_visible and self.longitudinal_tuning_item.action_item.enabled and index in (0, 1, 2):
+      ui_state.params.put("HyundaiLongitudinalTuning", index, block=True)
+      self.longitudinal_tuning_item.action_item.set_selected_button(index)
 
   def update_settings(self):
     self.alpha_long_available = False
     bundle = ui_state.params.get("CarPlatformBundle")
-    if bundle:
+    if isinstance(bundle, dict) and bundle.get("brand") == "hyundai":
       platform = bundle.get("platform")
-      self.alpha_long_available = CAR[platform] not in set().union(*UNSUPPORTED_LONGITUDINAL_CAR.values())
-    elif ui_state.CP is not None:
+      car_platform = CAR.__members__.get(platform) if isinstance(platform, str) else None
+      self.alpha_long_available = car_platform is not None and car_platform not in set().union(*UNSUPPORTED_LONGITUDINAL_CAR.values())
+    elif bundle is None and ui_state.CP is not None and ui_state.CP.brand == "hyundai":
       self.alpha_long_available = ui_state.CP.alphaLongitudinalAvailable
 
     tuning_param = int(ui_state.params.get("HyundaiLongitudinalTuning") or "0")
@@ -43,7 +46,7 @@ class HyundaiSettings(BrandSettings):
       tr("Your vehicle will use the Dynamic longitudinal tuning."),
       tr("Your vehicle will use the Predictive longitudinal tuning."),
     ]
-    long_tuning_desc = long_tuning_descs[tuning_param] if tuning_param < len(long_tuning_descs) else long_tuning_descs[0]
+    long_tuning_desc = long_tuning_descs[tuning_param] if 0 <= tuning_param < len(long_tuning_descs) else long_tuning_descs[0]
 
     longitudinal_tuning_disabled = not ui_state.is_offroad() or not long_enabled
     if longitudinal_tuning_disabled:
@@ -52,7 +55,7 @@ class HyundaiSettings(BrandSettings):
       elif not long_enabled:
         long_tuning_desc = tr("This feature is unavailable because sunnypilot Longitudinal Control (Alpha) is not enabled.")
 
-    self.longitudinal_tuning_item.action_item.set_enabled(not longitudinal_tuning_disabled)
+    self.longitudinal_tuning_item.action_item.set_enabled(self.is_current("hyundai") and self.alpha_long_available and not longitudinal_tuning_disabled)
     self.longitudinal_tuning_item.set_description(long_tuning_desc)
     self.longitudinal_tuning_item.show_description(True)
     self.longitudinal_tuning_item.action_item.set_selected_button(tuning_param)

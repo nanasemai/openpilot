@@ -26,6 +26,10 @@ class BlindSpotIndicators:
     self._blind_spot_left_alpha_filter.update(1.0 if CS.leftBlindspot else 0.0)
     self._blind_spot_right_alpha_filter.update(1.0 if CS.rightBlindspot else 0.0)
 
+  def reset(self):
+    self._blind_spot_left_alpha_filter.x = 0
+    self._blind_spot_right_alpha_filter.x = 0
+
   @property
   def detected(self) -> bool:
     return ui_state.blindspot and (self._blind_spot_left_alpha_filter.x > 0.01 or self._blind_spot_right_alpha_filter.x > 0.01)

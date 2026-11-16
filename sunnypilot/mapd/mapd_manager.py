@@ -56,8 +56,13 @@ def cleanup_old_osm_data(files_to_remove: list[str]) -> None:
 
 
 def request_refresh_osm_location_data(nations: list[str], states: list[str] | None = None) -> None:
-  params.put("OsmDownloadedDate", str(datetime.now().timestamp()), block=True)
-  params.put_bool("OsmDbUpdatesCheck", False, block=True)
+  requested_at = datetime.now().timestamp()
+  params.put_bool("OsmDbUpdatesCheck", True, block=True)
+  # mapd only writes progress after a file succeeds. Mark the new request so an
+  # all-failed download cannot leave the previous download's 100% in the UI.
+  params.put("OSMDownloadProgress", {"status": "requested", "requested_at": requested_at,
+                                      "total_files": 0, "downloaded_files": 0}, block=True)
+  params.put("OsmDownloadedDate", str(requested_at), block=True)
 
   osm_download_locations = {
     "nations": nations,
@@ -66,6 +71,7 @@ def request_refresh_osm_location_data(nations: list[str], states: list[str] | No
 
   print(f"Downloading maps for {json.dumps(osm_download_locations)}")
   mem_params.put("OSMDownloadLocations", osm_download_locations, block=True)
+  params.put_bool("OsmDbUpdatesCheck", False, block=True)
 
 
 def filter_nations_and_states(nations: list[str], states: list[str] | None = None) -> tuple[list[str], list[str]]:
@@ -77,6 +83,7 @@ def filter_nations_and_states(nations: list[str], states: list[str] | None = Non
   there's no need to download map data for the entire US. Conversely,
   if the state is unspecified (i.e., 'All'), we intend to download map data for the whole US,
   and 'All' isn't a valid state name, so it's removed.
+  State selections are ignored when the nations do not include 'US'.
 
   Parameters:
   nations (list): A list of nations for which the map data is to be downloaded.
@@ -86,24 +93,28 @@ def filter_nations_and_states(nations: list[str], states: list[str] | None = Non
   tuple: Two lists. The first list is filtered nations and the second list is filtered states.
   """
 
-  if "US" in nations and states and not any(x.lower() == "all" for x in states):
+  if "US" not in nations:
+    states = []
+  elif states and not any(x.lower() == "all" for x in states):
     # If a specific state in the US is provided, remove 'US' from nations
     nations.remove("US")
-  elif "US" in nations and states and any(x.lower() == "all" for x in states):
+  elif states and any(x.lower() == "all" for x in states):
     # If 'All' is provided as a state (case invariant), remove those instances from states
     states = [x for x in states if x.lower() != "all"]
-  elif "US" not in nations and states and any(x.lower() == "all" for x in states):
-    states.remove("All")
   return nations, states or []
 
 
 def update_osm_db() -> None:
-  if params.get_bool("OsmDbUpdatesCheck"):
-    cleanup_old_osm_data(get_files_for_cleanup())
+  if params.get_bool("OsmDbUpdatesCheck") and not mem_params.get("OSMDownloadLocations"):
     country = params.get("OsmLocationName", return_default=True)
     state = params.get("OsmStateName", return_default=True)
-    filtered_nations, filtered_states = filter_nations_and_states([country], [state])
-    request_refresh_osm_location_data(filtered_nations, filtered_states)
+    if country:
+      cleanup_old_osm_data(get_files_for_cleanup())
+      filtered_nations, filtered_states = filter_nations_and_states([country], [state])
+      request_refresh_osm_location_data(filtered_nations, filtered_states)
+    else:
+      params.put("OSMDownloadProgress", {"status": "invalid_request", "total_files": 0, "downloaded_files": 0}, block=True)
+      params.put_bool("OsmDbUpdatesCheck", False, block=True)
 
   if not mem_params.get("OSMDownloadBounds"):
     mem_params.put("OSMDownloadBounds", "", block=True)

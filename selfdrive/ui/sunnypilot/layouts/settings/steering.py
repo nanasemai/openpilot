@@ -67,11 +67,14 @@ class SteeringLayout(Widget):
       param="BlinkerMinLateralControlSpeed",
       title=lambda: tr("Minimum Speed to Pause Lateral Control"),
       min_value=0,
-      max_value=255,
-      value_change_step=5,
+      max_value=25500,
+      value_change_step=500,
+      use_float_scaling=True,
       description="",
-      label_callback=lambda speed: f'{speed} {"km/h" if ui_state.is_metric else "mph"}',
+      label_callback=lambda speed: f'{speed / 100:g} ' + (tr("km/h") if ui_state.is_metric else tr("mph")),
     )
+    from openpilot.sunnypilot.speed_settings import configure_speed_action
+    configure_speed_action(self._blinker_control_options.action_item)
     self._blinker_reengage_delay = option_item_sp(
       param="BlinkerLateralReengageDelay",
       title=lambda: tr("Post-Blinker Delay"),
@@ -79,7 +82,7 @@ class SteeringLayout(Widget):
       max_value=10,
       value_change_step=1,
       description=lambda: tr("Delay before lateral control resumes after the turn signal ends."),
-      label_callback=lambda delay: f'{delay} {"s"}'
+      label_callback=lambda delay: f'{delay} {tr("s")}'
     )
     self._torque_control_toggle = toggle_item_sp(
       param="EnforceTorqueControl",
@@ -96,6 +99,16 @@ class SteeringLayout(Widget):
       title=lambda: tr("Neural Network Lateral Control (NNLC)"),
       description=""
     )
+    self._lat_position_offset = option_item_sp(
+      param="LateralPositionOffset",
+      title=lambda: tr("Lane Position Offset"),
+      description=lambda: tr("Fine-tune where the car drives within the lane. " +
+                             "Positive values move the car left, negative values move right."),
+      min_value=-15,
+      max_value=15,
+      value_change_step=1,
+      label_callback=lambda offset: tr("{value} cm").format(value=offset),
+    )
 
     items = [
       self._mads_toggle,
@@ -111,6 +124,8 @@ class SteeringLayout(Widget):
       self._torque_customization_button,
       LineSeparatorSP(40),
       self._nnlc_toggle,
+      LineSeparatorSP(40),
+      self._lat_position_offset,
     ]
     return items
 
@@ -119,6 +134,8 @@ class SteeringLayout(Widget):
 
   def _update_state(self):
     super()._update_state()
+    action = self._blinker_control_options.action_item
+    action.current_value = action.decode_value(action.params.get(action.param_key, return_default=True))
 
     torque_allowed = ui_state.CP is not None and ui_state.CP.steerControlType != car.CarParams.SteerControlType.angle
     if ui_state.CP is not None:
@@ -156,3 +173,9 @@ class SteeringLayout(Widget):
   def show_event(self):
     self._set_current_panel(PanelType.STEERING)
     self._scroller.show_event()
+    # The description IS the operating instruction for this setting (what it moves, which
+    # way, the +/- 15 cm range and how long a change takes to apply), so keep it expanded
+    # on entry. It has to come AFTER _scroller.show_event(), which calls show_event() on
+    # every item and collapses all descriptions. Same pattern as cruise.py's icbm /
+    # custom-acc toggles. Tap still collapses it for the rest of the visit.
+    self._lat_position_offset.show_description(True)

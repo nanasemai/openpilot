@@ -57,6 +57,10 @@ public:
 
   // Delete a value
   int remove(const std::string &key);
+  // Conditional operations compare the guard file with an open snapshot under
+  // the same lock used by put, remove and clearAll. Return 1 if it changed.
+  int removeIfUnchanged(const std::string &key, int guard_fd);
+  int putIfUnchanged(const std::string &key, const std::string &val, const std::string &guard_key, int guard_fd);
   void clearAll(ParamKeyFlag flag);
 
   // helpers for reading values
@@ -80,6 +84,7 @@ public:
   }
 
 private:
+  int putImpl(const char *key, const char *val, size_t value_size, const std::string &guard_key = {}, int guard_fd = -1);
   void asyncWriteThread();
 
   std::string params_path;

@@ -89,6 +89,8 @@ class BackupManagerSP:
     """Creates and uploads a new backup to sunnylink."""
     try:
       self.backup_status = custom.BackupManagerSP.Status.inProgress
+      self.restore_status = custom.BackupManagerSP.Status.idle
+      self.last_error = ""
       self._update_progress(0.0, OperationType.BACKUP)
 
       # Collect configuration data
@@ -149,6 +151,8 @@ class BackupManagerSP:
     """Restores a backup from sunnylink."""
     try:
       self.restore_status = custom.BackupManagerSP.Status.inProgress
+      self.backup_status = custom.BackupManagerSP.Status.idle
+      self.last_error = ""
       self._update_progress(0.0, OperationType.RESTORE)
 
       # Get backup data from API for the specified version
@@ -196,6 +200,7 @@ class BackupManagerSP:
 
     restored_count = 0
     skipped_count = 0
+    failed_count = 0
 
     for param, encoded_value in config_data.items():
       if param.lower() in backupable_set_lower:
@@ -205,12 +210,15 @@ class BackupManagerSP:
           save_param_from_base64_encoded_string(real_param, encoded_value)
           restored_count += 1
         except Exception as e:
+          failed_count += 1
           cloudlog.error(f"Failed to restore param {param}: {str(e)}")
       else:
         skipped_count += 1
         cloudlog.info(f"Skipped restoring param {param}: not marked for backup in current version")
 
     cloudlog.info(f"Restore complete: {restored_count} params restored, {skipped_count} params skipped")
+    if failed_count:
+      raise ValueError(f"Failed to restore {failed_count} settings")
 
   def _get_current_version(self) -> custom.BackupManagerSP.Version:
     """Gets current sunnypilot version information."""
@@ -239,21 +247,12 @@ class BackupManagerSP:
   async def main_thread(self) -> None:
     """Main thread for backup management."""
     rk = Ratekeeper(1, print_delay_threshold=None)
-    reset_progress = False
-
     while True:
       try:
-        if reset_progress:
-          self.progress = 100.0
-          self.operation = None
-          self.restore_status = custom.BackupManagerSP.Status.idle
-          self.backup_status = custom.BackupManagerSP.Status.idle
-
         # Check for backup command
         if self.params.get_bool("BackupManager_CreateBackup"):
           try:
-            if await self.create_backup():
-              reset_progress = True
+            await self.create_backup()
           finally:
             self.params.remove("BackupManager_CreateBackup")
 
@@ -263,7 +262,6 @@ class BackupManagerSP:
           try:
             version = int(restore_version) if restore_version.isdigit() else None
             await self.restore_backup(version)
-            reset_progress = True
           finally:
             self.params.remove("BackupManager_RestoreVersion")
 

@@ -2,6 +2,7 @@
 
 #include <dirent.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <cassert>
@@ -29,6 +30,13 @@ int fsync_dir(const std::string &path) {
     HANDLE_EINTR(close(fd));
   }
   return result;
+}
+
+int compare_file(const std::string &path, int guard_fd) {
+  struct stat expected, current;
+  if (fstat(guard_fd, &expected) < 0) return -1;
+  if (stat(path.c_str(), &current) < 0) return errno == ENOENT ? 1 : -1;
+  return expected.st_dev == current.st_dev && expected.st_ino == current.st_ino ? 0 : 1;
 }
 
 bool create_params_path(const std::string &param_path, const std::string &key_path) {
@@ -78,14 +86,17 @@ class FileLock {
 public:
   FileLock(const std::string &fn) {
     fd_ = HANDLE_EINTR(open(fn.c_str(), O_CREAT, 0775));
-    if (fd_ < 0 || HANDLE_EINTR(flock(fd_, LOCK_EX)) < 0) {
+    locked_ = fd_ >= 0 && HANDLE_EINTR(flock(fd_, LOCK_EX)) == 0;
+    if (!locked_) {
       LOGE("Failed to lock file %s, errno=%d", fn.c_str(), errno);
     }
   }
   ~FileLock() { close(fd_); }
+  bool locked() const { return locked_; }
 
 private:
   int fd_ = -1;
+  bool locked_ = false;
 };
 
 } // namespace
@@ -130,6 +141,14 @@ std::optional<std::string> Params::getKeyDefaultValue(const std::string &key) {
 }
 
 int Params::put(const char* key, const char* value, size_t value_size) {
+  return putImpl(key, value, value_size);
+}
+
+int Params::putIfUnchanged(const std::string &key, const std::string &val, const std::string &guard_key, int guard_fd) {
+  return putImpl(key.c_str(), val.data(), val.size(), guard_key, guard_fd);
+}
+
+int Params::putImpl(const char* key, const char* value, size_t value_size, const std::string &guard_key, int guard_fd) {
   // Information about safely and atomically writing a file: https://lwn.net/Articles/457667/
   // 1) Create temp file
   // 2) Write data to temp file
@@ -154,6 +173,11 @@ int Params::put(const char* key, const char* value, size_t value_size) {
 
     FileLock file_lock(params_path + "/.lock");
 
+    if (!guard_key.empty()) {
+      if (!file_lock.locked()) { result = -1; break; }
+      if ((result = compare_file(getParamPath(guard_key), guard_fd)) != 0) break;
+    }
+
     // Move temp into place.
     if ((result = rename(tmp_path.c_str(), getParamPath(key).c_str())) < 0) break;
 
@@ -174,6 +198,15 @@ int Params::remove(const std::string &key) {
   if (result != 0) {
     return result;
   }
+  return fsync_dir(getParamPath());
+}
+
+int Params::removeIfUnchanged(const std::string &key, int guard_fd) {
+  FileLock file_lock(params_path + "/.lock");
+  if (!file_lock.locked()) return -1;
+  int result = compare_file(getParamPath(key), guard_fd);
+  if (result != 0) return result;
+  if (unlink(getParamPath(key).c_str()) < 0) return -1;
   return fsync_dir(getParamPath());
 }
 

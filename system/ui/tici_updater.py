@@ -7,6 +7,7 @@ from enum import IntEnum
 
 from openpilot.system.hardware import HARDWARE
 from openpilot.system.ui.lib.application import gui_app, FontWeight, FONT_SCALE
+from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.lib.wifi_manager import WifiManager
 from openpilot.system.ui.widgets import Widget
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
@@ -39,17 +40,17 @@ class Updater(Widget):
     self.current_screen = Screen.PROMPT
 
     self.progress_value = 0
-    self.progress_text = "Loading..."
+    self.progress_text = tr_noop("Loading...")
     self.show_reboot_button = False
     self.process = None
     self.update_thread = None
     self.wifi_manager_ui = WifiManagerUI(WifiManager())
 
     # Buttons
-    self._wifi_button = Button("Connect to Wi-Fi", click_callback=lambda: self.set_current_screen(Screen.WIFI))
-    self._install_button = Button("Install", click_callback=self.install_update, button_style=ButtonStyle.PRIMARY)
-    self._back_button = Button("Back", click_callback=lambda: self.set_current_screen(Screen.PROMPT))
-    self._reboot_button = Button("Reboot", click_callback=lambda: HARDWARE.reboot())
+    self._wifi_button = Button(tr("Connect to Wi-Fi"), click_callback=lambda: self.set_current_screen(Screen.WIFI))
+    self._install_button = Button(tr("Install"), click_callback=self.install_update, button_style=ButtonStyle.PRIMARY)
+    self._back_button = Button(tr("Back"), click_callback=lambda: self.set_current_screen(Screen.PROMPT))
+    self._reboot_button = Button(tr("Reboot"), click_callback=lambda: HARDWARE.reboot())
 
   def set_current_screen(self, screen: Screen):
     self.current_screen = screen
@@ -57,7 +58,7 @@ class Updater(Widget):
   def install_update(self):
     self.set_current_screen(Screen.PROGRESS)
     self.progress_value = 0
-    self.progress_text = "Downloading..."
+    self.progress_text = tr_noop("Downloading...")
     self.show_reboot_button = False
 
     # Start the update process in a separate thread
@@ -72,7 +73,7 @@ class Updater(Widget):
       self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                       text=True, bufsize=1, universal_newlines=True)
     except Exception:
-      self.progress_text = "Update failed"
+      self.progress_text = tr_noop("Update failed")
       self.show_reboot_button = True
       return
 
@@ -90,17 +91,17 @@ class Updater(Widget):
     if exit_code == 0:
       HARDWARE.reboot()
     else:
-      self.progress_text = "Update failed"
+      self.progress_text = tr_noop("Update failed")
       self.show_reboot_button = True
 
   def render_prompt_screen(self, rect: rl.Rectangle):
     # Title
     title_rect = rl.Rectangle(MARGIN + 50, 250, rect.width - MARGIN * 2 - 100, TITLE_FONT_SIZE * FONT_SCALE)
-    gui_label(title_rect, "Update Required", TITLE_FONT_SIZE, font_weight=FontWeight.BOLD)
+    gui_label(title_rect, tr("Update Required"), TITLE_FONT_SIZE, font_weight=FontWeight.BOLD)
 
     # Description
-    desc_text = ("An operating system update is required. Connect your device to Wi-Fi for the fastest update experience. " +
-                 "The download size is approximately 1GB.")
+    desc_text = (tr("An operating system update is required. Connect your device to Wi-Fi for the fastest update experience. " +
+                 "The download size is approximately 1GB."))
 
     desc_rect = rl.Rectangle(MARGIN + 50, 250 + TITLE_FONT_SIZE * FONT_SCALE + 75, rect.width - MARGIN * 2 - 100, BODY_FONT_SIZE * FONT_SCALE * 4)
     gui_text_box(desc_rect, desc_text, BODY_FONT_SIZE)
@@ -128,9 +129,14 @@ class Updater(Widget):
     back_button_rect = rl.Rectangle(MARGIN, rect.height - MARGIN - BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT)
     self._back_button.render(back_button_rect)
 
+  def translated_progress(self):
+    if self.progress_text.startswith('Installing '):
+      return tr('Installing {partition}').format(partition=self.progress_text[len('Installing '):])
+    return tr(self.progress_text)
+
   def render_progress_screen(self, rect: rl.Rectangle):
     title_rect = rl.Rectangle(MARGIN + 100, 330, rect.width - MARGIN * 2 - 200, 100)
-    gui_label(title_rect, self.progress_text, 90, font_weight=FontWeight.SEMI_BOLD)
+    gui_label(title_rect, self.translated_progress(), 90, font_weight=FontWeight.SEMI_BOLD)
 
     # Progress bar
     bar_rect = rl.Rectangle(MARGIN + 100, 330 + 100 + 100, rect.width - MARGIN * 2 - 200, PROGRESS_BAR_HEIGHT)

@@ -5,15 +5,14 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 import base64
+from urllib.parse import urlencode
 
 import pyray as rl
-from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.ui.mici.widgets.pairing_dialog import PairingDialog
 from openpilot.sunnypilot.sunnylink.api import SunnylinkApi, UNREGISTERED_SUNNYLINK_DONGLE_ID, API_HOST
-from openpilot.system.ui.lib.application import FontWeight, gui_app
+from openpilot.system.ui.lib.application import gui_app
 from openpilot.system.ui.lib.multilang import tr
 from openpilot.system.ui.widgets.nav_widget import NavWidget
-from openpilot.system.ui.widgets.label import UnifiedLabel
 
 
 class SunnylinkPairingDialog(PairingDialog):
@@ -22,27 +21,26 @@ class SunnylinkPairingDialog(PairingDialog):
   def __init__(self, sponsor_pairing: bool = False):
     PairingDialog.__init__(self)
     self._sponsor_pairing = sponsor_pairing
-    label_text = tr("pair with sunnylink") if sponsor_pairing else tr("become a sunnypilot sponsor")
-    self._pair_label = UnifiedLabel(label_text, font_size=48, font_weight=FontWeight.BOLD,
-                                    text_color=rl.Color(255, 255, 255, int(255 * 0.9)), line_height=0.8)
+    self._pair_label.set_text(lambda: (tr("PAIR") + "\nsunnylink") if self._sponsor_pairing else (tr("SPONSOR") + "\nsunnypilot"))
 
   def _get_pairing_url(self) -> str:
-    qr_string = "https://github.com/sponsors/sunnyhaibin"
+    if not self._sponsor_pairing:
+      return "https://github.com/sponsors/sunnyhaibin"
+    sl_dongle_id = self._params.get("SunnylinkDongleId")
+    if not sl_dongle_id or sl_dongle_id == UNREGISTERED_SUNNYLINK_DONGLE_ID:
+      raise ValueError("Device is not registered with sunnylink")
+    token = SunnylinkApi(sl_dongle_id).get_token()
+    if not isinstance(token, str) or not token.strip():
+      raise ValueError("Pairing token is unavailable")
+    payload = base64.b64encode(f"1|{sl_dongle_id}|{token}".encode()).decode()
+    return f"{API_HOST}/sso?{urlencode({'state': payload})}"
 
-    if self._sponsor_pairing:
-      try:
-        sl_dongle_id = self._params.get("SunnylinkDongleId") or UNREGISTERED_SUNNYLINK_DONGLE_ID
-        token = SunnylinkApi(sl_dongle_id).get_token()
-        inner_string = f"1|{sl_dongle_id}|{token}"
-        payload_bytes = base64.b64encode(inner_string.encode('utf-8')).decode('utf-8')
-        qr_string = f"{API_HOST}/sso?state={payload_bytes}"
-      except Exception:
-        cloudlog.exception("Failed to get pairing token")
-
-    return qr_string
+  def _pairing_identity(self) -> str | None:
+    return self._params.get("SunnylinkDongleId") if self._sponsor_pairing else None
 
   def _update_state(self):
-    NavWidget._update_state(self)
+    if self._pairing_open:
+      NavWidget._update_state(self)
 
 
 if __name__ == "__main__":

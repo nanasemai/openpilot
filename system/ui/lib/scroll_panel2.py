@@ -54,6 +54,7 @@ class GuiScrollPanel2:
     self._velocity = 0.0  # pixels per second
     self._velocity_buffer: deque[float] = deque(maxlen=12 if TICI else 6)
     self._enabled: bool | Callable[[], bool] = True
+    self._drag_in_update = False
 
   def set_enabled(self, enabled: bool | Callable[[], bool]) -> None:
     self._enabled = enabled
@@ -62,17 +63,20 @@ class GuiScrollPanel2:
   def enabled(self) -> bool:
     return self._enabled() if callable(self._enabled) else self._enabled
 
-  def update(self, bounds: rl.Rectangle, content_size: float, snap_target: float | None = None) -> float:
+  def update(self, bounds: rl.Rectangle, content_size: float, snap_target: float | Callable[[], float] | None = None) -> float:
     if DEBUG:
       print('Old state:', self._state)
 
     bounds_size = bounds.width if self._horizontal else bounds.height
 
+    self._drag_in_update = self._state == ScrollState.MANUAL_SCROLL
     for mouse_event in gui_app.mouse_events:
       self._handle_mouse_event(mouse_event, bounds, bounds_size, content_size)
+      self._drag_in_update = self._drag_in_update or self._state == ScrollState.MANUAL_SCROLL
       self._previous_mouse_event = mouse_event
 
-    self._update_state(bounds_size, content_size, snap_target)
+    # Resolve after this frame's touch batch so a swipe release snaps to the new page.
+    self._update_state(bounds_size, content_size, snap_target() if callable(snap_target) else snap_target)
 
     if DEBUG:
       print('Velocity:', self._velocity)
@@ -265,4 +269,4 @@ class GuiScrollPanel2:
 
   def is_touch_valid(self) -> bool:
     # MIN_VELOCITY_FOR_CLICKING is checked in auto-scroll state
-    return bool(self._state != ScrollState.MANUAL_SCROLL)
+    return not self._drag_in_update and self._state != ScrollState.MANUAL_SCROLL

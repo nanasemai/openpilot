@@ -6,6 +6,7 @@ See the LICENSE.md file in the root directory for more details.
 """
 import json
 import os
+from html import escape
 import pyray as rl
 from collections.abc import Callable
 from functools import partial
@@ -15,7 +16,7 @@ from openpilot.system.ui.lib.application import gui_app, FontWeight
 from openpilot.system.ui.lib.multilang import tr, tr_noop
 from openpilot.system.ui.widgets import DialogResult, Widget
 from openpilot.system.ui.widgets.button import Button, ButtonStyle
-from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog
+from openpilot.system.ui.widgets.confirm_dialog import ConfirmDialog, alert_dialog
 
 from openpilot.system.ui.sunnypilot.lib.styles import style
 from openpilot.system.ui.sunnypilot.widgets.tree_dialog import TreeOptionDialog, TreeNode, TreeFolder
@@ -60,8 +61,9 @@ class PlatformSelector(Button):
     super().__init__(tr("Vehicle"), self._on_clicked, button_style=ButtonStyle.NORMAL)
     self.set_rect(rl.Rectangle(0, 0, 0, 120))
 
-    with open(CAR_LIST_JSON_OUT) as car_list_json:
-      self._platforms = json.load(car_list_json)
+    self._platforms = {}
+    self._catalog_error = ""
+    self._load_platforms()
 
     self._on_platform_change = on_platform_change
     self.refresh()
@@ -75,35 +77,75 @@ class PlatformSelector(Button):
     self._rect.width = parent_rect.width
 
   def _on_clicked(self):
-    if ui_state.params.get("CarPlatformBundle"):
+    if (bundle := ui_state.params.get("CarPlatformBundle")) is not None:
+      name = bundle.get("name", "") if isinstance(bundle, dict) else ""
+      if not isinstance(name, str):
+        name = ""
+      text = tr("Remove the manually selected vehicle {vehicle} and return to automatic recognition?").format(vehicle=name or tr("Unknown"))
+      gui_app.push_widget(ConfirmDialog(text, tr("Remove"), callback=partial(self._confirm_remove, bundle)))
+    else:
+      self._show_platform_dialog()
+
+  def _confirm_remove(self, bundle, result):
+    if result == DialogResult.CONFIRM and self._selection_unchanged(bundle):
       ui_state.params.remove("CarPlatformBundle")
       self.refresh()
       if self._on_platform_change:
         self._on_platform_change()
-    else:
-      self._show_platform_dialog()
+
+  @staticmethod
+  def _selection_unchanged(bundle):
+    if ui_state.params.get("CarPlatformBundle") != bundle:
+      gui_app.push_widget(alert_dialog(tr("Vehicle selection changed. Reopen the vehicle settings and try again.")))
+      return False
+    return True
+
+  def _load_platforms(self):
+    try:
+      with open(CAR_LIST_JSON_OUT) as car_list_json:
+        platforms = json.load(car_list_json)
+      if not isinstance(platforms, dict) or not platforms:
+        raise ValueError("No vehicle entries")
+      for name, data in platforms.items():
+        if (not isinstance(name, str) or not name or not isinstance(data, dict) or
+            any(not isinstance(data.get(key), str) or not data[key] for key in ("platform", "brand", "make")) or
+            not isinstance(data.get("year", []), list) or
+            any(not isinstance(year, (str, int)) for year in data.get("year", []))):
+          raise ValueError("Invalid vehicle entry")
+      self._platforms, self._catalog_error = platforms, ""
+      return True
+    except (OSError, ValueError) as error:
+      self._platforms, self._catalog_error = {}, str(error)
+      return False
 
   def _set_platform(self, platform_name):
     if data := self._platforms.get(platform_name):
-      ui_state.params.put("CarPlatformBundle", {**data, "name": platform_name})
+      ui_state.params.put("CarPlatformBundle", {**data, "name": platform_name}, block=True)
       self.refresh()
       if self._on_platform_change:
         self._on_platform_change()
 
   def _on_platform_selected(self, dialog, res):
     if res == DialogResult.CONFIRM and dialog.selection_ref:
-      offroad_msg = tr("This setting will take effect immediately.") if ui_state.is_offroad else \
+      offroad_msg = tr("This setting will take effect immediately.") if ui_state.is_offroad() else \
                     tr("This setting will take effect once the device enters offroad state.")
 
-      callback = partial(self._confirm_platform, dialog.selection_ref)
-      confirm_dialog = ConfirmDialog(offroad_msg, tr("Confirm"), callback=callback)
+      callback = partial(self._confirm_platform, dialog.selection_ref, previous_bundle=ui_state.params.get("CarPlatformBundle"))
+      content = "<b>" + escape(dialog.selection_ref) + "</b><br><br>" + offroad_msg
+      confirm_dialog = ConfirmDialog(content, tr("Confirm"), callback=callback, rich=True)
       gui_app.push_widget(confirm_dialog)
 
-  def _confirm_platform(self, platform_name, res):
-    if res == DialogResult.CONFIRM:
+  def _confirm_platform(self, platform_name, res, previous_bundle=None):
+    if res == DialogResult.CONFIRM and self._selection_unchanged(previous_bundle):
+      if platform_name not in self._platforms:
+        gui_app.push_widget(alert_dialog(tr("This vehicle is no longer in the vehicle list. Search again before selecting it.")))
+        return
       self._set_platform(platform_name)
 
   def _show_platform_dialog(self):
+    if not self._load_platforms():
+      gui_app.push_widget(alert_dialog(tr("Unable to load the vehicle list. Check the installation and try again.") + "\n\n" + self._catalog_error))
+      return
     platforms = sorted(self._platforms.keys())
     makes = sorted({self._platforms[p].get('make') for p in platforms})
     folders = [TreeFolder(make, [TreeNode(p, {
@@ -111,7 +153,7 @@ class PlatformSelector(Button):
       'search_tags': f"{p} {self._platforms[p].get('make')} {' '.join(map(str, self._platforms[p].get('year', [])))} {self._platforms[p].get('model', p)}"
     }) for p in platforms if self._platforms[p].get('make') == make]) for make in makes]
     dialog = TreeOptionDialog(
-      tr("Select a vehicle"),
+      lambda: tr("Select a vehicle"),
       folders,
       search_title=tr_noop("Search your vehicle"),
       search_subtitle=tr_noop("Enter model year (e.g., 2021) and model (Toyota Corolla):"),
@@ -126,8 +168,10 @@ class PlatformSelector(Button):
     self._platform = tr("Unrecognized Vehicle")
     self.set_text(tr("No vehicle selected"))
 
-    if bundle := ui_state.params.get("CarPlatformBundle"):
-      self._platform = bundle.get("name", "")
+    if (bundle := ui_state.params.get("CarPlatformBundle")) is not None:
+      self._platform = bundle.get("name") if isinstance(bundle, dict) else None
+      if not isinstance(self._platform, str) or not self._platform:
+        self._platform = tr("Invalid manual vehicle selection")
       self.set_text(self._platform)
       self.color = style.BLUE
     elif ui_state.CP is not None and ui_state.CP.carFingerprint != "MOCK":

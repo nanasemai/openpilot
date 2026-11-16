@@ -8,7 +8,7 @@ from openpilot.common.realtime import Priority, config_realtime_process, set_cor
 from openpilot.system.ui.lib.application import gui_app
 from openpilot.selfdrive.ui.layouts.main import MainLayout
 from openpilot.selfdrive.ui.mici.layouts.main import MiciMainLayout
-from openpilot.selfdrive.ui.ui_state import ui_state
+from openpilot.selfdrive.ui.ui_state import device, ui_state
 
 BIG_UI = gui_app.big_ui()
 
@@ -19,6 +19,7 @@ def main():
   config_realtime_process(0, Priority.CTRL_HIGH)
 
   gui_app.init_window("UI")
+  gui_app.add_input_callback(device.handle_mouse_events)
   if BIG_UI:
     MainLayout()
   else:

@@ -5,9 +5,11 @@ import os
 from openpilot.common.basedir import BASEDIR
 from openpilot.system.ui.lib.multilang import SYSTEM_UI_DIR, UI_DIR, TRANSLATIONS_DIR, multilang
 from openpilot.selfdrive.ui.translations.potools import extract_strings, generate_pot, merge_po, init_po, POEntry
+from openpilot.system.timezone_list import TZ_LIST
 
 LANGUAGES_FILE = os.path.join(str(TRANSLATIONS_DIR), "languages.json")
 POT_FILE = os.path.join(str(TRANSLATIONS_DIR), "app.pot")
+MISSING_REPORT_FILE = os.path.join(str(TRANSLATIONS_DIR), "missing_translations.txt")
 
 
 def extract_json_strings(json_path: str) -> list[POEntry]:
@@ -15,7 +17,7 @@ def extract_json_strings(json_path: str) -> list[POEntry]:
   try:
     with open(json_path, encoding='utf-8') as f:
       data = json.load(f)
-    for key, value in data.items():
+    for _key, value in data.items():
       if isinstance(value, dict) and 'text' in value:
         text = value['text']
         if isinstance(text, str) and text:
@@ -27,6 +29,11 @@ def extract_json_strings(json_path: str) -> list[POEntry]:
   except (FileNotFoundError, json.JSONDecodeError):
     pass
   return entries
+
+
+def extract_timezone_strings() -> list[POEntry]:
+  # These identifiers are also system values; translating must never change TZ_LIST.
+  return [POEntry(msgid=timezone, source_refs=["system/timezone_list.py"]) for timezone in TZ_LIST]
 
 
 ALERT_CLASSES = {
@@ -91,23 +98,34 @@ def update_translations():
           files.append(rel_path)
 
   # Extract translatable strings from Python files
-  entries = extract_strings(files, BASEDIR)
+  # USB helpers retain English messages for CLI callers; the UI translates their templates.
+  files.append("system/usb_mount.py")
+  entries = extract_strings(files, BASEDIR, extra_markers=("UsbMessage",))
 
   # Extract translatable strings from alerts_offroad.json
   alerts_offroad_path = os.path.join(BASEDIR, "selfdrive", "selfdrived", "alerts_offroad.json")
   json_entries = extract_json_strings(alerts_offroad_path)
+  json_entries.extend(extract_json_strings(os.path.join(TRANSLATIONS_DIR, "map_regions.json")))
+  json_entries.extend(extract_timezone_strings())
 
-  # Extract translatable strings from events.py
-  events_path = os.path.join(BASEDIR, "selfdrive", "selfdrived", "events.py")
-  events_entries = extract_events_strings(events_path)
-
-  # Extract translatable strings from events_base.py
-  events_base_path = os.path.join(BASEDIR, "openpilot", "sunnypilot", "selfdrive", "selfdrived", "events_base.py")
-  events_base_entries = extract_events_strings(events_base_path)
+  # Extract translatable strings from all events.py / events_base.py files.
+  # Alert texts are bare string literals wrapped by the Alert base class at runtime
+  # (events_base.Alert.__init__ calls tr()), so they must be collected here explicitly.
+  # NOTE: sunnypilot/selfdrive/selfdrived/events.py holds fork-specific alerts (e.g. lane
+  # turn / speed limit alerts) and was previously missed, leaving those strings untranslated.
+  event_sources = [
+    os.path.join(BASEDIR, "selfdrive", "selfdrived", "events.py"),
+    os.path.join(BASEDIR, "sunnypilot", "selfdrive", "selfdrived", "events.py"),
+    os.path.join(BASEDIR, "sunnypilot", "selfdrive", "selfdrived", "events_base.py"),
+  ]
+  events_entries = []
+  for path in event_sources:
+    if os.path.exists(path):
+      events_entries.extend(extract_events_strings(path))
 
   # Merge entries, prefer Python entries for source refs
   entries_dict = {e.msgid: e for e in entries}
-  for je in json_entries + events_entries + events_base_entries:
+  for je in json_entries + events_entries:
     if je.msgid in entries_dict:
       if je.source_refs[0] not in entries_dict[je.msgid].source_refs:
         entries_dict[je.msgid].source_refs.append(je.source_refs[0])
@@ -126,5 +144,56 @@ def update_translations():
       init_po(POT_FILE, po_file, name)
 
 
+def _po_missing(po_file: str) -> list[POEntry]:
+  """Return entries in a .po file that have no translation yet (empty msgstr)."""
+  from openpilot.selfdrive.ui.translations.potools import parse_po
+  _, entries = parse_po(po_file)
+  missing = []
+  for e in entries:
+    if e.is_plural:
+      if not any(e.msgstr_plural.values()):
+        missing.append(e)
+    elif not e.msgstr:
+      missing.append(e)
+  return missing
+
+
+def generate_missing_report(report_path: str = MISSING_REPORT_FILE) -> int:
+  """Write a human-readable report of untranslated strings per language.
+
+  Compares each app_<lang>.po against its own entries and lists every msgid whose
+  translation is still empty. Makes it easy to spot what is missing after running
+  update_translations(). Returns the total number of missing entries across languages.
+  """
+  lines = []
+  total = 0
+  for name in sorted(multilang.languages.values()):
+    po_file = os.path.join(TRANSLATIONS_DIR, f"app_{name}.po")
+    if not os.path.exists(po_file):
+      continue
+    missing = _po_missing(po_file)
+    total += len(missing)
+    lines.append(f"===== {name}: {len(missing)} missing =====")
+    for e in missing:
+      ref = e.source_refs[0] if e.source_refs else "?"
+      msgid = e.msgid.replace("\n", "\\n")
+      lines.append(f"  [{ref}] {msgid!r}")
+    lines.append("")
+
+  header = f"# Missing translations report — {total} total across all languages\n\n"
+  with open(report_path, "w", encoding="utf-8") as f:
+    f.write(header + "\n".join(lines) + "\n")
+  print(f"Missing translations report written to {report_path} ({total} total)")
+  return total
+
+
 if __name__ == "__main__":
-  update_translations()
+  import argparse
+  parser = argparse.ArgumentParser(description="Update .po translation files and/or report missing strings")
+  parser.add_argument("--report", action="store_true",
+                      help="only generate the missing-translations report, without updating .po files")
+  args = parser.parse_args()
+
+  if not args.report:
+    update_translations()
+  generate_missing_report()

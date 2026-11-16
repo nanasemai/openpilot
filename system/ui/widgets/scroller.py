@@ -75,7 +75,6 @@ class _Scroller(Widget):
     self._items: list[Widget] = []
     self._horizontal = horizontal
     self._snap_items = snap_items
-    assert not self._snap_items or self._horizontal, "Snapping is only supported for horizontal scrolling"
     self._spacing = spacing
     self._pad = pad
 
@@ -188,12 +187,15 @@ class _Scroller(Widget):
     self.scroll_panel.set_enabled(scroll_enabled and self.enabled and not self._scrolling_to[1])
 
     # Snap closest item to center. Skipped while scroll_to() is animating
-    snap_target: float | None = None
+    snap_target: float | Callable[[], float] | None = None
     if self._snap_items and visible_items and self._scrolling_to[0] is None:
-      # TODO: this doesn't handle two small buttons at the edges well
-      center_pos = self._rect.x + self._rect.width / 2
-      closest_delta_pos = min((((item.rect.x + item.rect.width / 2) - center_pos) for item in visible_items), key=abs)
-      snap_target = self.scroll_panel.get_offset() - closest_delta_pos
+      def snap_target():
+        offset = self.scroll_panel.get_offset()
+        delta = offset - self._scroll_offset
+        center = self._rect.x + self._rect.width / 2 if self._horizontal else self._rect.y + self._rect.height / 2
+        nearest = min(((item.rect.x + item.rect.width / 2 if self._horizontal else item.rect.y + item.rect.height / 2)
+                       + delta - center for item in visible_items), key=abs)
+        return offset - nearest
 
     return self.scroll_panel.update(self._rect, content_size, snap_target=snap_target)
 

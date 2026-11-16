@@ -79,7 +79,7 @@ class TorqueSettingsLayout(Widget):
       min_value=1,
       max_value=500,
       value_change_step=1,
-      label_callback=(lambda x: f"{x/100} m/s^2"),
+      label_callback=(lambda x: f"{x / 100:.2f} m/s²"),
       use_float_scaling=True
     )
 
@@ -90,7 +90,7 @@ class TorqueSettingsLayout(Widget):
       min_value=1,
       max_value=100,
       value_change_step=1,
-      label_callback=(lambda x: f"{x/100}"),
+      label_callback=(lambda x: f"{x / 100:.2f}"),
       use_float_scaling=True
     )
 
@@ -164,28 +164,30 @@ class TorqueSettingsLayout(Widget):
     # Sort options by label in descending order
     sorted_labels = sorted(options_map.keys(), key=lambda k: options_map[k], reverse=True)
 
-    nodes = [TreeNode(tr("Default"))]
+    nodes = [TreeNode("Default")]
     for label in sorted_labels:
       nodes.append(TreeNode(label))
 
     folders = [TreeFolder("", nodes)]
 
     current_label = self._get_current_torque_version_label()
+    current_ref = "Default" if current_label == tr("Default") else current_label
 
     def handle_selection(result: int):
       if result == DialogResult.CONFIRM and self._torque_version_dialog:
         selected_ref = self._torque_version_dialog.selection_ref
-        if selected_ref == tr("Default"):
+        if selected_ref == "Default":
           ui_state.params.remove("TorqueControlTune")
         elif selected_ref in options_map:
-          ui_state.params.put("TorqueControlTune", options_map[selected_ref])
+          ui_state.params.put("TorqueControlTune", options_map[selected_ref], block=True)
       self._torque_version_dialog = None
 
     self._torque_version_dialog = TreeOptionDialog(
-      tr("Select Torque Control Tune Version"),
+      lambda: tr("Select Torque Control Tune Version"),
       folders,
-      current_ref=current_label,
+      current_ref=current_ref,
       option_font_weight=FontWeight.UNIFONT,
       on_exit=handle_selection,
+      display_func=lambda node: tr("Default") if node.ref == "Default" else node.ref,
     )
     gui_app.push_widget(self._torque_version_dialog)

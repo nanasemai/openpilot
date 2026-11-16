@@ -60,6 +60,9 @@ def manager_init() -> None:
     if default_value is not None and params.get(k) is None:
       params.put(k, default_value, block=True)
 
+  from openpilot.sunnypilot.speed_settings import ensure_speed_settings
+  ensure_speed_settings(params)
+
   # Create folders needed for msgq
   try:
     os.mkdir(Paths.shm_path())

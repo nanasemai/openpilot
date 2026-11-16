@@ -182,6 +182,7 @@ class CameraView(Widget):
     return self._stream_type
 
   def close(self) -> None:
+    ui_state.remove_offroad_transition_callback(self._offroad_transition)
     self._clear_textures()
 
     # Clean up EGL texture
@@ -197,6 +198,7 @@ class CameraView(Widget):
     self.frame = None
     self.available_streams.clear()
     self.client = None
+    self._target_client = None
 
   def __del__(self):
     self.close()
