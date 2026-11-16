@@ -249,7 +249,6 @@ static safety_config gm_init(uint16_t param) {
 
   // Camera integration with radar retention + OP longitudinal control
   // 摄像头集成+保留雷达+OP纵向控制
-  const uint16_t GM_PARAM_HW_CAM_INT_LONG = 16;
   if (GET_FLAG(param, GM_PARAM_HW_CAM_INT_LONG)) {
     gm_cam_long = true;
   }
