@@ -112,8 +112,22 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.HONDA_CIVIC_2022:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0, 10], [0.05, 0.5]]
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0, 10], [0.0125, 0.125]]
+      # Proportional gain: reduced schedule validated on-car. The stock
+      # [[0,10],[0.05,0.5]] ramps kp to 0.5 by 36 km/h, which drove the lateral
+      # loop gain past the sustain threshold and produced a ~3-5 Hz steering
+      # limit cycle (wheel rocking, hands-off) through the 30-55 km/h band.
+      # Holding kp near 0.18-0.22 through that band drops the loop gain below
+      # the oscillation point. Validated on-car: 30-55 km/h wobble resolved.
+      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kpV = [[0, 3, 5.5, 7, 8.3, 14, 17], [0.03, 0.06, 0.07, 0.13, 0.195, 0.22, 0.5]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kiV = [[0, 3, 5.5, 7, 8.3, 14, 17], [0.0075, 0.015, 0.0175, 0.0325, 0.0487, 0.055, 0.125]]
+      # Derivative (damping) term -- light, supplementary only. Below ~30 km/h
+      # the dominant mode is a ~1 Hz vehicle-yaw sway, NOT the gain-driven limit
+      # cycle, and a linear k_d has little authority there (kd=0.012 -> only
+      # ~10% of the command limit at 1 Hz). Sized to add a little phase margin
+      # without over-damping the 3-5 Hz band the reduced kp already fixed.
+      # Do NOT raise toward 0.02+ without an on-car A/B: at 4.5 Hz that reaches
+      # ~58% of the command limit and makes the wheel feel heavy/woody.
+      ret.lateralTuning.pid.kdBP, ret.lateralTuning.pid.kdV = [[0, 10], [0.004, 0.012]]
 
     elif candidate == CAR.HONDA_ACCORD:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end

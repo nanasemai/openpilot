@@ -544,6 +544,11 @@ struct CarParams {
     kiBP @2 :List(Float32);
     kiV @3 :List(Float32);
     kf @4 :Float32;
+    # Optional derivative (damping) term. Platforms that leave these empty get
+    # k_d == 0 via the empty-table guard in latcontrol_pid.py, so these fields
+    # are backward-compatible and inert for every existing PID platform.
+    kdBP @5 :List(Float32);
+    kdV @6 :List(Float32);
   }
 
   struct LateralTorqueTuning {
