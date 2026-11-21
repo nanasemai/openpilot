@@ -25,6 +25,8 @@ class TogglesLayoutMici(NavScroller):
     always_on_dm_toggle = BigParamControl(lambda: tr("always-on driver monitor"), "AlwaysOnDM")
     disable_driver_cam = BigParamControl(lambda: tr("disable driver monitoring camera"), "DisableDriverMonitoringCamera",
                                          toggle_callback=restart_needed_callback)
+    disable_camera_recording = BigParamControl(lambda: tr("disable camera recording to file"), "DisableCameraRecording",
+                                               toggle_callback=restart_needed_callback)
     dynamic_exp_toggle = BigParamControl(lambda: tr("dynamic experimental control"), "DynamicExperimentalControl")
     is_metric_toggle = BigParamControl(lambda: tr("use metric units"), "IsMetric")
     record_front = BigParamControl(lambda: tr("record & upload driver camera"), "RecordFront", toggle_callback=restart_needed_callback)
@@ -44,6 +46,7 @@ class TogglesLayoutMici(NavScroller):
       ldw_toggle,
       always_on_dm_toggle,
       disable_driver_cam,
+      disable_camera_recording,
       dynamic_exp_toggle,
       is_metric_toggle,
       record_front,
@@ -58,6 +61,7 @@ class TogglesLayoutMici(NavScroller):
       ("IsLdwEnabled", ldw_toggle),
       ("AlwaysOnDM", always_on_dm_toggle),
       ("DisableDriverMonitoringCamera", disable_driver_cam),
+      ("DisableCameraRecording", disable_camera_recording),
       ("DynamicExperimentalControl", dynamic_exp_toggle),
       ("IsMetric", is_metric_toggle),
       ("RecordFront", record_front),

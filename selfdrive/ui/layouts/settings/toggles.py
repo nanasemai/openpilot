@@ -42,6 +42,10 @@ DESCRIPTIONS = {
     "This stops the camera and driver monitoring processes to prevent errors caused by the broken hardware. " +
     "Warning: driver monitoring will not function while this is enabled."
   ),
+  "DisableCameraRecording": tr_noop(
+    "Do not save camera video files to disk. When enabled, no dashcam footage " +
+    "(road, wide road, or driver camera) is written to storage, while logs and other data continue to be recorded."
+  ),
   'RecordFront': tr_noop("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
   "IsMetric": tr_noop("Display speed in km/h instead of mph."),
   "RecordAudio": tr_noop("Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect."),
@@ -91,6 +95,14 @@ class TogglesLayout(Widget):
       "DisableDriverMonitoringCamera": (
         lambda: tr("Disable Driver Monitoring Camera"),
         DESCRIPTIONS["DisableDriverMonitoringCamera"],
+        "monitoring.png",
+        True,
+      ),
+      # 禁用摄像头录制到文件：开启后不保存任何摄像头视频文件到磁盘。
+      # needs_restart=True，因为录制标志在 loggerd 启动时读取。
+      "DisableCameraRecording": (
+        lambda: tr("Disable Camera Recording to File"),
+        DESCRIPTIONS["DisableCameraRecording"],
         "monitoring.png",
         True,
       ),

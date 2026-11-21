@@ -25,6 +25,9 @@ const auto MAIN_ENCODE_TYPE = Hardware::PC() ? cereal::EncodeIndex::Type::BIG_BO
 const bool LOGGERD_TEST = getenv("LOGGERD_TEST");
 const int SEGMENT_LENGTH = LOGGERD_TEST ? atoi(getenv("LOGGERD_SEGMENT_LENGTH")) : 60;
 
+// When enabled (default), camera video files are not written to disk.
+const bool CAMERA_RECORDING_DISABLED = Params().getBool("DisableCameraRecording");
+
 constexpr char PRESERVE_ATTR_NAME[] = "user.preserve";
 constexpr char PRESERVE_ATTR_VALUE = '1';
 
@@ -82,6 +85,7 @@ const EncoderInfo main_road_encoder_info = {
   .publish_name = "roadEncodeData",
   .thumbnail_name = "thumbnail",
   .filename = "fcamera.hevc",
+  .record = !CAMERA_RECORDING_DISABLED,
   .get_settings = [](int in_width){return EncoderSettings::MainEncoderSettings(in_width);},
   INIT_ENCODE_FUNCTIONS(RoadEncode),
 };
@@ -89,6 +93,7 @@ const EncoderInfo main_road_encoder_info = {
 const EncoderInfo main_wide_road_encoder_info = {
   .publish_name = "wideRoadEncodeData",
   .filename = "ecamera.hevc",
+  .record = !CAMERA_RECORDING_DISABLED,
   .get_settings = [](int in_width){return EncoderSettings::MainEncoderSettings(in_width);},
   INIT_ENCODE_FUNCTIONS(WideRoadEncode),
 };
@@ -96,7 +101,7 @@ const EncoderInfo main_wide_road_encoder_info = {
 const EncoderInfo main_driver_encoder_info = {
   .publish_name = "driverEncodeData",
   .filename = "dcamera.hevc",
-  .record = !getenv("DISABLE_DRIVER") && Params().getBool("RecordFront"),
+  .record = !getenv("DISABLE_DRIVER") && Params().getBool("RecordFront") && !CAMERA_RECORDING_DISABLED,
   .get_settings = [](int in_width){return EncoderSettings::MainEncoderSettings(in_width);},
   INIT_ENCODE_FUNCTIONS(DriverEncode),
 };
@@ -129,6 +134,7 @@ const EncoderInfo stream_driver_encoder_info = {
 const EncoderInfo qcam_encoder_info = {
   .publish_name = "qRoadEncodeData",
   .filename = "qcamera.ts",
+  .record = !CAMERA_RECORDING_DISABLED,
   .include_audio = Params().getBool("RecordAudio"),
   .frame_width = 526,
   .frame_height = 330,

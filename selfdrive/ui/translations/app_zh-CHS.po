@@ -775,6 +775,10 @@ msgid "Disable"
 msgstr "禁用"
 
 #: selfdrive/ui/layouts/settings/toggles.py
+msgid "Disable Camera Recording to File"
+msgstr "禁用摄像头录制到文件"
+
+#: selfdrive/ui/layouts/settings/toggles.py
 msgid "Disable Driver Monitoring Camera"
 msgstr "禁用驾驶监控摄像头"
 
@@ -4195,6 +4199,9 @@ msgid "disengage on accelerator pedal"
 msgstr "踩油门时断开 sunnypilot"
 
 #: selfdrive/ui/mici/layouts/settings/toggles.py
+msgid "disable camera recording to file"
+msgstr "禁用摄像头录制到文件"
+
 msgid "disable driver monitoring camera"
 msgstr "禁用驾驶监控摄像头"
 
